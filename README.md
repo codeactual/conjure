@@ -1,6 +1,6 @@
 # parapsych
 
-
+CasperJS parallel running, BDD flow, API wrappers
 
 [![Build Status](https://travis-ci.org/codeactual/parapsych.png)](https://travis-ci.org/codeactual/parapsych)
 

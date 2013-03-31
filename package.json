@@ -1,6 +1,6 @@
 {
   "name": "parapsych",
-  "description": "",
+  "description": "CasperJS parallel running, BDD flow, API wrappers",
   "version": "0.1.0",
   "main": "./dist/parapsych.js",
   "bin": "./bin/parapsych",

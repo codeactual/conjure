@@ -1,12 +1,14 @@
 {
   "name": "parapsych",
   "repo": "codeactual/parapsych",
-  "description": "",
+  "description": "CasperJS parallel running, BDD flow, API wrappers",
   "version": "0.1.0",
-  "keywords": [
-  ],
+  "keywords": [],
   "dependencies": {
-    "visionmedia/configurable.js": "f87ca5f"
+    "visionmedia/configurable.js": "f87ca5f",
+    "component/bind": "9a55368",
+    "codeactual/is": "0.1.3",
+    "component/each": "8b1f645"
   },
   "development": {
     "codeactual/sinon-doublist": "0.2.3",
