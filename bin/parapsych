@@ -1,0 +1,38 @@
+#!/usr/bin/env node
+/**
+ * 
+ *
+ * Licensed under MIT.
+ * Copyright (c) 2013 David Smith <https://github.com/codeactual/>
+ */
+
+var util = require('util');
+var cli = require('commander');
+var Parapsych = require(__dirname + '/../dist/parapsych').Parapsych;
+
+cli
+  .option('-s, --something <something>', 'description', String, 'default')
+  .parse(process.argv);
+
+var parapsych = new Parapsych();
+parapsych
+  .set('something', cli.something)
+  .set('nativeRequire', require)
+  .init();
+
+function abort(msg, code) {
+  util.error(msg);
+  process.exit(typeof code === 'undefined' ? 1 : code);
+}
+
+function abortOnErrorResult(res) {
+  if (res.code !== 0) { abort(res.output, res.code); }
+}
+
+var requiredParams = ['something'];
+requiredParams.forEach(function(param) {
+  if (!cli[param]) { abort('--' + param + ' required'); }
+});
+
+abortOnErrorResult(parapsych.someMethod());
+
