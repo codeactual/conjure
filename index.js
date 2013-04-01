@@ -12,6 +12,7 @@
 module.exports = {
   Parapsych: Parapsych,
   TestContext: TestContext,
+  create: create,
   require: require // Allow tests to use component-land require.
 };
 
@@ -23,41 +24,36 @@ var sprintf;
 var shelljs;
 var defShellOpt = {silent: true};
 
-/**
- *
- */
-function Parapsych() {
-  this.settings = {
-    testContext: {}
-  };
-}
-
-configurable(Parapsych.prototype);
-
-Parapsych.prototype.set = function() {
-  this.testContext.set.apply(this.testContext, arguments);
-};
-Parapsych.prototype.get = function() {
-  this.testContext.get.apply(this.testContext, arguments);
-};
-
-/**
- * Apply collected configuration.
- */
-Parapsych.prototype.create = function() {
+function create(require) {
   var testContext = new TestContext();
-
+  var p = new Parapsych(testContext);
+  p.set('nativeRequire', require);
   window.casper = testContext.casper;
   window.describe = bind(testContext, testContext.describe);
   window.it = bind(testContext, testContext.it);
+  return p;
+}
 
-  this.set('testContext', testContext);
+/**
+ *
+ */
+function Parapsych(testContext) {
+  this.testContext = testContext;
+}
 
-  return testContext;
+Parapsych.prototype.set = function() {
+  this.testContext.set.apply(this.testContext, arguments);
+  return this;
+};
+Parapsych.prototype.get = function() {
+  return this.testContext.get.apply(this.testContext, arguments);
 };
 
+/**
+ * End the test run.
+ */
 Parapsych.prototype.done = function() {
-  return this.get('testContext').done();
+  return this.testContext.done();
 };
 
 /**
@@ -65,8 +61,10 @@ Parapsych.prototype.done = function() {
  */
 function TestContext() {
   this.settings = {
+    started: false,
     initSel: 'body',
     baseSel: '',
+    nativeRequire: {},
     rootDir: '',
     serverProto: 'http',
     serverHost: 'localhost',
@@ -84,7 +82,10 @@ configurable(TestContext.prototype);
 /**
  * Apply collected configuration.
  */
-TestContext.prototype.init = function() {
+TestContext.prototype.start = function(cb) {
+  console.log('starting');
+  this.set('started', true);
+
   var self = this;
 
   var cli = this.get('cli');
@@ -94,7 +95,7 @@ TestContext.prototype.init = function() {
     this.set('grep', new RegExp(cli.args.join(' ')));
   }
 
-  this.casper = require('casper').create({
+  this.casper = this.get('nativeRequire')('casper').create({
     exitOnError: true,
     logLevel: 'debug',
     pageSettings: {
@@ -122,11 +123,13 @@ TestContext.prototype.init = function() {
     this.casper.test.info('INIT SELECTOR: ' + baseSel);
   }
 
+  console.log('init url', this.url(initUrl));
   this.casper.start(this.url(initUrl));
   this.casper.then(function(response) {
     self.response = response;
     self.casper.waitForSelector(initSel);
   });
+  this.casper.then(cb);
 };
 
 TestContext.prototype.url = function(relUrl) {
@@ -137,6 +140,7 @@ TestContext.prototype.url = function(relUrl) {
 };
 
 TestContext.prototype.openInitUrl = function() {
+  console.log('opening', this.url(this.get('initUrl')));
   this.casper.thenOpen(this.url(this.get('initUrl')));
 };
 
@@ -182,12 +186,17 @@ TestContext.prototype.forEach = function(list, cb) {
 
 TestContext.prototype.describe = function(desc, cb) {
   var self = this;
-  this.casper.then(function() {
-    self.casper.test.info('  ' + desc);
-    self.depth.push(desc);
-    cb.call(self);
-  });
-  this.casper.then(function() { self.depth.pop(); });
+
+  if (this.get('started')) {
+    this.casper.then(function() {
+      self.casper.test.info('  ' + desc);
+      self.depth.push(desc);
+      cb.call(self);
+    });
+    this.casper.then(function() { self.depth.pop(); });
+  } else {
+    this.start(cb);
+  }
 };
 
 TestContext.prototype.it = function(desc, cb, wrap) {
@@ -230,7 +239,7 @@ TestContext.prototype.andThen = function(cb) {
     var then = this;
     var keys = Object.keys(self).concat(Object.keys(TestContext.prototype));
     each(keys, function(key) {
-      if (typeof this[key] === 'undefined') {
+      if (typeof self[key] === 'undefined') {
         if (is.Function(self[key])) {
           then[key] = bind(self, self[key]);
         } else {

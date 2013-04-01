@@ -53,10 +53,10 @@ module.exports = function(grunt) {
         failOnError: true
       },
       build: {
-        command: 'component install --dev && component build --standalone Parapsych --name parapsych --out dist --dev'
+        command: 'component install --dev && component build --standalone parapsych --name parapsych --out dist --dev'
       },
       dist: {
-        command: 'component build --standalone Parapsych --name parapsych --out dist'
+        command: 'component build --standalone parapsych --name parapsych --out dist'
       },
       shrinkwrap: {
         command: 'npm shrinkwrap'

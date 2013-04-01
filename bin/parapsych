@@ -19,6 +19,7 @@ input
   .parse(process.argv);
 
 killLastPid(); // In case last session exited ungracefully.
+startTestServer();
 spawnOneCasperPerFile();
 process.on('exit', function() {
   console.log('exiting');
@@ -27,6 +28,7 @@ process.on('exit', function() {
 
 function startTestServer() {
   shelljs._('exec', input.server, {async: true, silent: true});
+  //require('child_process').fork(input.server);
 }
 
 /**
@@ -35,6 +37,7 @@ function startTestServer() {
  * Organize their concurrent output by script, exit w/ non-zero on any error, etc.
  */
 function spawnOneCasperPerFile() {
+  console.log('spawnOneCasperPerFile');
   var path = require('path');
   var spawn = require('child_process').spawn;
 
@@ -60,7 +63,7 @@ function spawnOneCasperPerFile() {
 
     var casper = spawn(
       'casperjs',
-      [test].concat(['--rootdir', input.root])
+      [test].concat('--rootdir=' + input.root)
     );
     var formatData = function(data) {
       return label + ': ' + data.toString().trim();
@@ -77,7 +80,7 @@ function spawnOneCasperPerFile() {
     casper.on('exit', function (code) {
       // Skip output when --grep excluded a file's entire suite.
       if (!noTestsRan || !input.grep) {
-        _.each(output[label], function(log) {
+        each(output[label], function(log) {
           if (log.err) {
             console.error(formatData(log.data));
           } else {
@@ -97,6 +100,10 @@ function spawnOneCasperPerFile() {
     batch.push(function(taskDone) {
       spawnOne(test, taskDone);
     });
+  });
+
+  batch.end(function() {
+    console.log('batch done');
   });
 }
 

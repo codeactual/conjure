@@ -1,15 +1,10 @@
 #!/usr/bin/env node
 
-var input = require('commander');
-
-input
-  .option('-h, --host [name]', '', String)
-  .option('-p, --port <num>', '', String, '8174')
-  .option('-P, --pid <file>', '', String)
-  .parse(process.argv);
-
 var express = require('express');
 var app = express();
+
+var pid = '/tmp/parapsyc-test-server.pid';
+var port = 8174;
 
 app.get('/', function(req, res){
   var body = '<html><body>Hello World</body></html>';
@@ -18,8 +13,6 @@ app.get('/', function(req, res){
   res.end(body);
 });
 
-if (input.pid) {
-  require('fs').writeFileSync(input.pid, process.pid);
-}
+require('fs').writeFileSync(pid, process.pid);
 
-app.listen(input.port, input.host);
+app.listen(port);

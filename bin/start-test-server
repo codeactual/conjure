@@ -1,9 +1,0 @@
-#!/usr/bin/env node
-
-var shelljs = require('shelljs');
-var sprintf = require('util').format;
-
-shelljs.exec(sprintf(
-  '%s --host %s --port %d --pid %s',
-  input.host, input.port, input.pid
-));
