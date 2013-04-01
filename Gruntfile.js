@@ -62,10 +62,14 @@ module.exports = function(grunt) {
         command: 'npm shrinkwrap'
       },
       test_bin: {
+        options: {
+          stdout: true,
+          stderr: true
+        },
         command:
           'bin/parapsych ' +
-          '--server bin/start-test-server ' +
-          '--pid /tmp/parapsych.test.pid ' +
+          '--server bin/test-server ' +
+          '--pid /tmp/parapsych-test-server.pid ' +
           '--root ' + __dirname + ' ' +
           '--file bin.js ' +
           '--grep "should pass"'
