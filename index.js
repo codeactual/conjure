@@ -83,7 +83,6 @@ configurable(TestContext.prototype);
  * Apply collected configuration.
  */
 TestContext.prototype.start = function(cb) {
-  console.log('starting');
   this.set('started', true);
 
   var self = this;
@@ -123,7 +122,6 @@ TestContext.prototype.start = function(cb) {
     this.casper.test.info('INIT SELECTOR: ' + baseSel);
   }
 
-  console.log('init url', this.url(initUrl));
   this.casper.start(this.url(initUrl));
   this.casper.then(function(response) {
     self.response = response;
@@ -140,7 +138,6 @@ TestContext.prototype.url = function(relUrl) {
 };
 
 TestContext.prototype.openInitUrl = function() {
-  console.log('opening', this.url(this.get('initUrl')));
   this.casper.thenOpen(this.url(this.get('initUrl')));
 };
 

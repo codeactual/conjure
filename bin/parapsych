@@ -15,14 +15,13 @@ input
   .option('-r, --root <dir>', 'Project root directory [cwd]', String, process.cwd())
   .option('-t, --test <dir>', 'Test directory, relative to root [test]', String, 'test')
   .option('-f, --file <regex>', 'Test file regex filter [.js]', String, '/\\.js$')
-  .option('-g, --grep <pattern>', 'Test case regex filter [none]', String)
+  .option('-g, --grep', 'Test case regex filter [none]', String)
   .parse(process.argv);
 
 killLastPid(); // In case last session exited ungracefully.
 startTestServer();
 spawnOneCasperPerFile();
 process.on('exit', function() {
-  console.log('exiting');
   killLastPid();
 });
 
@@ -37,7 +36,6 @@ function startTestServer() {
  * Organize their concurrent output by script, exit w/ non-zero on any error, etc.
  */
 function spawnOneCasperPerFile() {
-  console.log('spawnOneCasperPerFile');
   var path = require('path');
   var spawn = require('child_process').spawn;
 
@@ -55,6 +53,12 @@ function spawnOneCasperPerFile() {
 
   var output = {};
 
+  var commonArgs = [];
+  if (input.grep) {
+    commonArgs.push('--grep');
+    commonArgs = commonArgs.concat(input.args);
+  }
+
   function spawnOne(test, done) {
     var label = test.replace(testDir, '');
     output[label] = [];
@@ -63,7 +67,7 @@ function spawnOneCasperPerFile() {
 
     var casper = spawn(
       'casperjs',
-      [test].concat('--rootdir=' + input.root)
+      [test].concat('--rootdir=' + input.root, commonArgs)
     );
     var formatData = function(data) {
       return label + ': ' + data.toString().trim();

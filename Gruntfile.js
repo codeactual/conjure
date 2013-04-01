@@ -72,7 +72,7 @@ module.exports = function(grunt) {
           '--pid /tmp/parapsych-test-server.pid ' +
           '--root ' + __dirname + ' ' +
           '--file bin.js ' +
-          '--grep "should pass"'
+          '--grep should pass'
       }
     }
   });
