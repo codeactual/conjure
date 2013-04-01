@@ -27,7 +27,7 @@ module.exports = function(grunt) {
           expr: true
         },
         files: {
-          src: ['test.js']
+          src: ['test/*.js']
         }
       },
       json: {
@@ -60,6 +60,15 @@ module.exports = function(grunt) {
       },
       shrinkwrap: {
         command: 'npm shrinkwrap'
+      },
+      test_bin: {
+        command:
+          'bin/parapsych ' +
+          '--server bin/start-test-server ' +
+          '--pid /tmp/parapsych.test.pid ' +
+          '--root ' + __dirname + ' ' +
+          '--file bin.js ' +
+          '--grep "should pass"'
       }
     }
   });
@@ -67,4 +76,5 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['jshint', 'shell:shrinkwrap']);
   grunt.registerTask('build', ['shell:build']);
   grunt.registerTask('dist', ['shell:dist', 'uglify:dist']);
+  grunt.registerTask('test_bin', ['build', 'shell:test_bin']);
 };

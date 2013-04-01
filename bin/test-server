@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+
+var input = require('commander');
+
+input
+  .option('-h, --host [name]', '', String)
+  .option('-p, --port <num>', '', String, '8174')
+  .option('-P, --pid <file>', '', String)
+  .parse(process.argv);
+
+var express = require('express');
+var app = express();
+
+app.get('/', function(req, res){
+  var body = '<html><body>Hello World</body></html>';
+  res.setHeader('Content-Type', 'text/html');
+  res.setHeader('Content-Length', body.length);
+  res.end(body);
+});
+
+if (input.pid) {
+  require('fs').writeFileSync(input.pid, process.pid);
+}
+
+app.listen(input.port, input.host);
