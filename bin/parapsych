@@ -4,8 +4,7 @@ var requireComponent = require('../dist/parapsych').require;
 var input = require('commander');
 var Batch = requireComponent('batch');
 var each = requireComponent('each');
-var OuterShelljs = requireComponent('outer-shelljs').OuterShelljs;
-var shelljs = new OuterShelljs(require('shelljs'));
+var shelljs = requireComponent('outer-shelljs').create(require('shelljs'));
 
 var defShellOpt = {silent: true};
 

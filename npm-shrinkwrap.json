@@ -192,11 +192,6 @@
       "from": "https://registry.npmjs.org/shelljs/-/shelljs-0.1.2.tgz",
       "resolved": "https://registry.npmjs.org/shelljs/-/shelljs-0.1.2.tgz"
     },
-    "chai": {
-      "version": "1.5.0",
-      "from": "chai@1.5.0",
-      "resolved": "https://registry.npmjs.org/chai/-/chai-1.5.0.tgz"
-    },
     "grunt-shell": {
       "version": "0.2.1",
       "from": "grunt-shell@0.2.1",
@@ -206,6 +201,79 @@
       "version": "2.3.1",
       "from": "sinon-chai@2.3.1",
       "resolved": "https://registry.npmjs.org/sinon-chai/-/sinon-chai-2.3.1.tgz"
+    },
+    "chai": {
+      "version": "1.5.0",
+      "from": "chai@1.5.0",
+      "resolved": "https://registry.npmjs.org/chai/-/chai-1.5.0.tgz"
+    },
+    "mocha": {
+      "version": "1.8.2",
+      "from": "mocha@1.8.2",
+      "resolved": "https://registry.npmjs.org/mocha/-/mocha-1.8.2.tgz",
+      "dependencies": {
+        "commander": {
+          "version": "0.6.1",
+          "from": "commander@0.6.1",
+          "resolved": "https://registry.npmjs.org/commander/-/commander-0.6.1.tgz"
+        },
+        "growl": {
+          "version": "1.7.0",
+          "from": "growl@1.7.0",
+          "resolved": "https://registry.npmjs.org/growl/-/growl-1.7.0.tgz"
+        },
+        "jade": {
+          "version": "0.26.3",
+          "from": "jade@0.26.3",
+          "resolved": "https://registry.npmjs.org/jade/-/jade-0.26.3.tgz",
+          "dependencies": {
+            "mkdirp": {
+              "version": "0.3.0",
+              "from": "https://registry.npmjs.org/mkdirp/-/mkdirp-0.3.0.tgz",
+              "resolved": "https://registry.npmjs.org/mkdirp/-/mkdirp-0.3.0.tgz"
+            }
+          }
+        },
+        "diff": {
+          "version": "1.0.2",
+          "from": "diff@1.0.2",
+          "resolved": "https://registry.npmjs.org/diff/-/diff-1.0.2.tgz"
+        },
+        "debug": {
+          "version": "0.7.2",
+          "from": "debug@0.7.2",
+          "resolved": "https://registry.npmjs.org/debug/-/debug-0.7.2.tgz"
+        },
+        "mkdirp": {
+          "version": "0.3.3",
+          "from": "mkdirp@0.3.3",
+          "resolved": "https://registry.npmjs.org/mkdirp/-/mkdirp-0.3.3.tgz"
+        },
+        "ms": {
+          "version": "0.3.0",
+          "from": "ms@0.3.0",
+          "resolved": "https://registry.npmjs.org/ms/-/ms-0.3.0.tgz"
+        }
+      }
+    },
+    "sinon": {
+      "version": "1.6.0",
+      "from": "sinon@1.6.0",
+      "resolved": "https://registry.npmjs.org/sinon/-/sinon-1.6.0.tgz",
+      "dependencies": {
+        "buster-format": {
+          "version": "0.5.5",
+          "from": "buster-format@0.5.5",
+          "resolved": "https://registry.npmjs.org/buster-format/-/buster-format-0.5.5.tgz",
+          "dependencies": {
+            "buster-core": {
+              "version": "0.6.4",
+              "from": "buster-core@0.6.4",
+              "resolved": "https://registry.npmjs.org/buster-core/-/buster-core-0.6.4.tgz"
+            }
+          }
+        }
+      }
     },
     "express": {
       "version": "3.1.0",
@@ -291,74 +359,6 @@
         "debug": {
           "version": "0.7.2",
           "from": "debug@*"
-        }
-      }
-    },
-    "mocha": {
-      "version": "1.8.2",
-      "from": "mocha@1.8.2",
-      "resolved": "https://registry.npmjs.org/mocha/-/mocha-1.8.2.tgz",
-      "dependencies": {
-        "commander": {
-          "version": "0.6.1",
-          "from": "commander@0.6.1",
-          "resolved": "https://registry.npmjs.org/commander/-/commander-0.6.1.tgz"
-        },
-        "growl": {
-          "version": "1.7.0",
-          "from": "growl@1.7.0",
-          "resolved": "https://registry.npmjs.org/growl/-/growl-1.7.0.tgz"
-        },
-        "jade": {
-          "version": "0.26.3",
-          "from": "jade@0.26.3",
-          "resolved": "https://registry.npmjs.org/jade/-/jade-0.26.3.tgz",
-          "dependencies": {
-            "mkdirp": {
-              "version": "0.3.0",
-              "from": "https://registry.npmjs.org/mkdirp/-/mkdirp-0.3.0.tgz",
-              "resolved": "https://registry.npmjs.org/mkdirp/-/mkdirp-0.3.0.tgz"
-            }
-          }
-        },
-        "diff": {
-          "version": "1.0.2",
-          "from": "diff@1.0.2",
-          "resolved": "https://registry.npmjs.org/diff/-/diff-1.0.2.tgz"
-        },
-        "debug": {
-          "version": "0.7.2",
-          "from": "debug@0.7.2",
-          "resolved": "https://registry.npmjs.org/debug/-/debug-0.7.2.tgz"
-        },
-        "mkdirp": {
-          "version": "0.3.3",
-          "from": "mkdirp@0.3.3",
-          "resolved": "https://registry.npmjs.org/mkdirp/-/mkdirp-0.3.3.tgz"
-        },
-        "ms": {
-          "version": "0.3.0",
-          "from": "ms@0.3.0",
-          "resolved": "https://registry.npmjs.org/ms/-/ms-0.3.0.tgz"
-        }
-      }
-    },
-    "sinon": {
-      "version": "1.6.0",
-      "from": "sinon@1.6.0",
-      "resolved": "https://registry.npmjs.org/sinon/-/sinon-1.6.0.tgz",
-      "dependencies": {
-        "buster-format": {
-          "version": "0.5.5",
-          "from": "buster-format@0.5.5",
-          "resolved": "https://registry.npmjs.org/buster-format/-/buster-format-0.5.5.tgz",
-          "dependencies": {
-            "buster-core": {
-              "version": "0.6.4",
-              "from": "buster-core@0.6.4",
-              "resolved": "https://registry.npmjs.org/buster-core/-/buster-core-0.6.4.tgz"
-            }
-          }
         }
       }
     },
