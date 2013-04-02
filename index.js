@@ -281,14 +281,14 @@ baseMixin.assertSelText = function(sel, text, message) {
 mixin(baseMixin);
 
 /*
- * Mix the given hash's functions into baseMixin.
+ * Mix the given function set into TestContext's prototype.
  *
  * @param {object} ext
  */
 function mixin(ext) {
-  each(ext, function(key, val) {
-    if (is.Function(val)) {
-      TestContext.prototype[key] = val;
+  Object.keys(ext).forEach(function(key) {
+    if (typeof ext[key] === 'function') {
+      TestContext.prototype[key] = ext[key];
     }
   });
 }

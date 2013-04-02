@@ -600,9 +600,9 @@
         };
         mixin(baseMixin);
         function mixin(ext) {
-            each(ext, function(key, val) {
-                if (is.Function(val)) {
-                    TestContext.prototype[key] = val;
+            Object.keys(ext).forEach(function(key) {
+                if (typeof ext[key] === "function") {
+                    TestContext.prototype[key] = ext[key];
                 }
             });
         }
