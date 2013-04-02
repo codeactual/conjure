@@ -23,27 +23,30 @@ var is = require('is');
 
 /**
  * Allow test scripts to easily create common-case Parapsych instances.
+ *
+ * @param {function} require CasperJS-env require()
  */
 function create(require) {
-  var p = new Parapsych();
-  return p.set('nativeRequire', require);
+  return new Parapsych(require);
 }
 
 /**
  * Add BDD globals and init configuration.
+ *
+ * @param {function} require CasperJS-env require()
  */
-function Parapsych() {
+function Parapsych(require) {
   this.settings = {
     started: false,             // 1st describe() processed
     initSel: 'body',            // 1st selector to wait for
-    nativeRequire: {},
-    rootDir: '',
-    serverProto: 'http',
-    serverHost: 'localhost',
-    serverPort: '8174',
-    grep: /.?/,
-    cli: {}, // CasperJS-provided CLI interface
-    casperConfig: {
+    casperRequire: require,     // CasperJS-env require()
+    rootDir: '',                // from `parapsych` --rootdir
+    serverProto: 'http',        // for url()
+    serverHost: 'localhost',    // for url()
+    serverPort: '8174',         // for url()
+    grep: /.?/,                 // from `parapsych` --grep
+    cli: {},                    // Native CasperJS CLI interface
+    casperConfig: {             // Directly passed to CasperJS create()
       exitOnError: true,
       logLevel: 'debug',
       pageSettings: {
@@ -74,16 +77,16 @@ function Parapsych() {
 configurable(Parapsych.prototype);
 
 /**
- * Apply collected configuration.
+ * Last-minute init triggered by 1st describe().
+ *
+ * @param {string} desc From 1st describe().
+ * @param {function} cb From 1st describe().
  */
 Parapsych.prototype.start = function(desc, cb) {
-  this.set('started', true);
-
   var self = this;
-
   var cli = this.get('cli');
 
-  // Ex. bin/casper --grep foo bar baz -> /foo bar baz/
+  // Convert `bin/parapsych --grep foo bar baz` to /foo bar baz/
   if (cli.options.grep) {
     this.set('grep', new RegExp(cli.args.join(' ')));
   }
@@ -111,6 +114,8 @@ Parapsych.prototype.start = function(desc, cb) {
     self.casper.waitForSelector(initSel);
   });
   this.casper.then(cb);
+
+  this.set('started', true);
 };
 
 Parapsych.prototype.describe = function(desc, cb) {
@@ -166,7 +171,7 @@ Parapsych.prototype.done = function() {
 var baseMixin = {};
 
 baseMixin.require = function(name) {
-  var require = this.get('nativeRequire');
+  var require = this.get('casperRequire');
   var relPathRe = /^\.\//;
   if (relPathRe.test(name)) {
     return require(this.get('rootDir') + '/' + name.replace(relPathRe, ''));
