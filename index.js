@@ -66,8 +66,11 @@ Parapsych.prototype.start = function(desc, cb) {
   if (cli.options.grep) {
     this.set('grep', new RegExp(cli.args.join(' ')));
   }
+  if (cli.options.rootdir) {
+    this.set('rootDir', cli.options.rootdir);
+  }
 
-  this.casper = this.get('nativeRequire')('casper').create({
+  this.casper = this.require('casper').create({
     exitOnError: true,
     logLevel: 'debug',
     pageSettings: {
@@ -159,6 +162,15 @@ Parapsych.prototype.done = function() {
 };
 
 var baseMixin = {};
+
+baseMixin.require = function(name) {
+  var require = this.get('nativeRequire');
+  var relPathRe = /^\.\//;
+  if (relPathRe.test(name)) {
+    return require(this.get('rootDir') + '/' + name.replace(relPathRe, ''));
+  }
+  return require(name);
+};
 
 /**
 * Alternative to waitForSelector() to use jQuery selector support,
