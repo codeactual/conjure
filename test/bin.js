@@ -3,10 +3,7 @@
 
   var cli = require('casper').create().cli;
   var parapsych = require(cli.raw.get('rootdir') + '/dist/parapsych').create(require);
-
-  parapsych.set('cli', cli)
-    .set('initUrl', '/')
-    .set('initSel', 'body');
+  parapsych.set('cli', cli).set('initUrl', '/').set('initSel', 'body');
 
   describe('group 1', function() {
     it('should pass --grep filter' , function() {
@@ -28,5 +25,5 @@
     });
   });
 
-  parapsych.done();
+  parapsych.run();
 })();
