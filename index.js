@@ -167,10 +167,6 @@ Parapsych.prototype.url = function(relUrl) {
   return this.get('baseUrl') + relUrl;
 };
 
-Parapsych.prototype.openInitUrl = function() {
-  this.casper.thenOpen(this.url(this.get('initUrl')));
-};
-
 Parapsych.prototype.done = function() {
   this.casper.run(function() {
     this.test.renderResults(true);
@@ -178,6 +174,10 @@ Parapsych.prototype.done = function() {
 };
 
 var baseMixin = {};
+
+baseMixin.openInitUrl = function() {
+  this.casper.thenOpen(this.url(this.get('initUrl')));
+};
 
 baseMixin.require = function(name) {
   var require = this.get('casperRequire');
