@@ -13,6 +13,7 @@ module.exports = {
   Parapsych: Parapsych,
   TestContext: TestContext,
   create: create,
+  mixin: mixin,
   require: require // Allow tests to use component-land require.
 };
 
@@ -133,57 +134,6 @@ TestContext.prototype.start = function(desc, cb) {
   this.casper.then(cb);
 };
 
-TestContext.prototype.url = function(relUrl) {
-  return this.get('serverProto') +
-    '://' + this.get('serverHost') +
-    ':' + this.get('serverPort') +
-    relUrl;
-};
-
-TestContext.prototype.openInitUrl = function() {
-  this.casper.thenOpen(this.url(this.get('initUrl')));
-};
-
-TestContext.prototype.done = function() {
-  this.casper.run(function() {
-    this.test.renderResults(true);
-  });
-};
-
-/**
-* Alternative to waitForSelector() to use jQuery selector support,
-* ex. ':first' syntax.
-*/
-TestContext.prototype.selectorExists = function(sel, negate) {
-  var self = this;
-  this.casper.waitFor(function selectorExistsWaitFor() {
-    return this.evaluate(function selectorExistsEvaluate(sel, count) {
-      return count === $(sel).length;
-    }, sel, negate ? 0 : 1);
-  });
-  this.casper.then(function selectorExistsThen() {
-    this.test.assertTrue(true, (negate ? 'missing' : 'exists') + ': ' + sel);
-  });
-};
-
-TestContext.prototype.selectorMissing = function(sel) {
-  this.selectorExists(sel, true);
-};
-
-TestContext.prototype.andClick = function(sel) {
-  this.selectorExists(sel);
-  this.casper.thenEvaluate(function(sel) {
-    $(sel).click();
-  }, sel);
-};
-
-TestContext.prototype.forEach = function(list, cb) {
-  var self = this;
-  this.casper.each(list, function(__self, item) {
-    cb.apply(self, [].slice.call(arguments, 1));
-  });
-};
-
 TestContext.prototype.describe = function(desc, cb) {
   var self = this;
 
@@ -217,7 +167,60 @@ TestContext.prototype.it = function(desc, cb, wrap) {
   this.casper.then(function() { self.depth.pop(); });
 };
 
-TestContext.prototype.openHash = function(hash, sel) {
+TestContext.prototype.url = function(relUrl) {
+  return this.get('serverProto') +
+    '://' + this.get('serverHost') +
+    ':' + this.get('serverPort') +
+    relUrl;
+};
+
+TestContext.prototype.openInitUrl = function() {
+  this.casper.thenOpen(this.url(this.get('initUrl')));
+};
+
+TestContext.prototype.done = function() {
+  this.casper.run(function() {
+    this.test.renderResults(true);
+  });
+};
+
+var baseMixin = {};
+
+/**
+* Alternative to waitForSelector() to use jQuery selector support,
+* ex. ':first' syntax.
+*/
+baseMixin.selectorExists = function(sel, negate) {
+  var self = this;
+  this.casper.waitFor(function selectorExistsWaitFor() {
+    return this.evaluate(function selectorExistsEvaluate(sel, count) {
+      return count === $(sel).length;
+    }, sel, negate ? 0 : 1);
+  });
+  this.casper.then(function selectorExistsThen() {
+    this.test.assertTrue(true, (negate ? 'missing' : 'exists') + ': ' + sel);
+  });
+};
+
+baseMixin.selectorMissing = function(sel) {
+  this.selectorExists(sel, true);
+};
+
+baseMixin.andClick = function(sel) {
+  this.selectorExists(sel);
+  this.casper.thenEvaluate(function(sel) {
+    $(sel).click();
+  }, sel);
+};
+
+baseMixin.forEach = function(list, cb) {
+  var self = this;
+  this.casper.each(list, function(__self, item) {
+    cb.apply(self, [].slice.call(arguments, 1));
+  });
+};
+
+baseMixin.openHash = function(hash, sel) {
   this.casper.thenEvaluate(function _openHash(hash) {
     window.location.hash = '#' + hash;
   }, hash);
@@ -232,12 +235,12 @@ TestContext.prototype.openHash = function(hash, sel) {
 *
 * @param {function} cb
 */
-TestContext.prototype.andThen = function(cb) {
+baseMixin.andThen = function(cb) {
   var self = this;
   this.casper.then(function() {
     // In addition to this.test.*, augment with each(), etc.
     var then = this;
-    var keys = Object.keys(self).concat(Object.keys(TestContext.prototype));
+    var keys = Object.keys(self).concat(Object.keys(TestContext));
     each(keys, function(key) {
       if (typeof self[key] === 'undefined') {
         if (is.Function(self[key])) {
@@ -251,7 +254,7 @@ TestContext.prototype.andThen = function(cb) {
   });
 };
 
-TestContext.prototype.thenSendKeys = function(sel, content) {
+baseMixin.thenSendKeys = function(sel, content) {
   this.selectorExists(sel);
   this.andThen(function() {
     this.sendKeys(sel, content);
@@ -264,7 +267,7 @@ TestContext.prototype.thenSendKeys = function(sel, content) {
 * @param {string} sel
 * @param {string|regexp} text
 */
-TestContext.prototype.assertSelText = function(sel, text, message) {
+baseMixin.assertSelText = function(sel, text, message) {
   this.casper.then(function() {
     this.test['assert' + (is.string(text) ? 'Equals' : 'Match')](
       this.evaluate(function(sel) {
@@ -274,3 +277,18 @@ TestContext.prototype.assertSelText = function(sel, text, message) {
     );
   });
 };
+
+mixin(baseMixin);
+
+/*
+ * Mix the given hash's functions into baseMixin.
+ *
+ * @param {object} ext
+ */
+function mixin(ext) {
+  each(ext, function(key, val) {
+    if (is.Function(val)) {
+      TestContext.prototype[key] = val;
+    }
+  });
+}
