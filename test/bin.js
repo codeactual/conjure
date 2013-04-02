@@ -8,7 +8,17 @@
     .set('initUrl', '/')
     .set('initSel', 'body');
 
-  describe('/', function() {
+  describe('group 1', function() {
+    it('should pass --grep filter' , function() {
+      this.test.assertEquals(this.fetchText('body').trim(), 'Hello World');
+    });
+
+    it('should not pass --grep filter' , function() {
+      this.test.assertEquals(true, false);
+    });
+  });
+
+  describe('group 2', function() {
     it('should pass --grep filter' , function() {
       this.test.assertEquals(this.fetchText('body').trim(), 'Hello World');
     });
