@@ -11,7 +11,6 @@
 
 module.exports = {
   Parapsych: Parapsych,
-  TestContext: TestContext,
   create: create,
   mixin: mixin,
   require: require // Allow tests to use component-land require.
@@ -26,41 +25,17 @@ var shelljs;
 var defShellOpt = {silent: true};
 
 function create(require) {
-  var testContext = new TestContext();
-  var p = new Parapsych(testContext);
+  var p = new Parapsych();
+  window.describe = bind(p, p.describe);
+  window.it = bind(p, p.it);
   p.set('nativeRequire', require);
-  window.casper = testContext.casper;
-  window.describe = bind(testContext, testContext.describe);
-  window.it = bind(testContext, testContext.it);
   return p;
 }
 
 /**
- *
- */
-function Parapsych(testContext) {
-  this.testContext = testContext;
-}
-
-Parapsych.prototype.set = function() {
-  this.testContext.set.apply(this.testContext, arguments);
-  return this;
-};
-Parapsych.prototype.get = function() {
-  return this.testContext.get.apply(this.testContext, arguments);
-};
-
-/**
- * End the test run.
- */
-Parapsych.prototype.done = function() {
-  return this.testContext.done();
-};
-
-/**
  * BDD flow (describe/it) context w/ CasperJS API wrappers.
  */
-function TestContext() {
+function Parapsych() {
   this.settings = {
     started: false,
     initSel: 'body',
@@ -78,12 +53,12 @@ function TestContext() {
   this.depth = []; // Ex. ['foo', 'bar', 'should do X']
 }
 
-configurable(TestContext.prototype);
+configurable(Parapsych.prototype);
 
 /**
  * Apply collected configuration.
  */
-TestContext.prototype.start = function(desc, cb) {
+Parapsych.prototype.start = function(desc, cb) {
   this.set('started', true);
 
   var self = this;
@@ -114,6 +89,8 @@ TestContext.prototype.start = function(desc, cb) {
     }
   });
 
+  window.casper = this.casper;
+
   var baseSel = this.get('baseSel');
   var initSel = this.get('initSel');
   var initUrl = this.get('initUrl');
@@ -134,7 +111,7 @@ TestContext.prototype.start = function(desc, cb) {
   this.casper.then(cb);
 };
 
-TestContext.prototype.describe = function(desc, cb) {
+Parapsych.prototype.describe = function(desc, cb) {
   var self = this;
 
   if (this.get('started')) {
@@ -149,7 +126,7 @@ TestContext.prototype.describe = function(desc, cb) {
   }
 };
 
-TestContext.prototype.it = function(desc, cb, wrap) {
+Parapsych.prototype.it = function(desc, cb, wrap) {
   var self = this;
   var depth = this.depth.concat(desc);
   if (!this.get('grep').test(depth.join(' '))) {
@@ -167,18 +144,18 @@ TestContext.prototype.it = function(desc, cb, wrap) {
   this.casper.then(function() { self.depth.pop(); });
 };
 
-TestContext.prototype.url = function(relUrl) {
+Parapsych.prototype.url = function(relUrl) {
   return this.get('serverProto') +
     '://' + this.get('serverHost') +
     ':' + this.get('serverPort') +
     relUrl;
 };
 
-TestContext.prototype.openInitUrl = function() {
+Parapsych.prototype.openInitUrl = function() {
   this.casper.thenOpen(this.url(this.get('initUrl')));
 };
 
-TestContext.prototype.done = function() {
+Parapsych.prototype.done = function() {
   this.casper.run(function() {
     this.test.renderResults(true);
   });
@@ -231,7 +208,7 @@ baseMixin.openHash = function(hash, sel) {
 };
 
 /**
-* then() wrapper with 'this' extended w/ TestContext properties.
+* then() wrapper with 'this' extended w/ Parapsych properties.
 *
 * @param {function} cb
 */
@@ -240,7 +217,7 @@ baseMixin.andThen = function(cb) {
   this.casper.then(function() {
     // In addition to this.test.*, augment with each(), etc.
     var then = this;
-    var keys = Object.keys(self).concat(Object.keys(TestContext));
+    var keys = Object.keys(self).concat(Object.keys(Parapsych));
     each(keys, function(key) {
       if (typeof self[key] === 'undefined') {
         if (is.Function(self[key])) {
@@ -280,15 +257,15 @@ baseMixin.assertSelText = function(sel, text, message) {
 
 mixin(baseMixin);
 
-/*
- * Mix the given function set into TestContext's prototype.
+/**
+ * Mix the given function set into Parapsych's prototype.
  *
  * @param {object} ext
  */
 function mixin(ext) {
   Object.keys(ext).forEach(function(key) {
     if (typeof ext[key] === 'function') {
-      TestContext.prototype[key] = ext[key];
+      Parapsych.prototype[key] = ext[key];
     }
   });
 }
