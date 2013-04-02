@@ -167,31 +167,50 @@ Parapsych.prototype.url = function(relUrl) {
   return this.get('baseUrl') + relUrl;
 };
 
-Parapsych.prototype.done = function() {
+/**
+ * Run collected BBD layers.
+ */
+Parapsych.prototype.run = function() {
   this.casper.run(function() {
     this.test.renderResults(true);
   });
 };
 
+/**
+ * Methods mixed in to each it()/andThen() context.
+ */
 var thenContext = {};
 
+/**
+ * Re-open the initial URL.
+ */
 thenContext.openInitUrl = function() {
   this.casper.thenOpen(this.url(this.get('initUrl')));
 };
 
+/**
+ * require() any file relative to --rootdir.
+ *
+ * @param {string} name Prefix with leading './'.
+ *  If rootdir is /path/to/proj, './foo' will require /path/to/proj/foo.js.
+ * @return {mixed} Loaded module.
+ */
 thenContext.require = function(name) {
   var require = this.get('casperRequire');
   var relPathRe = /^\.\//;
-  if (relPathRe.test(name)) { // Ex. name='./foo', require /path/to/proj/foo.js
+  if (relPathRe.test(name)) {
     return require(this.get('cli').options.rootdir + '/' + name.replace(relPathRe, ''));
   }
   return require(name); // Ex. 'casper' itself
 };
 
 /**
-* Alternative to waitForSelector() to use jQuery selector support,
-* ex. ':first' syntax.
-*/
+ * Alternative to waitForSelector() to use jQuery selector support,
+ * ex. ':first' syntax.
+ *
+ * @param {string} sel
+ * @param {boolean} [negate] Use true if selector is not expected to match.
+ */
 thenContext.selectorExists = function(sel, negate) {
   var self = this;
   this.casper.waitFor(function selectorExistsWaitFor() {
@@ -204,10 +223,20 @@ thenContext.selectorExists = function(sel, negate) {
   });
 };
 
+/**
+ * Negated selectorExists().
+ *
+ * @param {string} sel
+ */
 thenContext.selectorMissing = function(sel) {
   this.selectorExists(sel, true);
 };
 
+/**
+ * Wait for matching element to exist, then click it.
+ *
+ * @param {string} sel
+ */
 thenContext.andClick = function(sel) {
   this.selectorExists(sel);
   this.casper.thenEvaluate(function(sel) {
@@ -215,6 +244,12 @@ thenContext.andClick = function(sel) {
   }, sel);
 };
 
+/**
+ * casper.each() alternative that injects the same context as the outer it().
+ *
+ * @param {array} list
+ * @param {function} cb Receives (val).
+ */
 thenContext.forEach = function(list, cb) {
   var self = this;
   this.casper.each(list, function(__self, item) {
@@ -222,44 +257,54 @@ thenContext.forEach = function(list, cb) {
   });
 };
 
+/**
+ * Append a fragment ID to the current URL.
+ *
+ * @param {string} hash Without leading '#'.
+ * @param {string} [sel] Optional selector to wait for after navigation.
+ */
 thenContext.openHash = function(hash, sel) {
   this.casper.thenEvaluate(function _openHash(hash) {
     window.location.hash = '#' + hash;
   }, hash);
-
   if (sel) {
     this.selectorExists(sel);
   }
 };
 
 /**
-* then() wrapper with 'this' extended w/ Parapsych properties.
+* then() wrapper that injections the same context as the outer it().
 *
 * @param {function} cb
 */
 thenContext.andThen = function(cb) {
   var self = this;
   this.casper.then(function() {
-    // In addition to this.test.*, augment with each(), etc.
-    var then = this;
+    var targetContext = this;
     var keys = Object.keys(self).concat(Object.keys(thenContext));
     each(keys, function(key) {
       if (typeof self[key] === 'undefined') {
         if (is.Function(self[key])) {
-          then[key] = bind(self, self[key]);
+          targetContext[key] = bind(self, self[key]);
         } else {
-          then[key] = self[key];
+          targetContext[key] = self[key];
         }
       }
     });
-    cb.call(then);
+    cb.call(targetContext);
   });
 };
 
-thenContext.thenSendKeys = function(sel, content) {
+/**
+ * sendKeys() wrapper that first waits for a selector to exist.
+ *
+ * @param {string} sel
+ * @param {string} keys
+ */
+thenContext.thenSendKeys = function(sel, keys) {
   this.selectorExists(sel);
   this.andThen(function() {
-    this.sendKeys(sel, content);
+    this.sendKeys(sel, keys);
   });
 };
 
