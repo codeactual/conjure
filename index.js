@@ -173,13 +173,13 @@ Parapsych.prototype.done = function() {
   });
 };
 
-var baseMixin = {};
+var thenContext = {};
 
-baseMixin.openInitUrl = function() {
+thenContext.openInitUrl = function() {
   this.casper.thenOpen(this.url(this.get('initUrl')));
 };
 
-baseMixin.require = function(name) {
+thenContext.require = function(name) {
   var require = this.get('casperRequire');
   var relPathRe = /^\.\//;
   if (relPathRe.test(name)) { // Ex. name='./foo', require /path/to/proj/foo.js
@@ -192,7 +192,7 @@ baseMixin.require = function(name) {
 * Alternative to waitForSelector() to use jQuery selector support,
 * ex. ':first' syntax.
 */
-baseMixin.selectorExists = function(sel, negate) {
+thenContext.selectorExists = function(sel, negate) {
   var self = this;
   this.casper.waitFor(function selectorExistsWaitFor() {
     return this.evaluate(function selectorExistsEvaluate(sel, count) {
@@ -204,25 +204,25 @@ baseMixin.selectorExists = function(sel, negate) {
   });
 };
 
-baseMixin.selectorMissing = function(sel) {
+thenContext.selectorMissing = function(sel) {
   this.selectorExists(sel, true);
 };
 
-baseMixin.andClick = function(sel) {
+thenContext.andClick = function(sel) {
   this.selectorExists(sel);
   this.casper.thenEvaluate(function(sel) {
     $(sel).click();
   }, sel);
 };
 
-baseMixin.forEach = function(list, cb) {
+thenContext.forEach = function(list, cb) {
   var self = this;
   this.casper.each(list, function(__self, item) {
     cb.apply(self, [].slice.call(arguments, 1));
   });
 };
 
-baseMixin.openHash = function(hash, sel) {
+thenContext.openHash = function(hash, sel) {
   this.casper.thenEvaluate(function _openHash(hash) {
     window.location.hash = '#' + hash;
   }, hash);
@@ -237,12 +237,12 @@ baseMixin.openHash = function(hash, sel) {
 *
 * @param {function} cb
 */
-baseMixin.andThen = function(cb) {
+thenContext.andThen = function(cb) {
   var self = this;
   this.casper.then(function() {
     // In addition to this.test.*, augment with each(), etc.
     var then = this;
-    var keys = Object.keys(self).concat(Object.keys(baseMixin));
+    var keys = Object.keys(self).concat(Object.keys(thenContext));
     each(keys, function(key) {
       if (typeof self[key] === 'undefined') {
         if (is.Function(self[key])) {
@@ -256,7 +256,7 @@ baseMixin.andThen = function(cb) {
   });
 };
 
-baseMixin.thenSendKeys = function(sel, content) {
+thenContext.thenSendKeys = function(sel, content) {
   this.selectorExists(sel);
   this.andThen(function() {
     this.sendKeys(sel, content);
@@ -269,7 +269,7 @@ baseMixin.thenSendKeys = function(sel, content) {
 * @param {string} sel
 * @param {string|regexp} text
 */
-baseMixin.assertSelText = function(sel, text, message) {
+thenContext.assertSelText = function(sel, text, message) {
   this.casper.then(function() {
     this.test['assert' + (is.string(text) ? 'Equals' : 'Match')](
       this.evaluate(function(sel) {
@@ -280,7 +280,7 @@ baseMixin.assertSelText = function(sel, text, message) {
   });
 };
 
-mixin(baseMixin);
+mixin(thenContext);
 
 /**
  * Mix the given function set into Parapsych's prototype.
