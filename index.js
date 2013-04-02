@@ -40,7 +40,6 @@ function Parapsych(require) {
     started: false,             // 1st describe() processed
     initSel: 'body',            // 1st selector to wait for
     casperRequire: require,     // CasperJS-env require()
-    rootDir: '',                // from `parapsych` --rootdir
     serverProto: 'http',        // for url()
     serverHost: 'localhost',    // for url()
     serverPort: '8174',         // for url()
@@ -67,9 +66,9 @@ function Parapsych(require) {
   };
 
   // Store it() descriptions for --grep, one item per BDD nested layer.
-  this.depth = []; // Ex. ['component', 'sub-component', 'should do X']
+  this.bddLayer = []; // Ex. ['component', 'sub-component', 'should do X']
 
-  // For test script convenience.
+  // Test script convenience.
   window.describe = bind(this, this.describe);
   window.it = bind(this, this.it);
 }
@@ -86,16 +85,12 @@ Parapsych.prototype.start = function(desc, cb) {
   var self = this;
   var cli = this.get('cli');
 
-  // Convert `bin/parapsych --grep foo bar baz` to /foo bar baz/
-  if (cli.options.grep) {
+  if (cli.options.grep) { // Convert `--grep foo bar baz` to /foo bar baz/
     this.set('grep', new RegExp(cli.args.join(' ')));
-  }
-  if (cli.options.rootdir) {
-    this.set('rootDir', cli.options.rootdir);
   }
 
   this.casper = this.require('casper').create(this.get('casperConfig'));
-  window.casper = this.casper;
+  window.casper = this.casper; // Test script convenience.
 
   var initSel = this.get('initSel');
   var initUrl = this.get('initUrl');
@@ -106,11 +101,11 @@ Parapsych.prototype.start = function(desc, cb) {
   }
 
   this.casper.test.info('  ' + desc);
-  this.depth.push(desc);
+  this.bddLayer.push(desc);
 
+  // Fail the 1st describe() if initial URL or selector is not found.
   this.casper.start(this.url(initUrl));
-  this.casper.then(function(response) {
-    self.response = response;
+  this.casper.then(function() {
     self.casper.waitForSelector(initSel);
   });
   this.casper.then(cb);
@@ -124,10 +119,10 @@ Parapsych.prototype.describe = function(desc, cb) {
   if (this.get('started')) {
     this.casper.then(function() {
       self.casper.test.info('  ' + desc);
-      self.depth.push(desc);
+      self.bddLayer.push(desc);
       cb.call(self);
     });
-    this.casper.then(function() { self.depth.pop(); });
+    this.casper.then(function() { self.bddLayer.pop(); });
   } else {
     this.start(desc, cb);
   }
@@ -135,20 +130,20 @@ Parapsych.prototype.describe = function(desc, cb) {
 
 Parapsych.prototype.it = function(desc, cb, wrap) {
   var self = this;
-  var depth = this.depth.concat(desc);
-  if (!this.get('grep').test(depth.join(' '))) {
+  var bddLayer = this.bddLayer.concat(desc);
+  if (!this.get('grep').test(bddLayer.join(' '))) {
     return;
   }
   this.casper.then(function() {
     self.casper.test.info('    ' + desc);
-    self.depth = depth;
+    self.bddLayer = bddLayer;
   });
   if (wrap || typeof wrap === 'undefined') {
     this.andThen(cb);
   } else {
     cb.call(this);
   }
-  this.casper.then(function() { self.depth.pop(); });
+  this.casper.then(function() { self.bddLayer.pop(); });
 };
 
 Parapsych.prototype.url = function(relUrl) {
@@ -173,10 +168,10 @@ var baseMixin = {};
 baseMixin.require = function(name) {
   var require = this.get('casperRequire');
   var relPathRe = /^\.\//;
-  if (relPathRe.test(name)) {
-    return require(this.get('rootDir') + '/' + name.replace(relPathRe, ''));
+  if (relPathRe.test(name)) { // Ex. name='./foo', require /path/to/proj/foo.js
+    return require(this.get('cli').options.rootdir + '/' + name.replace(relPathRe, ''));
   }
-  return require(name);
+  return require(name); // Ex. 'casper' itself
 };
 
 /**
