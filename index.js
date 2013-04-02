@@ -23,8 +23,6 @@ var is = require('is');
 
 function create(require) {
   var p = new Parapsych();
-  window.describe = bind(p, p.describe);
-  window.it = bind(p, p.it);
   p.set('nativeRequire', require);
   return p;
 }
@@ -48,6 +46,9 @@ function Parapsych() {
 
   // BDD depth used for --grep.
   this.depth = []; // Ex. ['foo', 'bar', 'should do X']
+
+  window.describe = bind(this, this.describe);
+  window.it = bind(this, this.it);
 }
 
 configurable(Parapsych.prototype);
