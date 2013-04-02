@@ -217,7 +217,7 @@ baseMixin.andThen = function(cb) {
   this.casper.then(function() {
     // In addition to this.test.*, augment with each(), etc.
     var then = this;
-    var keys = Object.keys(self).concat(Object.keys(Parapsych));
+    var keys = Object.keys(self).concat(Object.keys(baseMixin));
     each(keys, function(key) {
       if (typeof self[key] === 'undefined') {
         if (is.Function(self[key])) {
