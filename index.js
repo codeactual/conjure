@@ -113,6 +113,12 @@ Parapsych.prototype.start = function(desc, cb) {
   this.set('started', true);
 };
 
+/**
+ * Add a BDD describe() subject.
+ *
+ * @param {string} desc
+ * @param {function} cb
+ */
 Parapsych.prototype.describe = function(desc, cb) {
   var self = this;
 
@@ -122,13 +128,20 @@ Parapsych.prototype.describe = function(desc, cb) {
       self.bddLayer.push(desc);
       cb.call(self);
     });
-    this.casper.then(function() { self.bddLayer.pop(); });
   } else {
     this.start(desc, cb);
   }
+  this.casper.then(function() { self.bddLayer.pop(); });
 };
 
-Parapsych.prototype.it = function(desc, cb, wrap) {
+/**
+ * Add a BDD it() expectation.
+ *
+ * @param {string} desc
+ * @param {function} cb
+ * @param
+ */
+Parapsych.prototype.it = function(desc, cb) {
   var self = this;
   var bddLayer = this.bddLayer.concat(desc);
   if (!this.get('grep').test(bddLayer.join(' '))) {
@@ -138,11 +151,7 @@ Parapsych.prototype.it = function(desc, cb, wrap) {
     self.casper.test.info('    ' + desc);
     self.bddLayer = bddLayer;
   });
-  if (wrap || typeof wrap === 'undefined') {
-    this.andThen(cb);
-  } else {
-    cb.call(this);
-  }
+  this.andThen(cb);
   this.casper.then(function() { self.bddLayer.pop(); });
 };
 
