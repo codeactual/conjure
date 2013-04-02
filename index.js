@@ -37,15 +37,13 @@ function create(require) {
  */
 function Parapsych(require) {
   this.settings = {
-    started: false,             // 1st describe() processed
-    initSel: 'body',            // 1st selector to wait for
-    casperRequire: require,     // CasperJS-env require()
-    serverProto: 'http',        // for url()
-    serverHost: 'localhost',    // for url()
-    serverPort: '8174',         // for url()
-    grep: /.?/,                 // from `parapsych` --grep
-    cli: {},                    // Native CasperJS CLI interface
-    casperConfig: {             // Directly passed to CasperJS create()
+    started: false, // 1st describe() processed
+    initSel: 'body', // 1st selector to wait for
+    casperRequire: require, // CasperJS-env require()
+    baseUrl: 'http://localhost:8174', // for url()
+    grep: /.?/, // from `parapsych` --grep
+    cli: {}, // Native CasperJS CLI interface
+    casperConfig: { // Directly passed to CasperJS create()
       exitOnError: true,
       logLevel: 'debug',
       pageSettings: {
@@ -89,16 +87,19 @@ Parapsych.prototype.start = function(desc, cb) {
     this.set('grep', new RegExp(cli.args.join(' ')));
   }
 
+  this.set('url', cli.options.url);
+
   this.casper = this.require('casper').create(this.get('casperConfig'));
   window.casper = this.casper; // Test script convenience.
 
   var initSel = this.get('initSel');
   var initUrl = this.get('initUrl');
 
-  this.casper.test.info('INIT URL: ' + initUrl);
+  var initMsg = 'Opening [' + initUrl + ']';
   if (initSel) {
-    this.casper.test.info('INIT SELECTOR: ' + initSel);
+    initMsg += ' Waiting For Selector [' + initSel + ']';
   }
+  this.casper.test.info(initMsg);
 
   this.casper.test.info('  ' + desc);
   this.bddLayer.push(desc);
@@ -121,7 +122,6 @@ Parapsych.prototype.start = function(desc, cb) {
  */
 Parapsych.prototype.describe = function(desc, cb) {
   var self = this;
-
   if (this.get('started')) {
     this.casper.then(function() {
       self.casper.test.info('  ' + desc);
@@ -135,7 +135,7 @@ Parapsych.prototype.describe = function(desc, cb) {
 };
 
 /**
- * Add a BDD it() expectation.
+ * Add a BDD it() expectation. Enforce --grep.
  *
  * @param {string} desc
  * @param {function} cb
@@ -144,22 +144,27 @@ Parapsych.prototype.describe = function(desc, cb) {
 Parapsych.prototype.it = function(desc, cb) {
   var self = this;
   var bddLayer = this.bddLayer.concat(desc);
+
   if (!this.get('grep').test(bddLayer.join(' '))) {
     return;
   }
+
   this.casper.then(function() {
     self.casper.test.info('    ' + desc);
-    self.bddLayer = bddLayer;
+    self.bddLayer = bddLayer; // Save for pop() below.
   });
   this.andThen(cb);
   this.casper.then(function() { self.bddLayer.pop(); });
 };
 
+/**
+ * Convert a relative URL into a full.
+ *
+ * @param {string} relUrl Includes leading slash.
+ * @return {string}
+ */
 Parapsych.prototype.url = function(relUrl) {
-  return this.get('serverProto') +
-    '://' + this.get('serverHost') +
-    ':' + this.get('serverPort') +
-    relUrl;
+  return this.get('baseUrl') + relUrl;
 };
 
 Parapsych.prototype.openInitUrl = function() {
