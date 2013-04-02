@@ -1,14 +1,21 @@
 #!/usr/bin/env node
 
+/**
+ * Find all casper scripts and spawn() a new casper.js process for each of them.
+ *
+ * Organize their concurrent output by script, exit w/ non-zero on any error, etc.
+ */
+
+var path = require('path');
 var spawn = require('child_process').spawn;
-var requireComponent = require('../dist/parapsych').require;
 var input = require('commander');
+
+var requireComponent = require('../dist/parapsych').require;
 var Batch = requireComponent('batch');
 var each = requireComponent('each');
 var shelljs = requireComponent('outer-shelljs').create(require('shelljs'));
 
 var defShellOpt = {silent: true};
-var testServer;
 
 input
   .option('-s, --server <script>', 'Test server startup script', String)
@@ -20,85 +27,81 @@ input
   .parse(process.argv);
 
 testServer = spawn(input.server);
-spawnOneCasperPerFile();
 process.on('exit', function() { testServer.kill(); });
 
+var output = {}; // Index `casperjs` output/errors by test.
+
+// Recursively find matching test scripts.
+var testDir = input.root + '/' + input.test;
+var tests = shelljs.findByRegex(testDir, new RegExp(input.file));
+
+// If any `casperjs` exits with an error code, `parapsych` exits with 1.
+var exitsRemain = tests.length;
+var allExitOk = true;
+function onSpawnExit() {
+  if (!--exitsRemain) {
+    process.exit(allExitOk ? 0 : 1);
+  }
+}
+
+var casperArgs = [];
+if (input.grep) {
+  casperArgs.push('--grep');
+  casperArgs = casperArgs.concat(input.args);
+}
+
+// Queue one runCasper() call per test script.
+var batch = new Batch();
+batch.concurrency(input.concurrency);
+each(tests, function(test) {
+  batch.push(function(taskDone) {
+    runCasper(test, taskDone);
+  });
+});
+batch.end(); // Start dequeuing.
+
 /**
- * Find all casper scripts and spawn() a new casper.js process for each of them.
+ * Run `casperjs`.
  *
- * Organize their concurrent output by script, exit w/ non-zero on any error, etc.
+ * @param {string} file
+ * @param {function} cb Fires after `casperjs` exits.
  */
-function spawnOneCasperPerFile() {
-  var path = require('path');
+function runCasper(file, cb) {
+  var noTestsRan = false;
 
-  var testDir = input.root + '/' + input.test;
-  var tests = shelljs.findByRegex(testDir, new RegExp(input.file));
+  var testRelPath = file.replace(testDir, '');
+  output[testRelPath] = [];
+  function formatData(data) { return testRelPath + ': ' + data.toString().trim(); }
 
-  // If one spawn() exits with an error code, also exit this process with one.
-  var exitsRemain = tests.length;
-  var allExitOk = true;
-  var onSpawnExit = function() {
-    if (!--exitsRemain) {
-      process.exit(allExitOk ? 0 : 1);
+  var casper = spawn('casperjs', [file].concat('--rootdir=' + input.root, casperArgs));
+
+  casper.stdout.on('data', function (data) {
+    if (/Looks like you didn't run any test/.test(data.toString())) {
+      noTestsRan = true;
     }
-  };
-
-  var output = {};
-
-  var commonArgs = [];
-  if (input.grep) {
-    commonArgs.push('--grep');
-    commonArgs = commonArgs.concat(input.args);
-  }
-
-  function spawnOne(test, done) {
-    var label = test.replace(testDir, '');
-    output[label] = [];
-
-    var noTestsRan = false;
-
-    var casper = spawn(
-      'casperjs',
-      [test].concat('--rootdir=' + input.root, commonArgs)
-    );
-    var formatData = function(data) {
-      return label + ': ' + data.toString().trim();
-    };
-    casper.stdout.on('data', function (data) {
-      if (/Looks like you didn't run any test/.test(data.toString())) {
-        noTestsRan = true;
-      }
-      output[label].push({data: data.toString()});
-    });
-    casper.stderr.on('data', function (data) {
-      output[label].push({err: true, data: data.toString()});
-    });
-    casper.on('exit', function (code) {
-      // Skip output when --grep excluded a file's entire suite.
-      if (!noTestsRan || !input.grep) {
-        each(output[label], function(log) {
-          if (log.err) {
-            console.error(formatData(log.data));
-          } else {
-            console.log(formatData(log.data));
-          }
-        });
-      }
-      allExitOk = allExitOk && 0 === code;
-      onSpawnExit();
-      done();
-    });
-  }
-
-  var batch = new Batch();
-  batch.concurrency(input.concurrency);
-  each(tests, function(test) {
-    batch.push(function(taskDone) {
-      spawnOne(test, taskDone);
-    });
+    output[testRelPath].push({data: data.toString()});
   });
 
-  batch.end(function() {
-    console.log('batch done');
+  casper.stderr.on('data', function (data) {
+    output[testRelPath].push({err: true, data: data.toString()});
   });
+
+  casper.on('exit', function (code) {
+    // Skip output when --grep excluded a file's entire suite.
+    if (!noTestsRan || !input.grep) {
+      each(output[testRelPath], function(log) {
+        if (log.err) {
+          console.error(formatData(log.data));
+        } else {
+          console.log(formatData(log.data));
+        }
+      });
+    }
+    allExitOk = allExitOk && 0 === code;
+    onSpawnExit();
+    cb();
+  });
+}
+
+function onCasperData(data) {
 }

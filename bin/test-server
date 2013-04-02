@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+/**
+ * `grunt test_bin` selects this file for the `parapsych --server` option.
+ */
+
 var express = require('express');
 var app = express();
 
