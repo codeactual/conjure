@@ -21,19 +21,21 @@ var configurable = require('configurable.js');
 var each = require('each');
 var is = require('is');
 
+/**
+ * Allow test scripts to easily create common-case Parapsych instances.
+ */
 function create(require) {
   var p = new Parapsych();
   return p.set('nativeRequire', require);
 }
 
 /**
- * BDD flow (describe/it) context w/ CasperJS API wrappers.
+ * Add BDD globals and init configuration.
  */
 function Parapsych() {
   this.settings = {
-    started: false,
-    initSel: 'body',
-    baseSel: '',
+    started: false,             // 1st describe() processed
+    initSel: 'body',            // 1st selector to wait for
     nativeRequire: {},
     rootDir: '',
     serverProto: 'http',
@@ -61,9 +63,10 @@ function Parapsych() {
     }
   };
 
-  // BDD depth used for --grep.
-  this.depth = []; // Ex. ['foo', 'bar', 'should do X']
+  // Store it() descriptions for --grep, one item per BDD nested layer.
+  this.depth = []; // Ex. ['component', 'sub-component', 'should do X']
 
+  // For test script convenience.
   window.describe = bind(this, this.describe);
   window.it = bind(this, this.it);
 }
@@ -91,13 +94,12 @@ Parapsych.prototype.start = function(desc, cb) {
   this.casper = this.require('casper').create(this.get('casperConfig'));
   window.casper = this.casper;
 
-  var baseSel = this.get('baseSel');
   var initSel = this.get('initSel');
   var initUrl = this.get('initUrl');
 
   this.casper.test.info('INIT URL: ' + initUrl);
-  if (baseSel) {
-    this.casper.test.info('INIT SELECTOR: ' + baseSel);
+  if (initSel) {
+    this.casper.test.info('INIT SELECTOR: ' + initSel);
   }
 
   this.casper.test.info('  ' + desc);
