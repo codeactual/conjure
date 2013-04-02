@@ -82,7 +82,7 @@ configurable(TestContext.prototype);
 /**
  * Apply collected configuration.
  */
-TestContext.prototype.start = function(cb) {
+TestContext.prototype.start = function(desc, cb) {
   this.set('started', true);
 
   var self = this;
@@ -121,6 +121,9 @@ TestContext.prototype.start = function(cb) {
   if (baseSel) {
     this.casper.test.info('INIT SELECTOR: ' + baseSel);
   }
+
+  this.casper.test.info('  ' + desc);
+  this.depth.push(desc);
 
   this.casper.start(this.url(initUrl));
   this.casper.then(function(response) {
@@ -192,7 +195,7 @@ TestContext.prototype.describe = function(desc, cb) {
     });
     this.casper.then(function() { self.depth.pop(); });
   } else {
-    this.start(cb);
+    this.start(desc, cb);
   }
 };
 
