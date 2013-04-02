@@ -23,8 +23,7 @@ var is = require('is');
 
 function create(require) {
   var p = new Parapsych();
-  p.set('nativeRequire', require);
-  return p;
+  return p.set('nativeRequire', require);
 }
 
 /**
@@ -41,7 +40,25 @@ function Parapsych() {
     serverHost: 'localhost',
     serverPort: '8174',
     grep: /.?/,
-    cli: {} // CasperJS-provided CLI interface
+    cli: {}, // CasperJS-provided CLI interface
+    casperConfig: {
+      exitOnError: true,
+      logLevel: 'debug',
+      pageSettings: {
+        loadImages: false,
+        loadPlugins: false,
+        XSSAuditingEnabled: true,
+        verbose: true,
+        onError: function(self, m) {
+          console.error('FATAL error:' + m);
+          self.exit();
+        },
+        onLoadError: function(self, m) {
+          console.error('FATAL load error:' + m);
+          self.exit();
+        }
+      }
+    }
   };
 
   // BDD depth used for --grep.
@@ -71,25 +88,7 @@ Parapsych.prototype.start = function(desc, cb) {
     this.set('rootDir', cli.options.rootdir);
   }
 
-  this.casper = this.require('casper').create({
-    exitOnError: true,
-    logLevel: 'debug',
-    pageSettings: {
-      loadImages: false,
-      loadPlugins: false,
-      XSSAuditingEnabled: true,
-      verbose: true,
-      onError: function(self, m) {
-        console.error('FATAL error:' + m);
-        self.exit();
-      },
-      onLoadError: function(self, m) {
-        console.error('FATAL load error:' + m);
-        self.exit();
-      }
-    }
-  });
-
+  this.casper = this.require('casper').create(this.get('casperConfig'));
   window.casper = this.casper;
 
   var baseSel = this.get('baseSel');
