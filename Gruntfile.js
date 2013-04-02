@@ -69,7 +69,6 @@ module.exports = function(grunt) {
         command:
           'bin/parapsych ' +
           '--server bin/test-server ' +
-          '--pid /tmp/parapsych-test-server.pid ' +
           '--root ' + __dirname + ' ' +
           '--file bin.js ' +
           '--grep should pass'

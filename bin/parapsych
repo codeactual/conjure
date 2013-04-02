@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var spawn = require('child_process').spawn;
 var requireComponent = require('../dist/parapsych').require;
 var input = require('commander');
 var Batch = requireComponent('batch');
@@ -7,28 +8,20 @@ var each = requireComponent('each');
 var shelljs = requireComponent('outer-shelljs').create(require('shelljs'));
 
 var defShellOpt = {silent: true};
+var testServer;
 
 input
   .option('-s, --server <script>', 'Test server startup script', String)
   .option('-c, --concurrent <num>', 'casperjs process count [2]', Number, 2)
-  .option('-P, --pid <file>', '', String, '[/tmp/parapsych.pid]')
   .option('-r, --root <dir>', 'Project root directory [cwd]', String, process.cwd())
   .option('-t, --test <dir>', 'Test directory, relative to root [test]', String, 'test')
   .option('-f, --file <regex>', 'Test file regex filter [.js]', String, '/\\.js$')
   .option('-g, --grep', 'Test case regex filter [none]', String)
   .parse(process.argv);
 
-killLastPid(); // In case last session exited ungracefully.
-startTestServer();
+testServer = spawn(input.server);
 spawnOneCasperPerFile();
-process.on('exit', function() {
-  killLastPid();
-});
-
-function startTestServer() {
-  shelljs._('exec', input.server, {async: true, silent: true});
-  //require('child_process').fork(input.server);
-}
+process.on('exit', function() { testServer.kill(); });
 
 /**
  * Find all casper scripts and spawn() a new casper.js process for each of them.
@@ -37,7 +30,6 @@ function startTestServer() {
  */
 function spawnOneCasperPerFile() {
   var path = require('path');
-  var spawn = require('child_process').spawn;
 
   var testDir = input.root + '/' + input.test;
   var tests = shelljs.findByRegex(testDir, new RegExp(input.file));
@@ -109,11 +101,4 @@ function spawnOneCasperPerFile() {
   batch.end(function() {
     console.log('batch done');
   });
-}
-
-function killLastPid() {
-  if (shelljs._('test', '-e', input.pid)) {
-    shelljs._('exec', 'kill -9 ' + input.pid, defShellOpt);
-    shelljs._('rm', '-f', input.pid);
-  }
 }
