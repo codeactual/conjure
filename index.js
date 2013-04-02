@@ -79,7 +79,7 @@ configurable(Parapsych.prototype);
  * @param {string} desc From 1st describe().
  * @param {function} cb From 1st describe().
  */
-Parapsych.prototype.start = function(desc, cb) {
+Parapsych.prototype._start = function(desc, cb) {
   var self = this;
   var cli = this.get('cli');
 
@@ -129,7 +129,7 @@ Parapsych.prototype.describe = function(desc, cb) {
       cb.call(self);
     });
   } else {
-    this.start(desc, cb);
+    this._start(desc, cb);
   }
   this.casper.then(function() { self.bddLayer.pop(); });
 };
