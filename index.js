@@ -20,9 +20,6 @@ var bind = require('bind');
 var configurable = require('configurable.js');
 var each = require('each');
 var is = require('is');
-var sprintf;
-var shelljs;
-var defShellOpt = {silent: true};
 
 function create(require) {
   var p = new Parapsych();
