@@ -1,10 +1,36 @@
 # parapsych
 
-CasperJS parallel running, BDD flow, API wrappers
+CasperJS runner:
+
+* Parallel `casperjs` processes with configurable limit.
+* `describe()` / `it()` BDD flow.
+* CasperJS API wrappers.
+ * Callbacks inherit context of outer `it()`.
+ * jQuery used for selector matching.
+* Local module `require()` support.
 
 [![Build Status](https://travis-ci.org/codeactual/parapsych.png)](https://travis-ci.org/codeactual/parapsych)
 
 ## Examples
+
+### API use in test script
+
+```js
+var cli = require('casper').create().cli;
+var parapsych = require(cli.raw.get('rootdir') + '/node_modules/.bin/parapsych').create(require);
+parapsych
+  .set('cli', cli)
+  .set('initUrl', '/')
+  .set('initSel', 'body');
+
+describe('index page', function() {
+  it('should say hello' , function() {
+    this.test.assertEquals(this.fetchText('body').trim(), 'Hello World');
+  });
+});
+
+parapsych.run();
+```
 
 ### Basic run
 
@@ -51,27 +77,81 @@ Build standalone file in `build/`:
 
     $ grunt dist
 
-## CLI
+## Module API
 
-    -h, --help              output usage information
+### `create(require)`
 
-### Required
+> Create a new `Parapsych` instance. Pass the CasperJS-environment `require`.
 
-    -s, --server <script>   Test server startup script
+### `mixin(ext)`
 
-### Optional
+> Extend `Parapsych.prototype` with function set `ext`.
 
-    -c, --concurrent <num>  casperjs process count [2]
-    -r, --root <dir>        Project root directory [cwd]
-    -t, --test <dir>        Test directory, relative to root [test]
-    -f, --file <regex>      Test file regex filter [.js]
-    -g, --grep              Test case regex filter [none]
+## Parapsych API
 
-## API
+### `describe(desc, cb)`
 
-### [method]
+> Add a BDD describe() subject.
 
-> [method desc]
+### `it(desc, cb)`
+
+> Add a BDD it() expectation. Enforce --grep.
+
+### `{string} url(relUrl)`
+
+> Convert a relative URL into a full.
+
+### `run()`
+
+> Run collected BBD layers.
+
+## `it()` API
+
+Selector matching relies on jQuery's `$` already being present.
+
+### `andClick(cb)`
+
+> Wait for matching element to exist, then click it.
+
+### `andThen(cb)`
+
+> then() wrapper that injections the same context as the outer it().
+
+### `assertSelText(sel, text)`
+
+> assertTextExists() alternative that uses jQuery selectors.
+
+### `forEach(list, cb)`
+
+> casper.each() alternative that injects the same context as the outer it().
+
+### `openHash(hash, sel)`
+
+> Append a fragment ID to the current URL.
+
+### `openInitUrl()`
+
+> Re-open the initial URL.
+
+### `require(name)`
+
+> require() any file relative to `--rootdir`.
+
+If rootdir is `/path/to/proj`, `'./foo'` will require `/path/to/proj/foo.js`.
+
+### `selectorExists(sel, [negate])`
+
+> Alternative to waitForSelector() to use jQuery selector support, ex. `:first` syntax.
+
+* Use `negate=true` if selector is not expected to match.
+
+### `selectorMissing(sel)`
+
+> Negated selectorExists().
+
+### `thenSendKeys(sel, keys)`
+
+> sendKeys() wrapper that first waits for a selector to exist.
 
 ## License
 
