@@ -182,6 +182,86 @@ Parapsych.prototype.run = function() {
 var thenContext = {};
 
 /**
+ * Wait for matching element to exist, then click it.
+ *
+ * @param {string} sel
+ */
+thenContext.andClick = function(sel) {
+  this.selectorExists(sel);
+  this.casper.thenEvaluate(function(sel) {
+    $(sel).click();
+  }, sel);
+};
+
+/**
+ * then() wrapper that injections the same context as the outer it().
+ *
+ * @param {function} cb
+ */
+thenContext.andThen = function(cb) {
+  var self = this;
+  this.casper.then(function() {
+    var targetContext = this;
+    var keys = Object.keys(self).concat(Object.keys(thenContext));
+    each(keys, function(key) {
+      if (typeof self[key] === 'undefined') {
+        if (is.Function(self[key])) {
+          targetContext[key] = bind(self, self[key]);
+        } else {
+          targetContext[key] = self[key];
+        }
+      }
+    });
+    cb.call(targetContext);
+  });
+};
+
+/**
+ * assertTextExists() alternative that uses jQuery selectors.
+ *
+ * @param {string} sel
+ * @param {string|regexp} text
+ */
+thenContext.assertSelText = function(sel, text) {
+  this.casper.then(function() {
+    this.test['assert' + (is.string(text) ? 'Equals' : 'Match')](
+      this.evaluate(function(sel) {
+        return $(sel).text();
+      }, sel),
+      text
+    );
+  });
+};
+
+/**
+ * casper.each() alternative that injects the same context as the outer it().
+ *
+ * @param {array} list
+ * @param {function} cb Receives (val).
+ */
+thenContext.forEach = function(list, cb) {
+  var self = this;
+  this.casper.each(list, function(__self, item) {
+    cb.apply(self, [].slice.call(arguments, 1));
+  });
+};
+
+/**
+ * Append a fragment ID to the current URL.
+ *
+ * @param {string} hash Without leading '#'.
+ * @param {string} [sel] Optional selector to wait for after navigation.
+ */
+thenContext.openHash = function(hash, sel) {
+  this.casper.thenEvaluate(function _openHash(hash) {
+    window.location.hash = '#' + hash;
+  }, hash);
+  if (sel) {
+    this.selectorExists(sel);
+  }
+};
+
+/**
  * Re-open the initial URL.
  */
 thenContext.openInitUrl = function() {
@@ -233,69 +313,6 @@ thenContext.selectorMissing = function(sel) {
 };
 
 /**
- * Wait for matching element to exist, then click it.
- *
- * @param {string} sel
- */
-thenContext.andClick = function(sel) {
-  this.selectorExists(sel);
-  this.casper.thenEvaluate(function(sel) {
-    $(sel).click();
-  }, sel);
-};
-
-/**
- * casper.each() alternative that injects the same context as the outer it().
- *
- * @param {array} list
- * @param {function} cb Receives (val).
- */
-thenContext.forEach = function(list, cb) {
-  var self = this;
-  this.casper.each(list, function(__self, item) {
-    cb.apply(self, [].slice.call(arguments, 1));
-  });
-};
-
-/**
- * Append a fragment ID to the current URL.
- *
- * @param {string} hash Without leading '#'.
- * @param {string} [sel] Optional selector to wait for after navigation.
- */
-thenContext.openHash = function(hash, sel) {
-  this.casper.thenEvaluate(function _openHash(hash) {
-    window.location.hash = '#' + hash;
-  }, hash);
-  if (sel) {
-    this.selectorExists(sel);
-  }
-};
-
-/**
-* then() wrapper that injections the same context as the outer it().
-*
-* @param {function} cb
-*/
-thenContext.andThen = function(cb) {
-  var self = this;
-  this.casper.then(function() {
-    var targetContext = this;
-    var keys = Object.keys(self).concat(Object.keys(thenContext));
-    each(keys, function(key) {
-      if (typeof self[key] === 'undefined') {
-        if (is.Function(self[key])) {
-          targetContext[key] = bind(self, self[key]);
-        } else {
-          targetContext[key] = self[key];
-        }
-      }
-    });
-    cb.call(targetContext);
-  });
-};
-
-/**
  * sendKeys() wrapper that first waits for a selector to exist.
  *
  * @param {string} sel
@@ -305,23 +322,6 @@ thenContext.thenSendKeys = function(sel, keys) {
   this.selectorExists(sel);
   this.andThen(function() {
     this.sendKeys(sel, keys);
-  });
-};
-
-/**
-* assertTextExists() alternative that uses jQuery selectors.
-*
-* @param {string} sel
-* @param {string|regexp} text
-*/
-thenContext.assertSelText = function(sel, text, message) {
-  this.casper.then(function() {
-    this.test['assert' + (is.string(text) ? 'Equals' : 'Match')](
-      this.evaluate(function(sel) {
-        return $(sel).text();
-      }, sel),
-      text
-    );
   });
 };
 
