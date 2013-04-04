@@ -16,6 +16,12 @@
     "codeactual/sinon-doublist": "0.2.3",
     "codeactual/sinon-doublist-fs": "0.1.2"
   },
+  "paths": [
+    "locals"
+  ],
+  "local": [
+    "bdd-flow"
+  ],
   "scripts": [
     "index.js"
   ],
