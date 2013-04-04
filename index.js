@@ -42,7 +42,6 @@ function Parapsych(require) {
     initSel: 'body', // 1st selector to wait for
     casperRequire: require, // CasperJS-env require()
     baseUrl: 'http://localhost:8174', // for url()
-    grep: /.?/, // from `parapsych` --grep
     cli: {}, // Native CasperJS CLI interface
     casperConfig: { // Directly passed to CasperJS create()
       exitOnError: true,
@@ -74,8 +73,12 @@ configurable(Parapsych.prototype);
  * Silently add an initial describe() to verify initial URL/selector.
  */
 Parapsych.prototype.start = function(name, cb) {
-  console.error('_start');
   var self = this;
+  var cli = this.get('cli');
+
+  if (cli.options.grep) { // Convert `--grep foo bar baz` to /foo bar baz/
+    this.flow.set('grep', new RegExp(cli.args.join(' ')));
+  }
 
   this.casper = this.require('casper').create(this.get('casperConfig'));
   this.flow.addContextProp('casper', this.casper);
@@ -120,13 +123,6 @@ Parapsych.prototype.url = function(relUrl) {
  */
 Parapsych.prototype.run = function() {
   var self = this;
-  var cli = this.get('cli');
-
-  if (cli.options.grep) { // Convert `--grep foo bar baz` to /foo bar baz/
-    this.set('grep', new RegExp(cli.args.join(' ')));
-  }
-
-  this.set('url', cli.options.url);
 
   var initSel = this.get('initSel');
   var initUrl = this.get('initUrl');
@@ -138,11 +134,9 @@ Parapsych.prototype.run = function() {
   this.casper.test.info(initMsg);
 
   this.casper.then(function() {
-    console.log('about to flow run()');
     self.flow.run();
   });
 
-  console.log('about to casper run()');
   this.casper.run(function() {
     this.test.renderResults(true);
   });
