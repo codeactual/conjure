@@ -7,7 +7,6 @@
 
   parapsych.start('all', function() {
     this.it('should pass --grep filter' , function() {
-      console.log('keys', Object.keys(this));
       this.test.assertEquals(this.fetchText('body').trim(), 'Hello World');
     });
 

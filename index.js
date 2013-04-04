@@ -83,6 +83,12 @@ Parapsych.prototype.start = function(name, cb) {
     self.flow.addContextProp(key, bind(self, self[key]));
   });
 
+  this.flow.set('itWrap', function(name, cb) {
+    self.casper.then(function() {
+      cb.call(this);
+    });
+  });
+
   this.casper.start(this.url(this.get('initUrl')));
 
   var descName = 'initial URL/selector';
@@ -90,7 +96,7 @@ Parapsych.prototype.start = function(name, cb) {
   this.flow.addRootDescribe(descName, function() {
     this.it('should be loaded/found', function() {
       this.casper.then(function() {
-        self.casper.waitForSelector(this.get('initSel'));
+        self.casper.waitForSelector(self.get('initSel'));
       });
     });
   });
