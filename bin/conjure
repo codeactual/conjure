@@ -7,6 +7,8 @@
  */
 
 var path = require('path');
+var util = require('util');
+var sprintf = util.format;
 var spawn = require('child_process').spawn;
 var input = require('commander');
 
@@ -24,7 +26,8 @@ input
   .option('-t, --test-dir <dir>', 'Test directory, relative to root [test]', String, 'test')
   .option('-f, --grep-file <regex>', 'Test file regex filter [.js]', String, '\\.js$')
   .option('-b, --bootstrap <file>', 'Bootstrap all test modules [none]', String)
-  .option('-g, --grep-case', 'Filter test cases with RegExp built from arguments [none]', String)
+  .option('-v, --verbose')
+  .option('-g, --grep-case', 'Filter test cases with RegExp built from arguments [none]')
   .parse(process.argv);
 
 if (!input.server) {
@@ -32,18 +35,36 @@ if (!input.server) {
   process.exit(1);
 }
 
+var verbose = input.verbose ? function() {} : function() {
+  util.debug(sprintf( // Use debug() over log() to block.
+    '[%s] %s',
+    (new Date()).toUTCString(),
+    sprintf.apply(util, arguments)
+  ));
+};
+
 testServer = spawn(input.server);
 process.on('exit', function() { testServer.kill(); });
 
 var output = {}; // Index `casperjs` output/errors by test.
 
 // Recursively find matching test scripts.
+// Use cd() so we can just apply --grep-file to paths relative to the test dir.
 var testDir = input.rootDir + '/' + input.testDir;
-var tests = shelljs.findByRegex(testDir, new RegExp(input.grepFile));
+verbose('Test directory: %s', testDir);
+
+shelljs._('cd', testDir);
+var grepFileRe = new RegExp(input.grepFile);
+var tests = shelljs.findByRegex('.', grepFileRe);
 
 if (!tests.length) {
+  verbose('No test files match %s', grepFileRe);
   process.exit();
 }
+
+// Resolve the test file paths after removing them just for the --grep-file.
+tests = tests.map(function(file) { return testDir + '/' + file; });
+verbose('Test files matching %s: %s', grepFileRe, tests.join(', '));
 
 // If any `casperjs` exits with an error code, `conjure` exits with 1.
 var exitsRemain = tests.length;
@@ -52,6 +73,7 @@ function onSpawnExit() {
   if (!--exitsRemain) {
     process.exit(allExitOk ? 0 : 1);
   }
+  verbose('waiting for %s casperjs processes to finish', exitsRemain);
 }
 
 var casperArgs = [];
@@ -88,18 +110,19 @@ function runCasper(file, cb) {
   output[testRelPath] = [];
   function formatData(data) { return testRelPath + ': ' + data.toString().trim(); }
 
-  var casper = spawn(
-    'casperjs',
-    [__dirname + '/../bootstrap.js'].concat(
-      '--rootdir=' + input.rootDir,
-      '--testdir=' + input.testDir,
-      '--testfile=' + file,
-      casperArgs
-    )
+  var combinedArgs = [__dirname + '/../bootstrap.js'].concat(
+    '--rootdir=' + input.rootDir,
+    '--testdir=' + input.testDir,
+    '--testfile=' + file,
+    casperArgs
   );
+  verbose('spawn: casperjs %s', combinedArgs.join(' '));
+
+  var casper = spawn('casperjs', combinedArgs);
 
   casper.stdout.on('data', function (data) {
     if (/Looks like you didn't run any test/.test(data.toString())) {
+      verbose('No matching tests: %s', file);
       noTestsRan = true;
     }
     output[testRelPath].push({data: data.toString()});
@@ -120,6 +143,7 @@ function runCasper(file, cb) {
         }
       });
     }
+    verbose('%s exited with code %d', file, code);
     allExitOk = allExitOk && 0 === code;
     onSpawnExit();
     cb();
