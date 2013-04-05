@@ -70,7 +70,6 @@ module.exports = function(grunt) {
           'bin/parapsych ' +
           '--server bin/test-server ' +
           '--root ' + __dirname + ' ' +
-          '--file bin.js ' +
           '--grep should pass'
       }
     }

@@ -38,7 +38,7 @@
     "express": "~3.1.0"
   },
   "scripts": {
-    "test": "grunt build && mocha --reporter spec test.js"
+    "test": "grunt build && grunt test_bin"
   },
   "gitemplate": {
     "originSha": "b6670a51c1",
