@@ -27,6 +27,11 @@ input
   .option('-b, --bootstrap <file>', 'Bootstrap all test modules [none]', String)
   .parse(process.argv);
 
+if (!input.server) {
+  input.outputHelp();
+  process.exit(1);
+}
+
 testServer = spawn(input.server);
 process.on('exit', function() { testServer.kill(); });
 
