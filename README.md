@@ -34,12 +34,15 @@ module.exports = function(conjure) {
 
 ### Bootstrapping
 
+
+
 ```js
-// --bootstrap /path/to/proj/test/some-custom-bootstrap.js
+// bootstrap module
 module.exports = function(conjure, testFile) {
   conjure.set('baseUrl', 'http://localhost:9000/admin');
 
-  // 'testFile' = path relative to the top-level test directory
+  // If test location is '/path/to/proj/test/register/validation.js',
+  // then testFile is 'register/validation.js'
 
   return ['foo', 'bar'];
 };
