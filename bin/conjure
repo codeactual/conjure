@@ -36,7 +36,7 @@ if (!input.server) {
   process.exit(1);
 }
 
-var verbose = input.verbose ? function() {} : function() {
+var verbose = !input.verbose ? function() {} : function() {
   util.debug(sprintf( // Use debug() over log() to block.
     '[%s] %s',
     (new Date()).toUTCString(),
