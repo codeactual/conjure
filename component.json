@@ -3,7 +3,18 @@
   "repo": "codeactual/conjure",
   "description": "Parallel CasperJS runner, BDD flow, module-based tests, API helpers",
   "version": "0.1.0",
-  "keywords": [],
+  "keywords": [
+    "casper",
+    "casperjs",
+    "phantom",
+    "phantomjs",
+    "bdd",
+    "parallel",
+    "runner",
+    "helpers",
+    "wrappers",
+    "test"
+  ],
   "dependencies": {
     "visionmedia/configurable.js": "f87ca5f",
     "component/bind": "9a55368",
