@@ -9,7 +9,7 @@ module.exports = function(conjure, customArg1, customArg2, customArg3) {
     });
 
     this.it('should have modified a conjure setting' , function() {
-      this.test.assertEquals(conjure.get('initSel'), '.modified-by-custom-bootstrap');
+      this.test.assertEquals(conjure.get('initSel'), '#greeting');
     });
   });
 };
