@@ -22,7 +22,7 @@ input
   .option('-c, --concurrent <num>', 'casperjs process count [2]', Number, 2)
   .option('-r, --root <dir>', 'Project root directory [cwd]', String, process.cwd())
   .option('-t, --test <dir>', 'Test directory, relative to root [test]', String, 'test')
-  .option('-f, --file <regex>', 'Test file regex filter [.js]', String, '/\\.js$')
+  .option('-f, --file <regex>', 'Test file regex filter [.js]', String, '\\.js$')
   .option('-g, --grep', 'Test case regex filter [none]', String)
   .parse(process.argv);
 
