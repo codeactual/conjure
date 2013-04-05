@@ -32,9 +32,7 @@ module.exports = function(conjure) {
 };
 ```
 
-### Bootstrapping
-
-
+### API: Bootstrap global settings and custom arguments
 
 ```js
 // bootstrap module
@@ -59,7 +57,7 @@ module.exports = function(conjure, customArg1, customArg2) {
 ### CLI: Basic run
 
 > Start the server.
-> Run all test scripts under `&lt;--rootdir&gt;/test` that end with `.js`.
+> Run all test scripts under `&lt;--root-dir&gt;/test` that end with `.js`.
 > Kill the server.
 
     conjure --server /path/to/myproj/http-server
@@ -70,24 +68,24 @@ module.exports = function(conjure, customArg1, customArg2) {
     --server /path/to/myproj/http-server \
     --concurrency 3
 
-### CLI: Test case filtering via `--grep`
+### CLI: Test case filtering via `--grep-case`
 
-> Find all test scripts under `&lt;--rootdir&gt;/test` that end with `.js`.
+> Find all test scripts under `&lt;--root-dir&gt;/test` that end with `.js`.
 > Only use `it()` expectations that match `/validate$/`.
 
     conjure \
     --server /path/to/myproj/http-server \
-    --grep validate\$
+    --grep-case validate\$
 
 ### CLI: Custom file layout/location
 
-> Find all test scripts under `&lt;--rootdir&gt;/&lt;--test&gt;` that end with `test.js`.
+> Find all test scripts under `&lt;--root-dir&gt;/&lt;--test-dir&gt;` that end with `test.js`.
 
     conjure \
     --server /path/to/myproj/http-server \
-    --rootdir /path/to/my/proj
-    --test custom_test_dir
-    --file "/test\.js$/"
+    --root-dir /path/to/my/proj
+    --test-dir custom_test_dir
+    --grep-file "test\.js$"
 
 ## Installation
 
@@ -135,7 +133,10 @@ Build standalone file in `build/`:
 }
 ```
 
-To modifiy, `get() + set()`.
+To modifiy:
+
+* `get() + set()` from a test script.
+* Or apply globally using a `--bootstrap` module.
 
 ### `test(name, cb)`
 
@@ -147,7 +148,7 @@ To modifiy, `get() + set()`.
 
 ### `it(name, cb)`
 
-> Add a BDD it() expectation. Enforce --grep.
+> Add a BDD it() expectation. Enforce --grep-case.
 
 ### `{string} url(relUrl)`
 
@@ -187,7 +188,7 @@ Selector matching relies on jQuery's `$` already being present.
 
 ### `require(name)`
 
-> require() any file relative to `--rootdir`.
+> require() any file relative to `--root-dir`.
 
 If rootdir is `/path/to/proj`, `'./foo'` will require `/path/to/proj/foo.js`.
 
@@ -218,5 +219,5 @@ If rootdir is `/path/to/proj`, `'./foo'` will require `/path/to/proj/foo.js`.
 
 ### 0.1.0
 
-* Initial CLI: `--concurrent`, `--grep`, `--file`, `--server`, `--root`, `--test`
+* Initial CLI: `--concurrent`, `--grep-case`, `--grep-file`, `--server`, `--root-dir`, `--test-dir`
 * Initial API: `openInitUrl()`, `require()`, `selectorExists()`, `selectorMissing()`, `andClick()`, `forEach()`, `openHash()`, `andThen()`, `thenSendKeys()`, `assertSelText()`
