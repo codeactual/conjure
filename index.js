@@ -10,7 +10,7 @@
 'use strict';
 
 module.exports = {
-  Parapsych: Parapsych,
+  Geist: Geist,
   create: create,
   mixin: mixin,
   require: require // Allow tests to use component-land require.
@@ -23,12 +23,12 @@ var each = require('each');
 var is = require('is');
 
 /**
- * Allow test scripts to easily create common-case Parapsych instances.
+ * Allow test scripts to easily create common-case Geist instances.
  *
  * @param {function} require CasperJS-env require()
  */
 function create(require) {
-  return new Parapsych(require);
+  return new Geist(require);
 }
 
 /**
@@ -36,7 +36,7 @@ function create(require) {
  *
  * @param {function} require CasperJS-env require()
  */
-function Parapsych(require) {
+function Geist(require) {
   this.settings = {
     started: false, // 1st describe() processed
     initSel: 'body', // 1st selector to wait for
@@ -66,13 +66,13 @@ function Parapsych(require) {
   this.flow = bddflow.create();
 }
 
-configurable(Parapsych.prototype);
+configurable(Geist.prototype);
 
 /**
  * Perform last-minute init based on collected configuration.
  * Silently add an initial describe() to verify initial URL/selector.
  */
-Parapsych.prototype.start = function(name, cb) {
+Geist.prototype.start = function(name, cb) {
   var self = this;
   var cli = this.get('cli');
 
@@ -114,14 +114,14 @@ Parapsych.prototype.start = function(name, cb) {
  * @param {string} relUrl Includes leading slash.
  * @return {string}
  */
-Parapsych.prototype.url = function(relUrl) {
+Geist.prototype.url = function(relUrl) {
   return this.get('baseUrl') + relUrl;
 };
 
 /**
  * Run collected BBD layers.
  */
-Parapsych.prototype.run = function() {
+Geist.prototype.run = function() {
   var self = this;
 
   var initSel = this.get('initSel');
@@ -294,14 +294,14 @@ thenContext.thenSendKeys = function(sel, keys) {
 mixin(thenContext);
 
 /**
- * Mix the given function set into Parapsych's prototype.
+ * Mix the given function set into Geist's prototype.
  *
  * @param {object} ext
  */
 function mixin(ext) {
   Object.keys(ext).forEach(function(key) {
     if (typeof ext[key] === 'function') {
-      Parapsych.prototype[key] = ext[key];
+      Geist.prototype[key] = ext[key];
     }
   });
 }

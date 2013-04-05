@@ -1,4 +1,4 @@
-# parapsych
+# geist
 
 CasperJS runner:
 
@@ -9,7 +9,7 @@ CasperJS runner:
  * jQuery used for selector matching.
 * Local module `require()` support.
 
-[![Build Status](https://travis-ci.org/codeactual/parapsych.png)](https://travis-ci.org/codeactual/parapsych)
+[![Build Status](https://travis-ci.org/codeactual/geist.png)](https://travis-ci.org/codeactual/geist)
 
 ## Examples
 
@@ -17,8 +17,8 @@ CasperJS runner:
 
 ```js
 var cli = require('casper').create().cli;
-var parapsych = require(cli.raw.get('rootdir') + '/node_modules/.bin/parapsych').create(require);
-parapsych
+var geist = require(cli.raw.get('rootdir') + '/node_modules/.bin/geist').create(require);
+geist
   .set('cli', cli)
   .set('initUrl', '/')
   .set('initSel', 'body');
@@ -29,7 +29,7 @@ describe('index page', function() {
   });
 });
 
-parapsych.run();
+geist.run();
 ```
 
 ### Basic run
@@ -38,11 +38,11 @@ parapsych.run();
 > Run all test scripts under `&lt;--rootdir&gt;/test` that end with `.js`.
 > Kill the server.
 
-    parapsych --server /path/to/myproj/http-server
+    geist --server /path/to/myproj/http-server
 
 ### Custom concurrency
 
-    parapsych \
+    geist \
     --server /path/to/myproj/http-server \
     --concurrency 3
 
@@ -51,7 +51,7 @@ parapsych.run();
 > Find all test scripts under `&lt;--rootdir&gt;/test` that end with `.js`.
 > Only use `it()` expectations that match `/validate$/`.
 
-    parapsych \
+    geist \
     --server /path/to/myproj/http-server \
     --grep validate\$
 
@@ -59,7 +59,7 @@ parapsych.run();
 
 > Find all test scripts under `&lt;--rootdir&gt;/&lt;--test&gt;` that end with `test.js`.
 
-    parapsych \
+    geist \
     --server /path/to/myproj/http-server \
     --rootdir /path/to/my/proj
     --test custom_test_dir
@@ -71,7 +71,7 @@ parapsych.run();
 
 Install to `components/`:
 
-    $ component install codeactual/parapsych
+    $ component install codeactual/geist
 
 Build standalone file in `build/`:
 
@@ -81,13 +81,13 @@ Build standalone file in `build/`:
 
 ### `create(require)`
 
-> Create a new `Parapsych` instance. Pass the CasperJS-environment `require`.
+> Create a new `Geist` instance. Pass the CasperJS-environment `require`.
 
 ### `mixin(ext)`
 
-> Extend `Parapsych.prototype` with function set `ext`.
+> Extend `Geist.prototype` with function set `ext`.
 
-## Parapsych API
+## Geist API
 
 ### `describe(desc, cb)`
 

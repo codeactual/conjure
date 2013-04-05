@@ -1,5 +1,5 @@
 {
-  "name": "parapsych",
+  "name": "geist",
   "version": "0.1.0",
   "dependencies": {
     "commander": {

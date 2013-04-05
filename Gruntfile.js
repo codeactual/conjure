@@ -44,7 +44,7 @@ module.exports = function(grunt) {
           beautify: true
         },
         files: {
-          'dist/parapsych.js': 'dist/parapsych.js'
+          'dist/geist.js': 'dist/geist.js'
         }
       }
     },
@@ -53,10 +53,10 @@ module.exports = function(grunt) {
         failOnError: true
       },
       build: {
-        command: 'component install --dev && component build --standalone parapsych --name parapsych --out dist --dev'
+        command: 'component install --dev && component build --standalone geist --name geist --out dist --dev'
       },
       dist: {
-        command: 'component build --standalone parapsych --name parapsych --out dist'
+        command: 'component build --standalone geist --name geist --out dist'
       },
       shrinkwrap: {
         command: 'npm shrinkwrap'
@@ -67,7 +67,7 @@ module.exports = function(grunt) {
           stderr: true
         },
         command:
-          'bin/parapsych ' +
+          'bin/geist ' +
           '--server bin/test-server ' +
           '--root ' + __dirname + ' ' +
           '--grep should pass'

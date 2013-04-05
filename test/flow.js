@@ -2,10 +2,10 @@
   'use strict';
 
   var cli = require('casper').create().cli;
-  var parapsych = require(cli.raw.get('rootdir') + '/dist/parapsych').create(require);
-  parapsych.set('cli', cli).set('initUrl', '/').set('initSel', 'body');
+  var geist = require(cli.raw.get('rootdir') + '/dist/geist').create(require);
+  geist.set('cli', cli).set('initUrl', '/').set('initSel', 'body');
 
-  parapsych.start('all', function() {
+  geist.start('all', function() {
     this.it('should pass --grep filter' , function() {
       this.test.assertEquals(this.fetchText('body').trim(), 'Hello World');
     });
