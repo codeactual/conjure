@@ -16,20 +16,18 @@ CasperJS runner:
 ### API use in test script
 
 ```js
-var cli = require('casper').create().cli;
-var conjure = require(cli.raw.get('rootdir') + '/node_modules/.bin/conjure').create(require);
-conjure
-  .set('cli', cli)
-  .set('initUrl', '/')
-  .set('initSel', 'body');
+module.exports = function(conjure) {
+  conjure.set('initUrl', '/login').set('initSel', '.login');
 
-describe('index page', function() {
-  it('should say hello' , function() {
-    this.test.assertEquals(this.fetchText('body').trim(), 'Hello World');
+  conjure.test('login page', function() {
+    this.describe('form', function() {
+      this.it('should not auto-check "Remember Me"' , function() {
+        this.selectorExists('.remember-me');
+        this.selectorMissing('.remember-me:checked');
+      });
+    });
   });
-});
-
-conjure.run();
+};
 ```
 
 ### Basic run
