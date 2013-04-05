@@ -35,6 +35,10 @@ var output = {}; // Index `casperjs` output/errors by test.
 var testDir = input.root + '/' + input.test;
 var tests = shelljs.findByRegex(testDir, new RegExp(input.file));
 
+if (!tests.length) {
+  process.exit();
+}
+
 // If any `casperjs` exits with an error code, `parapsych` exits with 1.
 var exitsRemain = tests.length;
 var allExitOk = true;
