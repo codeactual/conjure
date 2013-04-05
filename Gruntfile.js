@@ -27,7 +27,7 @@ module.exports = function(grunt) {
           expr: true
         },
         files: {
-          src: ['test/*.js']
+          src: ['test/**/*.js']
         }
       },
       json: {
@@ -70,6 +70,7 @@ module.exports = function(grunt) {
           'bin/conjure ' +
           '--server bin/test-server ' +
           '--root ' + __dirname + ' ' +
+          '--bootstrap test/fixture/custom-bootstrap.js ' +
           '--grep should pass'
       }
     }

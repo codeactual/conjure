@@ -24,6 +24,7 @@ input
   .option('-t, --test <dir>', 'Test directory, relative to root [test]', String, 'test')
   .option('-f, --file <regex>', 'Test file regex filter [.js]', String, '\\.js$')
   .option('-g, --grep', 'Test case regex filter [none]', String)
+  .option('-b, --bootstrap <file>', 'Bootstrap all test modules [none]', String)
   .parse(process.argv);
 
 testServer = spawn(input.server);
@@ -49,6 +50,11 @@ function onSpawnExit() {
 }
 
 var casperArgs = [];
+
+if (input.bootstrap) {
+  casperArgs.push('--bootstrap=' + input.bootstrap);
+}
+
 if (input.grep) {
   casperArgs.push('--grep');
   casperArgs = casperArgs.concat(input.args);

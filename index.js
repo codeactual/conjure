@@ -57,7 +57,7 @@ function Conjure(require) {
 
     // Internal.
     cli: {}, // Native CasperJS CLI interface
-    casperRequire: require, // CasperJS-env require()
+    casperRequire: require // CasperJS-env require()
   };
 
   this.flow = bddflow.create();
