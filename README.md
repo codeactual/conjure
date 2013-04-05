@@ -1,9 +1,8 @@
 # conjure
 
-Parallel CasperJS runner and API helpers:
+Parallel CasperJS runner, BDD flow, module-based tests, API helpers
 
 * `describe() / it()` flow with nesting via [bdd-flow](https://github.com/codeactual/bdd-flow).
-* Define tests as regular node.js modules.
 * `require()` local files.
 * Pass common settings and custom arguments to all test modules via bootstrap file.
 * Helpers rely on existing jQuery for selector matching.

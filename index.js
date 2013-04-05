@@ -1,5 +1,5 @@
 /**
- * CasperJS parallel running, BDD flow, API wrappers
+ * Parallel CasperJS runner, BDD flow, module-based tests, API helpers
  *
  * Licensed under MIT.
  * Copyright (c) 2013 David Smith <https://github.com/codeactual/>

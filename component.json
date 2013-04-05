@@ -1,7 +1,7 @@
 {
   "name": "conjure",
   "repo": "codeactual/conjure",
-  "description": "CasperJS parallel running, BDD flow, API wrappers",
+  "description": "Parallel CasperJS runner, BDD flow, module-based tests, API helpers",
   "version": "0.1.0",
   "keywords": [],
   "dependencies": {
