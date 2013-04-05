@@ -1,19 +1,18 @@
 # conjure
 
-CasperJS runner:
+Parallel CasperJS runner and API helpers:
 
-* Parallel `casperjs` processes with configurable limit.
-* `describe()` / `it()` BDD flow.
-* CasperJS API wrappers.
- * Callbacks inherit context of outer `it()`.
- * jQuery used for selector matching.
-* Local module `require()` support.
+* `describe() / it()` flow with nesting via [bdd-flow](https://github.com/codeactual/bdd-flow).
+* Define tests as regular node.js modules.
+* `require()` local files.
+* Pass common settings and custom arguments to all test modules via bootstrap file.
+* Helpers rely on existing jQuery for selector matching.
 
 [![Build Status](https://travis-ci.org/codeactual/conjure.png)](https://travis-ci.org/codeactual/conjure)
 
 ## Examples
 
-### API use in test script
+### API: Basic test
 
 ```js
 module.exports = function(conjure) {
@@ -21,6 +20,10 @@ module.exports = function(conjure) {
 
   conjure.test('login page', function() {
     this.describe('form', function() {
+      this.it('should have correct title' , function() {
+        this.test.assertEquals(this.getTitle(), 'Login - MyService');
+      });
+
       this.it('should not auto-check "Remember Me"' , function() {
         this.selectorExists('.remember-me');
         this.selectorMissing('.remember-me:checked');
@@ -30,7 +33,28 @@ module.exports = function(conjure) {
 };
 ```
 
-### Basic run
+### Bootstrapping
+
+```js
+// bootstrap module
+module.exports = function(conjure, testFile) {
+  conjure.set('baseUrl', 'http://localhost:9000/admin');
+
+  // ... branch logic based on 'testFile'
+
+  return ['foo', 'bar'];
+};
+
+// test module
+module.exports = function(conjure, customArg1, customArg2) {
+  // baseUrl = 'http://localhost:9000/admin'
+  // customArg1 = 'foo'
+  // customArg2 = 'bar'
+};
+
+```
+
+### CLI: Basic run
 
 > Start the server.
 > Run all test scripts under `&lt;--rootdir&gt;/test` that end with `.js`.
@@ -38,13 +62,13 @@ module.exports = function(conjure) {
 
     conjure --server /path/to/myproj/http-server
 
-### Custom concurrency
+### CLI: Custom concurrency
 
     conjure \
     --server /path/to/myproj/http-server \
     --concurrency 3
 
-### Test case filtering via `--grep`
+### CLI: Test case filtering via `--grep`
 
 > Find all test scripts under `&lt;--rootdir&gt;/test` that end with `.js`.
 > Only use `it()` expectations that match `/validate$/`.
@@ -53,7 +77,7 @@ module.exports = function(conjure) {
     --server /path/to/myproj/http-server \
     --grep validate\$
 
-### Custom file layout/location
+### CLI: Custom file layout/location
 
 > Find all test scripts under `&lt;--rootdir&gt;/&lt;--test&gt;` that end with `test.js`.
 
@@ -113,7 +137,7 @@ To modifiy, `get() + set()`.
 
 ### `test(name, cb)`
 
-> Encloses all test expectations. Arguments are internally processed by `describe()`.
+> Encloses all test expectations. Arguments are internally processed by describe().
 
 ### `describe(name, cb)`
 
