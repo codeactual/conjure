@@ -29,6 +29,7 @@ input
   .option('-T, --timeout <ms>', 'Max run time of a casperjs process', Number, 5000)
   .option('-v, --verbose')
   .option('-g, --grep-case', 'Filter test cases with RegExp built from arguments [none]')
+  .option('-G, --grepv-case', 'Omit test cases with RegExp built from arguments [none]')
   .parse(process.argv);
 
 if (!input.server) {
@@ -86,6 +87,9 @@ if (input.bootstrap) {
 if (input.grepCase) {
   casperArgs.push('--grep');
   casperArgs = casperArgs.concat(input.args);
+} else if (input.grepvCase) {
+  casperArgs.push('--grepv');
+  casperArgs = casperArgs.concat(input.args);
 }
 
 // Queue one runCasper() call per test script.
@@ -134,8 +138,8 @@ function runCasper(file, cb) {
   });
 
   casper.on('exit', function (code) {
-    // Skip output when --grep-case excluded a file's entire suite.
-    if (!noTestsRan || !input.grepCase) {
+    // Skip output when --grep[v]-case excluded a file's entire suite.
+    if (!noTestsRan || (!input.grepCase && !input.grepvCase)) {
       each(output[testRelPath], function(log) {
         if (log.err) {
           console.error(formatData(log.data));
