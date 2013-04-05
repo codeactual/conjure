@@ -69,9 +69,9 @@ module.exports = function(grunt) {
         command:
           'bin/conjure ' +
           '--server bin/test-server ' +
-          '--root ' + __dirname + ' ' +
+          '--rootdir ' + __dirname + ' ' +
           '--bootstrap test/fixture/custom-bootstrap.js ' +
-          '--grep should pass'
+          '--grep-case should pass'
       }
     }
   });

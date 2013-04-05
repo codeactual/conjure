@@ -35,11 +35,11 @@ module.exports = function(conjure) {
 ### Bootstrapping
 
 ```js
-// bootstrap module
+// --bootstrap /path/to/proj/test/some-custom-bootstrap.js
 module.exports = function(conjure, testFile) {
   conjure.set('baseUrl', 'http://localhost:9000/admin');
 
-  // ... branch logic based on 'testFile'
+  // 'testFile' = path relative to the top-level test directory
 
   return ['foo', 'bar'];
 };

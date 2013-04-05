@@ -20,11 +20,11 @@ var defShellOpt = {silent: true};
 input
   .option('-s, --server <script>', 'Test server startup script', String)
   .option('-c, --concurrent <num>', 'casperjs process count [2]', Number, 2)
-  .option('-r, --root <dir>', 'Project root directory [cwd]', String, process.cwd())
-  .option('-t, --test <dir>', 'Test directory, relative to root [test]', String, 'test')
-  .option('-f, --file <regex>', 'Test file regex filter [.js]', String, '\\.js$')
-  .option('-g, --grep', 'Test case regex filter [none]', String)
+  .option('-r, --root-dir <dir>', 'Project root directory [cwd]', String, process.cwd())
+  .option('-t, --test-dir <dir>', 'Test directory, relative to root [test]', String, 'test')
+  .option('-f, --grep-file <regex>', 'Test file regex filter [.js]', String, '\\.js$')
   .option('-b, --bootstrap <file>', 'Bootstrap all test modules [none]', String)
+  .option('-g, --grep-case', 'Filter test cases with RegExp built from arguments [none]', String)
   .parse(process.argv);
 
 if (!input.server) {
@@ -38,8 +38,8 @@ process.on('exit', function() { testServer.kill(); });
 var output = {}; // Index `casperjs` output/errors by test.
 
 // Recursively find matching test scripts.
-var testDir = input.root + '/' + input.test;
-var tests = shelljs.findByRegex(testDir, new RegExp(input.file));
+var testDir = input.rootDir + '/' + input.testDir;
+var tests = shelljs.findByRegex(testDir, new RegExp(input.grepFile));
 
 if (!tests.length) {
   process.exit();
@@ -60,7 +60,7 @@ if (input.bootstrap) {
   casperArgs.push('--bootstrap=' + input.bootstrap);
 }
 
-if (input.grep) {
+if (input.grepCase) {
   casperArgs.push('--grep');
   casperArgs = casperArgs.concat(input.args);
 }
@@ -91,8 +91,9 @@ function runCasper(file, cb) {
   var casper = spawn(
     'casperjs',
     [__dirname + '/../bootstrap.js'].concat(
-      '--rootdir=' + input.root,
-      '--file=' + file,
+      '--rootdir=' + input.rootDir,
+      '--testdir=' + input.testDir,
+      '--testfile=' + file,
       casperArgs
     )
   );
@@ -109,8 +110,8 @@ function runCasper(file, cb) {
   });
 
   casper.on('exit', function (code) {
-    // Skip output when --grep excluded a file's entire suite.
-    if (!noTestsRan || !input.grep) {
+    // Skip output when --grep-case excluded a file's entire suite.
+    if (!noTestsRan || !input.grepCase) {
       each(output[testRelPath], function(log) {
         if (log.err) {
           console.error(formatData(log.data));
