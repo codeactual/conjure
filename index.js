@@ -16,6 +16,7 @@ module.exports = {
   require: require // Allow tests to use component-land require.
 };
 
+var bddflow = require('bdd-flow');
 var bind = require('bind');
 var configurable = require('configurable.js');
 var each = require('each');
@@ -41,7 +42,6 @@ function Parapsych(require) {
     initSel: 'body', // 1st selector to wait for
     casperRequire: require, // CasperJS-env require()
     baseUrl: 'http://localhost:8174', // for url()
-    grep: /.?/, // from `parapsych` --grep
     cli: {}, // Native CasperJS CLI interface
     casperConfig: { // Directly passed to CasperJS create()
       exitOnError: true,
@@ -63,98 +63,49 @@ function Parapsych(require) {
     }
   };
 
-  // Store it() descriptions for --grep, one item per BDD nested layer.
-  this.bddLayer = []; // Ex. ['component', 'sub-component', 'should do X']
-
-  // Test script convenience.
-  window.describe = bind(this, this.describe);
-  window.it = bind(this, this.it);
+  this.flow = bddflow.create();
 }
 
 configurable(Parapsych.prototype);
 
 /**
- * Last-minute init triggered by 1st describe().
- *
- * @param {string} desc From 1st describe().
- * @param {function} cb From 1st describe().
+ * Perform last-minute init based on collected configuration.
+ * Silently add an initial describe() to verify initial URL/selector.
  */
-Parapsych.prototype._start = function(desc, cb) {
+Parapsych.prototype.start = function(name, cb) {
   var self = this;
   var cli = this.get('cli');
 
   if (cli.options.grep) { // Convert `--grep foo bar baz` to /foo bar baz/
-    this.set('grep', new RegExp(cli.args.join(' ')));
+    this.flow.set('grep', new RegExp(cli.args.join(' ')));
   }
-
-  this.set('url', cli.options.url);
 
   this.casper = this.require('casper').create(this.get('casperConfig'));
-  window.casper = this.casper; // Test script convenience.
-
-  var initSel = this.get('initSel');
-  var initUrl = this.get('initUrl');
-
-  var initMsg = 'Opening [' + initUrl + ']';
-  if (initSel) {
-    initMsg += ' Waiting For Selector [' + initSel + ']';
-  }
-  this.casper.test.info(initMsg);
-
-  this.casper.test.info('  ' + desc);
-  this.bddLayer.push(desc);
-
-  // Fail the 1st describe() if initial URL or selector is not found.
-  this.casper.start(this.url(initUrl));
-  this.casper.then(function() {
-    self.casper.waitForSelector(initSel);
+  this.flow.addContextProp('casper', this.casper);
+  Object.keys(thenContext).forEach(function(key) {
+    self.flow.addContextProp(key, bind(self, self[key]));
   });
-  this.casper.then(cb);
 
-  this.set('started', true);
-};
-
-/**
- * Add a BDD describe() subject.
- *
- * @param {string} desc
- * @param {function} cb
- */
-Parapsych.prototype.describe = function(desc, cb) {
-  var self = this;
-  if (this.get('started')) {
-    this.casper.then(function() {
-      self.casper.test.info('  ' + desc);
-      self.bddLayer.push(desc);
-      cb.call(self);
+  this.flow.set('itWrap', function(name, cb) {
+    self.casper.then(function() {
+      cb.call(this);
     });
-  } else {
-    this._start(desc, cb);
-  }
-  this.casper.then(function() { self.bddLayer.pop(); });
-};
-
-/**
- * Add a BDD it() expectation. Enforce --grep.
- *
- * @param {string} desc
- * @param {function} cb
- * @param
- */
-Parapsych.prototype.it = function(desc, cb) {
-  var self = this;
-  var bddLayer = this.bddLayer.concat(desc);
-
-  if (!this.get('grep').test(bddLayer.join(' '))) {
-    return;
-  }
-
-  this.casper.then(function() {
-    self.casper.test.info('    ' + desc);
-    self.bddLayer = bddLayer; // Save for pop() below.
   });
-  this.andThen(cb);
-  this.casper.then(function() { self.bddLayer.pop(); });
+
+  this.casper.start(this.url(this.get('initUrl')));
+
+  var descName = 'initial URL/selector';
+
+  this.flow.addRootDescribe(descName, function() {
+    this.it('should be loaded/found', function() {
+      this.casper.then(function() {
+        self.casper.waitForSelector(self.get('initSel'));
+      });
+    });
+  });
+
+  this.flow.addRootDescribe(name, cb);
+  this.run();
 };
 
 /**
@@ -171,6 +122,21 @@ Parapsych.prototype.url = function(relUrl) {
  * Run collected BBD layers.
  */
 Parapsych.prototype.run = function() {
+  var self = this;
+
+  var initSel = this.get('initSel');
+  var initUrl = this.get('initUrl');
+
+  var initMsg = 'Opening [' + initUrl + ']';
+  if (initSel) {
+    initMsg += ' Waiting For Selector [' + initSel + ']';
+  }
+  this.casper.test.info(initMsg);
+
+  this.casper.then(function() {
+    self.flow.run();
+  });
+
   this.casper.run(function() {
     this.test.renderResults(true);
   });
