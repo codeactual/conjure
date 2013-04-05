@@ -3,7 +3,7 @@ module.exports = function(conjure) {
 
   conjure.set('initUrl', '/').set('initSel', 'body');
 
-  conjure.start('all', function() {
+  conjure.test('all', function() {
     this.it('should pass --grep filter' , function() {
       this.test.assertEquals(this.fetchText('body').trim(), 'Hello World');
     });

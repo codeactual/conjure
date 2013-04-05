@@ -38,7 +38,6 @@ function create(require) {
  */
 function Conjure(require) {
   this.settings = {
-    started: false, // 1st describe() processed
     initSel: 'body', // 1st selector to wait for
     casperRequire: require, // CasperJS-env require()
     baseUrl: 'http://localhost:8174', // for url()
@@ -72,7 +71,7 @@ configurable(Conjure.prototype);
  * Perform last-minute init based on collected configuration.
  * Silently add an initial describe() to verify initial URL/selector.
  */
-Conjure.prototype.start = function(name, cb) {
+Conjure.prototype.test = function(name, cb) {
   var self = this;
   var cli = this.get('cli');
 
