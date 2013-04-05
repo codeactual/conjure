@@ -10,7 +10,7 @@
 'use strict';
 
 module.exports = {
-  Geist: Geist,
+  Conjure: Conjure,
   create: create,
   mixin: mixin,
   require: require // Allow tests to use component-land require.
@@ -23,12 +23,12 @@ var each = require('each');
 var is = require('is');
 
 /**
- * Allow test scripts to easily create common-case Geist instances.
+ * Allow test scripts to easily create common-case Conjure instances.
  *
  * @param {function} require CasperJS-env require()
  */
 function create(require) {
-  return new Geist(require);
+  return new Conjure(require);
 }
 
 /**
@@ -36,7 +36,7 @@ function create(require) {
  *
  * @param {function} require CasperJS-env require()
  */
-function Geist(require) {
+function Conjure(require) {
   this.settings = {
     started: false, // 1st describe() processed
     initSel: 'body', // 1st selector to wait for
@@ -66,13 +66,13 @@ function Geist(require) {
   this.flow = bddflow.create();
 }
 
-configurable(Geist.prototype);
+configurable(Conjure.prototype);
 
 /**
  * Perform last-minute init based on collected configuration.
  * Silently add an initial describe() to verify initial URL/selector.
  */
-Geist.prototype.start = function(name, cb) {
+Conjure.prototype.start = function(name, cb) {
   var self = this;
   var cli = this.get('cli');
 
@@ -114,14 +114,14 @@ Geist.prototype.start = function(name, cb) {
  * @param {string} relUrl Includes leading slash.
  * @return {string}
  */
-Geist.prototype.url = function(relUrl) {
+Conjure.prototype.url = function(relUrl) {
   return this.get('baseUrl') + relUrl;
 };
 
 /**
  * Run collected BBD layers.
  */
-Geist.prototype.run = function() {
+Conjure.prototype.run = function() {
   var self = this;
 
   var initSel = this.get('initSel');
@@ -294,14 +294,14 @@ thenContext.thenSendKeys = function(sel, keys) {
 mixin(thenContext);
 
 /**
- * Mix the given function set into Geist's prototype.
+ * Mix the given function set into Conjure's prototype.
  *
  * @param {object} ext
  */
 function mixin(ext) {
   Object.keys(ext).forEach(function(key) {
     if (typeof ext[key] === 'function') {
-      Geist.prototype[key] = ext[key];
+      Conjure.prototype[key] = ext[key];
     }
   });
 }

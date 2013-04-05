@@ -10,7 +10,7 @@ var path = require('path');
 var spawn = require('child_process').spawn;
 var input = require('commander');
 
-var requireComponent = require('../dist/geist').require;
+var requireComponent = require('../dist/conjure').require;
 var Batch = requireComponent('batch');
 var each = requireComponent('each');
 var shelljs = requireComponent('outer-shelljs').create(require('shelljs'));
@@ -39,7 +39,7 @@ if (!tests.length) {
   process.exit();
 }
 
-// If any `casperjs` exits with an error code, `geist` exits with 1.
+// If any `casperjs` exits with an error code, `conjure` exits with 1.
 var exitsRemain = tests.length;
 var allExitOk = true;
 function onSpawnExit() {

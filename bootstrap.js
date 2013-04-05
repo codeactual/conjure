@@ -1,9 +1,9 @@
 /**
  * Allow test scripts to simply define a module.exports function that receives
- * a pre-baked geist instance.
+ * a pre-baked conjure instance.
  */
 
 var cli = require('casper').create().cli;
-var geist = require(cli.raw.get('rootdir') + '/dist/geist').create(require);
-geist.set('cli', cli);
-require(cli.raw.get('file'))(geist);
+var conjure = require(cli.raw.get('rootdir') + '/dist/conjure').create(require);
+conjure.set('cli', cli);
+require(cli.raw.get('file'))(conjure);

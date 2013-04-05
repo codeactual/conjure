@@ -1,4 +1,4 @@
-# geist
+# conjure
 
 CasperJS runner:
 
@@ -9,7 +9,7 @@ CasperJS runner:
  * jQuery used for selector matching.
 * Local module `require()` support.
 
-[![Build Status](https://travis-ci.org/codeactual/geist.png)](https://travis-ci.org/codeactual/geist)
+[![Build Status](https://travis-ci.org/codeactual/conjure.png)](https://travis-ci.org/codeactual/conjure)
 
 ## Examples
 
@@ -17,8 +17,8 @@ CasperJS runner:
 
 ```js
 var cli = require('casper').create().cli;
-var geist = require(cli.raw.get('rootdir') + '/node_modules/.bin/geist').create(require);
-geist
+var conjure = require(cli.raw.get('rootdir') + '/node_modules/.bin/conjure').create(require);
+conjure
   .set('cli', cli)
   .set('initUrl', '/')
   .set('initSel', 'body');
@@ -29,7 +29,7 @@ describe('index page', function() {
   });
 });
 
-geist.run();
+conjure.run();
 ```
 
 ### Basic run
@@ -38,11 +38,11 @@ geist.run();
 > Run all test scripts under `&lt;--rootdir&gt;/test` that end with `.js`.
 > Kill the server.
 
-    geist --server /path/to/myproj/http-server
+    conjure --server /path/to/myproj/http-server
 
 ### Custom concurrency
 
-    geist \
+    conjure \
     --server /path/to/myproj/http-server \
     --concurrency 3
 
@@ -51,7 +51,7 @@ geist.run();
 > Find all test scripts under `&lt;--rootdir&gt;/test` that end with `.js`.
 > Only use `it()` expectations that match `/validate$/`.
 
-    geist \
+    conjure \
     --server /path/to/myproj/http-server \
     --grep validate\$
 
@@ -59,7 +59,7 @@ geist.run();
 
 > Find all test scripts under `&lt;--rootdir&gt;/&lt;--test&gt;` that end with `test.js`.
 
-    geist \
+    conjure \
     --server /path/to/myproj/http-server \
     --rootdir /path/to/my/proj
     --test custom_test_dir
@@ -71,7 +71,7 @@ geist.run();
 
 Install to `components/`:
 
-    $ component install codeactual/geist
+    $ component install codeactual/conjure
 
 Build standalone file in `build/`:
 
@@ -81,13 +81,13 @@ Build standalone file in `build/`:
 
 ### `create(require)`
 
-> Create a new `Geist` instance. Pass the CasperJS-environment `require`.
+> Create a new `Conjure` instance. Pass the CasperJS-environment `require`.
 
 ### `mixin(ext)`
 
-> Extend `Geist.prototype` with function set `ext`.
+> Extend `Conjure.prototype` with function set `ext`.
 
-## Geist API
+## Conjure API
 
 ### `describe(desc, cb)`
 

@@ -44,7 +44,7 @@ module.exports = function(grunt) {
           beautify: true
         },
         files: {
-          'dist/geist.js': 'dist/geist.js'
+          'dist/conjure.js': 'dist/conjure.js'
         }
       }
     },
@@ -53,10 +53,10 @@ module.exports = function(grunt) {
         failOnError: true
       },
       build: {
-        command: 'component install --dev && component build --standalone geist --name geist --out dist --dev'
+        command: 'component install --dev && component build --standalone conjure --name conjure --out dist --dev'
       },
       dist: {
-        command: 'component build --standalone geist --name geist --out dist'
+        command: 'component build --standalone conjure --name conjure --out dist'
       },
       shrinkwrap: {
         command: 'npm shrinkwrap'
@@ -67,7 +67,7 @@ module.exports = function(grunt) {
           stderr: true
         },
         command:
-          'bin/geist ' +
+          'bin/conjure ' +
           '--server bin/test-server ' +
           '--root ' + __dirname + ' ' +
           '--grep should pass'

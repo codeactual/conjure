@@ -1,9 +1,9 @@
 {
-  "name": "geist",
+  "name": "conjure",
   "description": "CasperJS parallel running, BDD flow, API wrappers",
   "version": "0.1.0",
-  "main": "./dist/geist.js",
-  "bin": "./bin/geist",
+  "main": "./dist/conjure.js",
+  "bin": "./bin/conjure",
   "keywords": [],
   "contributors": [
     {
@@ -12,12 +12,12 @@
     }
   ],
   "bugs": {
-    "url": "https://github.com/codeactual/geist/issues"
+    "url": "https://github.com/codeactual/conjure/issues"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/codeactual/geist.git"
+    "url": "https://github.com/codeactual/conjure.git"
   },
   "dependencies": {
     "commander": "~1.1.1",

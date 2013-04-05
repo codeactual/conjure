@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * `grunt test_bin` selects this file for the `geist --server` option.
+ * `grunt test_bin` selects this file for the `conjure --server` option.
  */
 
 var express = require('express');

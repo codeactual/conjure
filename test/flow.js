@@ -1,9 +1,9 @@
-module.exports = function(geist) {
+module.exports = function(conjure) {
   'use strict';
 
-  geist.set('initUrl', '/').set('initSel', 'body');
+  conjure.set('initUrl', '/').set('initSel', 'body');
 
-  geist.start('all', function() {
+  conjure.start('all', function() {
     this.it('should pass --grep filter' , function() {
       this.test.assertEquals(this.fetchText('body').trim(), 'Hello World');
     });
