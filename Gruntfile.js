@@ -72,7 +72,8 @@ module.exports = function(grunt) {
           '--root-dir ' + __dirname + ' ' +
           '--bootstrap test/fixture/custom-bootstrap.js ' +
           '--verbose ' +
-          '--grep-file "^(?!fixture).*\\.js$"'
+          '--grep-file "^(?!fixture).*\\.js$" ' +
+          '--grepv-case should prevent this from running'
       }
     }
   });
