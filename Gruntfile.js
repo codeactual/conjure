@@ -71,6 +71,7 @@ module.exports = function(grunt) {
           '--server bin/test-server ' +
           '--rootdir ' + __dirname + ' ' +
           '--bootstrap test/fixture/custom-bootstrap.js ' +
+          '--verbose ' +
           '--grep-file "^(\?\!fixture).*\\.js\$" ' +
           '--grep-case should pass'
       }
