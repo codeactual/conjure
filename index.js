@@ -38,10 +38,10 @@ function create(require) {
  */
 function Conjure(require) {
   this.settings = {
-    initSel: 'body', // 1st selector to wait for
-    casperRequire: require, // CasperJS-env require()
+    // Advertised.
     baseUrl: 'http://localhost:8174', // for url()
-    cli: {}, // Native CasperJS CLI interface
+    initPath: '/', // 1st selector to wait for
+    initSel: 'body', // 1st selector to wait for
     casperConfig: { // Directly passed to CasperJS create()
       exitOnError: true,
       logLevel: 'debug',
@@ -51,15 +51,17 @@ function Conjure(require) {
         XSSAuditingEnabled: true,
         verbose: true,
         onError: function(self, m) {
-          console.error('FATAL error:' + m);
-          self.exit();
+          self.die('CasperJS onError: ' + m, 1);
         },
         onLoadError: function(self, m) {
-          console.error('FATAL load error:' + m);
-          self.exit();
+          self.die('CasperJS onLoadError: ' + m, 1);
         }
       }
-    }
+    },
+
+    // Internal.
+    cli: {}, // Native CasperJS CLI interface
+    casperRequire: require, // CasperJS-env require()
   };
 
   this.flow = bddflow.create();
@@ -91,7 +93,7 @@ Conjure.prototype.test = function(name, cb) {
     });
   });
 
-  this.casper.start(this.url(this.get('initUrl')));
+  this.casper.start(this.url(this.get('initPath')));
 
   var descName = 'initial URL/selector';
 
@@ -124,9 +126,9 @@ Conjure.prototype.run = function() {
   var self = this;
 
   var initSel = this.get('initSel');
-  var initUrl = this.get('initUrl');
+  var initPath = this.get('initPath');
 
-  var initMsg = 'Opening [' + initUrl + ']';
+  var initMsg = 'Opening [' + initPath + ']';
   if (initSel) {
     initMsg += ' Waiting For Selector [' + initSel + ']';
   }
@@ -230,7 +232,7 @@ thenContext.openHash = function(hash, sel) {
  * Re-open the initial URL.
  */
 thenContext.openInitUrl = function() {
-  this.casper.thenOpen(this.url(this.get('initUrl')));
+  this.casper.thenOpen(this.url(this.get('initPath')));
 };
 
 /**

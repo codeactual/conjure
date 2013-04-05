@@ -1,8 +1,6 @@
 module.exports = function(conjure) {
   'use strict';
 
-  conjure.set('initUrl', '/').set('initSel', 'body');
-
   conjure.test('all', function() {
     this.it('should pass --grep filter' , function() {
       this.test.assertEquals(this.fetchText('body').trim(), 'Hello World');

@@ -17,7 +17,7 @@ CasperJS runner:
 
 ```js
 module.exports = function(conjure) {
-  conjure.set('initUrl', '/login').set('initSel', '.login');
+  conjure.set('initPath', '/login').set('initSel', '.login');
 
   conjure.test('login page', function() {
     this.describe('form', function() {
@@ -87,11 +87,39 @@ Build standalone file in `build/`:
 
 ## Conjure API
 
-### `describe(desc, cb)`
+### `set(key, val) / get(key)`
+
+* `{string} baseUrl`: Of target test server. `[http://localhost:8174]`
+* `{string} initPath`: Wait for this relative path to load before starting tests. `[/]`
+* `{string} initSel`: Wait for this selector (on `initPath`) before starting tests. `[body]`
+* `{object} casperConfig`: Native CasperJS `create()` settings. Default:
+
+```js
+{
+  exitOnError: true,
+  logLevel: 'debug',
+  pageSettings: {
+    loadImages: false,
+    loadPlugins: false,
+    XSSAuditingEnabled: true,
+    verbose: true,
+    onError: function(self, m) { self.die('CasperJS onError: ' + m, 1); },
+    onLoadError: function(self, m) { self.die('CasperJS onLoadError: ' + m, 1); }
+  }
+}
+```
+
+To modifiy, `get() + set()`.
+
+### `test(name, cb)`
+
+> Encloses all test expectations. Arguments are internally processed by `describe()`.
+
+### `describe(name, cb)`
 
 > Add a BDD describe() subject.
 
-### `it(desc, cb)`
+### `it(name, cb)`
 
 > Add a BDD it() expectation. Enforce --grep.
 
