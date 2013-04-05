@@ -26,6 +26,7 @@ input
   .option('-t, --test-dir <dir>', 'Test directory, relative to root [test]', String, 'test')
   .option('-f, --grep-file <regex>', 'Test file regex filter [.js]', String, '\\.js$')
   .option('-b, --bootstrap <file>', 'Bootstrap all test modules [none]', String)
+  .option('-T, --timeout <ms>', 'Max run time of a casperjs process', Number, 5000)
   .option('-v, --verbose')
   .option('-g, --grep-case', 'Filter test cases with RegExp built from arguments [none]')
   .parse(process.argv);
@@ -148,6 +149,13 @@ function runCasper(file, cb) {
     onSpawnExit();
     cb();
   });
+
+  if (input.timeout) {
+    setTimeout(function() {
+      casper.kill();
+      verbose('Auto-killed %s after %dms timeout', file, input.timeout);
+    }, input.timeout);
+  }
 }
 
 function onCasperData(data) {
