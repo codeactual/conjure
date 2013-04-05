@@ -9,7 +9,7 @@ module.exports = function(grunt) {
     jshint: {
       src: {
         files: {
-          src: ['index.js']
+          src: ['index.js', 'bootstrap.js']
         }
       },
       bin: {

@@ -77,7 +77,14 @@ function runCasper(file, cb) {
   output[testRelPath] = [];
   function formatData(data) { return testRelPath + ': ' + data.toString().trim(); }
 
-  var casper = spawn('casperjs', [file].concat('--rootdir=' + input.root, casperArgs));
+  var casper = spawn(
+    'casperjs',
+    [__dirname + '/../bootstrap.js'].concat(
+      '--rootdir=' + input.root,
+      '--file=' + file,
+      casperArgs
+    )
+  );
 
   casper.stdout.on('data', function (data) {
     if (/Looks like you didn't run any test/.test(data.toString())) {

@@ -1,9 +1,7 @@
-(function() {
+module.exports = function(geist) {
   'use strict';
 
-  var cli = require('casper').create().cli;
-  var geist = require(cli.raw.get('rootdir') + '/dist/geist').create(require);
-  geist.set('cli', cli).set('initUrl', '/').set('initSel', 'body');
+  geist.set('initUrl', '/').set('initSel', 'body');
 
   geist.start('all', function() {
     this.it('should pass --grep filter' , function() {
@@ -30,4 +28,4 @@
       });
     });
   });
-})();
+};
