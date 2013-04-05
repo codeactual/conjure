@@ -50,12 +50,8 @@ function Conjure(require) {
         loadPlugins: false,
         XSSAuditingEnabled: true,
         verbose: true,
-        onError: function(self, m) {
-          self.die('CasperJS onError: ' + m, 1);
-        },
-        onLoadError: function(self, m) {
-          self.die('CasperJS onLoadError: ' + m, 1);
-        }
+        onError: function(self, m) { self.die('CasperJS onError: ' + m, 1); },
+        onLoadError: function(self, m) { self.die('CasperJS onLoadError: ' + m, 1); }
       }
     },
 
