@@ -10,10 +10,7 @@ module.exports = function(grunt) {
       '--server bin/test-server ' +
       '--root-dir ' + __dirname + ' ' +
       '--verbose ';
-  var baseConjureOpt = {
-    stdout: true,
-    stderr: true
-  };
+  var baseConjureOpt = {stdout: true, stderr: true, failOnError: false};
 
   grunt.initConfig({
     jshint: {
