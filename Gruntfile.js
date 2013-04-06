@@ -5,6 +5,16 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-shell');
 
+  var baseConjureCmd =
+    'bin/conjure ' +
+      '--server bin/test-server ' +
+      '--root-dir ' + __dirname + ' ' +
+      '--verbose ';
+  var baseConjureOpt = {
+    stdout: true,
+    stderr: true
+  };
+
   grunt.initConfig({
     jshint: {
       src: {
@@ -61,19 +71,25 @@ module.exports = function(grunt) {
       shrinkwrap: {
         command: 'npm shrinkwrap'
       },
-      test_bin: {
-        options: {
-          stdout: true,
-          stderr: true
-        },
+      test_bootstrap: {
+        options: baseConjureOpt,
         command:
-          'bin/conjure ' +
-          '--server bin/test-server ' +
-          '--rootdir ' + __dirname + ' ' +
+          baseConjureCmd +
           '--bootstrap test/fixture/custom-bootstrap.js ' +
-          '--verbose ' +
-          '--grep-file "^(?!fixture).*\\.js$" ' +
-          '--grep-case should pass'
+          '--grep-file "^bootstrap\\.js$" '
+      },
+      test_flow: {
+        options: baseConjureOpt,
+        command:
+          baseConjureCmd +
+          '--grep-file "^flow\\.js$" '
+      },
+      test_grepv_case: {
+        options: baseConjureOpt,
+        command:
+          baseConjureCmd +
+          '--grep-file "^grepv-case\\.js$" ' +
+          '--grepv-case should prevent this from running'
       }
     }
   });
@@ -81,5 +97,10 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['jshint', 'shell:shrinkwrap']);
   grunt.registerTask('build', ['shell:build']);
   grunt.registerTask('dist', ['shell:dist', 'uglify:dist']);
-  grunt.registerTask('test_bin', ['build', 'shell:test_bin']);
+  grunt.registerTask('test_bin', [
+    'build',
+    'shell:test_bootstrap',
+    'shell:test_flow',
+    'shell:test_grepv_case'
+  ]);
 };

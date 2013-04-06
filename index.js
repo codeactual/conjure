@@ -73,8 +73,10 @@ Conjure.prototype.test = function(name, cb) {
   var self = this;
   var cli = this.get('cli');
 
-  if (cli.options.grep) { // Convert `--grep foo bar baz` to /foo bar baz/
+  if (cli.options.grep) { // Convert `--grep[v] foo bar baz` to /foo bar baz/
     this.flow.set('grep', new RegExp(cli.args.join(' ')));
+  } else if (cli.options.grepv) {
+    this.flow.set('grepv', new RegExp(cli.args.join(' ')));
   }
 
   this.casper = this.require('casper').create(this.get('casperConfig'));
