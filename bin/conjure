@@ -154,9 +154,9 @@ function runCasper(file, cb) {
     if (!noTestsRan || (!input.grepCase && !input.grepvCase)) {
       each(output[testRelPath], function(log) {
         if (log.err) {
-          console.error(formatData(log.data));
+          stderr(log.data);
         } else {
-          console.log(formatData(log.data));
+          stdout(log.data);
         }
       });
     }
@@ -168,8 +168,14 @@ function runCasper(file, cb) {
 
   if (input.timeout) {
     setTimeout(function() {
+      allExitOk = false;
       casper.kill();
-      verbose('Auto-killed %s after %dms timeout', file, input.timeout);
+      stdout('Auto-killed %s after %dms timeout', file, input.timeout);
+
+      var waitStatus = lastStatus('wait');
+      if (waitStatus) {
+        stdout('Potential timeout reason: %s', waitStatus);
+      }
     }, input.timeout);
   }
 
@@ -178,9 +184,12 @@ function runCasper(file, cb) {
     args[0] = testRelPath + ': ' + args[0];
     return sprintf.apply(null, args);
   }
+
+  function stdout() { console.log(formatData.apply(null, arguments)); }
+  function stderr() { console.error(formatData.apply(null, arguments)); }
 }
 
 function lastStatus(type) {
   var list = status[type];
-  return list && list.length ? JSON.parse(list[list.length - 1]) : null;
+  return list && list.length ? list[list.length - 1] : null;
 }
