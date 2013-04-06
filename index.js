@@ -20,7 +20,6 @@ var bddflow = require('bdd-flow');
 var bind = require('bind');
 var configurable = require('configurable.js');
 var each = require('each');
-var sprintf = require('format').sprintf;
 var is = require('is');
 
 /**
@@ -62,6 +61,8 @@ function Conjure(require) {
   };
 
   this.flow = bddflow.create();
+  this.utils = require('utils');
+  this.sprintf = require('utils').format;
 }
 
 configurable(Conjure.prototype);
@@ -133,14 +134,17 @@ Conjure.prototype.run = function() {
 /**
  * Send internal message to `conjure`.
  *
+ * @param {string} source Ex. method name.
  * @param {string} type
  *   wait: Details describe a potential timeout cause.
  */
-Conjure.prototype.status = function(type, detail) {
-  this.casper.echo(sprintf(
+Conjure.prototype.status = function(source, type, detail) {
+  detail = detail || {};
+  detail.statusSource = source;
+  console.log(this.sprintf(
     'conjure:%s:%s', type, JSON.stringify(detail)
   ));
-}
+};
 
 /**
  * Methods mixed in to each it()/andThen() context.
@@ -260,6 +264,12 @@ thenContext.require = function(name) {
 thenContext.selectorExists = function(sel, negate) {
   var self = this;
   var jQueryExists = this.casper.evaluate(function() { return typeof $ === 'function'; });
+
+  this.status(
+    'selectorExists',
+    'wait',
+    {sel: sel, negate: negate, jQueryExists: jQueryExists}
+  );
 
   if (jQueryExists) {
     this.casper.waitFor(function selectorExistsWaitFor() {
