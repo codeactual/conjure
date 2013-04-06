@@ -63,9 +63,19 @@ function Conjure(require) {
   this.flow = bddflow.create();
   this.utils = require('utils');
   this.sprintf = require('utils').format;
+  this.running = false;
 }
 
 configurable(Conjure.prototype);
+
+/**
+ * Check if (internal) run() has been called.
+ *
+ * @return {boolean}
+ */
+Conjure.prototype.isRunning = function() {
+  return this.running;
+};
 
 /**
  * Perform last-minute init based on collected configuration.
@@ -112,6 +122,8 @@ Conjure.prototype.test = function(name, cb) {
  */
 Conjure.prototype.run = function() {
   var self = this;
+
+  this.running = true;
 
   var initSel = this.get('initSel');
   var initPath = this.get('initPath');

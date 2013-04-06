@@ -146,6 +146,10 @@ To modifiy:
 
 > Add a BDD describe() subject.
 
+### `isRunning()`
+
+> Check if run() has been called.
+
 ### `it(name, cb)`
 
 > Add a BDD it() expectation. Enforce --grep-case.
