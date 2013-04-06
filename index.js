@@ -97,9 +97,7 @@ Conjure.prototype.test = function(name, cb) {
 
   this.flow.addRootDescribe(descName, function() {
     this.it('should be loaded/found', function() {
-      this.casper.then(function() {
-        self.casper.waitForSelector(self.get('initSel'));
-      });
+      this.casper.waitForSelector(self.get('initSel'));
     });
   });
 
@@ -149,14 +147,14 @@ thenContext.andClick = function(sel) {
 };
 
 /**
- * then() wrapper that injections the same context as the outer it().
+ * then() wrapper that injects the same context as the outer it().
  *
  * @param {function} cb
  */
 thenContext.andThen = function(cb) {
   var self = this;
   this.casper.then(function() {
-    var targetContext = this;
+    var targetContext = {casper: this};
     var keys = Object.keys(self).concat(Object.keys(thenContext));
     each(keys, function(key) {
       if (typeof self[key] === 'undefined') {
