@@ -78,10 +78,7 @@ function onSpawnExit() {
   verbose('waiting for %s casperjs processes to finish', exitsRemain);
 }
 
-var casperArgs = [
-  // Allow `conjure` to find `casperjs` processes it started via its own PID.
-  '--ppid=' + shelljs._('exec', 'ps -p ' + process.pid + ' -o ppid=').output.trim()
-];
+var casperArgs = [];
 
 if (input.bootstrap) {
   casperArgs.push('--bootstrap=' + input.bootstrap);
