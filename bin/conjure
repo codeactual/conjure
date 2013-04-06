@@ -57,7 +57,13 @@ var statusRe = /^conjure:([^:]+):(.*)$/;
 var testDir = input.rootDir + '/' + input.testDir;
 verbose('Test directory: %s', testDir);
 
+if (!shelljs._('test', '-d', testDir)) {
+  console.error('Test directory not found: ' + testDir);
+  process.exit(1);
+}
 shelljs._('cd', testDir);
+
+
 var grepFileRe = new RegExp(input.grepFile);
 var tests = shelljs.findByRegex('.', grepFileRe);
 
