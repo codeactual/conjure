@@ -150,10 +150,6 @@ To modifiy:
 
 > Add a BDD it() expectation. Enforce --grep-case.
 
-### `{string} url(relUrl)`
-
-> Convert a relative URL into a full.
-
 ### `run()`
 
 > Run collected BBD layers.
@@ -205,6 +201,10 @@ If rootdir is `/path/to/proj`, `'./foo'` will require `/path/to/proj/foo.js`.
 ### `thenSendKeys(sel, keys)`
 
 > sendKeys() wrapper that first waits for a selector to exist.
+
+### `{string} url(relUrl)`
+
+> Convert a relative URL into a full.
 
 ## License
 
