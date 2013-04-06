@@ -210,6 +210,15 @@ If rootdir is `/path/to/proj`, `'./foo'` will require `/path/to/proj/foo.js`.
 
 > Convert a relative URL into a full.
 
+## Other `it()` context properties
+
+Added for convenience:
+
+* Properties added to `this` in subsequently executed hooks and `it()` callbacks.
+* `utils`: Native CasperJS module.
+* `colorizer`: Native CasperjS module.
+* `casper`: Native CasperJS module.
+
 ## License
 
   MIT

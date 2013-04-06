@@ -62,7 +62,7 @@ function Conjure(require) {
 
   this.flow = bddflow.create();
   this.utils = require('utils');
-  this.sprintf = require('utils').format;
+  this.colorizer = require('colorizer').create('Colorizer');
   this.running = false;
 }
 
@@ -93,6 +93,9 @@ Conjure.prototype.test = function(name, cb) {
 
   this.casper = this.require('casper').create(this.get('casperConfig'));
   this.flow.addContextProp('casper', this.casper);
+  this.flow.addContextProp('colorizer', this.colorizer);
+  this.flow.addContextProp('utils', this.utils);
+
   Object.keys(thenContext).forEach(function(key) {
     self.flow.addContextProp(key, bind(self, self[key]));
   });
@@ -153,7 +156,7 @@ Conjure.prototype.run = function() {
 Conjure.prototype.status = function(source, type, detail) {
   detail = detail || {};
   detail.statusSource = source;
-  console.log(this.sprintf(
+  console.log(this.utils.format(
     'conjure:%s:%s', type, JSON.stringify(detail)
   ));
 };
@@ -337,9 +340,13 @@ mixin(thenContext);
  * @param {object} ext
  */
 function mixin(ext) {
-  Object.keys(ext).forEach(function(key) {
-    if (typeof ext[key] === 'function') {
-      Conjure.prototype[key] = ext[key];
+  _mixin(ext, Conjure.prototype);
+}
+
+function _mixin(src, dst) {
+  Object.keys(src).forEach(function(key) {
+    if (typeof src[key] === 'function') {
+      dst[key] = src[key];
     }
   });
 }
