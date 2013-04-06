@@ -20,6 +20,7 @@ var bddflow = require('bdd-flow');
 var bind = require('bind');
 var configurable = require('configurable.js');
 var each = require('each');
+var sprintf = require('format').sprintf;
 var is = require('is');
 
 /**
@@ -128,6 +129,18 @@ Conjure.prototype.run = function() {
     this.test.renderResults(true);
   });
 };
+
+/**
+ * Send internal message to `conjure`.
+ *
+ * @param {string} type
+ *   wait: Details describe a potential timeout cause.
+ */
+Conjure.prototype.status = function(type, detail) {
+  this.casper.echo(sprintf(
+    'conjure:%s:%s', type, JSON.stringify(detail)
+  ));
+}
 
 /**
  * Methods mixed in to each it()/andThen() context.
