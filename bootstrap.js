@@ -6,7 +6,8 @@
  * and pass custom arguments to the test module.
  */
 
-var cli = require('casper').create().cli;
+var casper = require('casper').create();
+var cli = casper.cli;
 var rootDir = cli.raw.get('rootdir');
 var testDir = cli.raw.get('testdir');
 var conjure = require(rootDir + '/dist/conjure').create(require);
@@ -33,3 +34,9 @@ if (customBootFile) {
 }
 
 require(testFile).apply(null, testModuleArgs);
+
+if (!conjure.isRunning()) { // Prevent empty tests from timing out.
+  conjure.status('bootstrap.js', 'exit', {testFile: testFile, reason: 'NoTestDefined'});
+  casper.warn('Did not call conjure.test()');
+  casper.exit(1);
+}
