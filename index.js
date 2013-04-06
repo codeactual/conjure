@@ -98,7 +98,7 @@ Conjure.prototype.test = function(name, cb) {
 
   this.flow.addRootDescribe(descName, function() {
     this.it('should be loaded/found', function() {
-      this.casper.waitForSelector(self.get('initSel'));
+      this.selectorExists(self.get('initSel'));
     });
   });
 
@@ -259,14 +259,20 @@ thenContext.require = function(name) {
  */
 thenContext.selectorExists = function(sel, negate) {
   var self = this;
-  this.casper.waitFor(function selectorExistsWaitFor() {
-    return this.evaluate(function selectorExistsEvaluate(sel, count) {
-      return count === $(sel).length;
-    }, sel, negate ? 0 : 1);
-  });
-  this.casper.then(function selectorExistsThen() {
-    this.test.assertTrue(true, (negate ? 'missing' : 'exists') + ': ' + sel);
-  });
+  var jQueryExists = this.casper.evaluate(function() { return typeof $ === 'function'; });
+
+  if (jQueryExists) {
+    this.casper.waitFor(function selectorExistsWaitFor() {
+      return this.evaluate(function selectorExistsEvaluate(sel, count) {
+        return count === $(sel).length;
+      }, sel, negate ? 0 : 1);
+    });
+    this.casper.then(function selectorExistsThen() {
+      this.test.assertTrue(true, (negate ? 'missing' : 'exists') + ': ' + sel);
+    });
+  } else {
+    this.casper['wait' + (negate ? 'While' : 'For') + 'Selector'](sel);
+  }
 };
 
 /**
