@@ -49,6 +49,8 @@ testServer = spawn(input.server);
 process.on('exit', function() { testServer.kill(); });
 
 var output = {}; // Index `casperjs` output/errors by test.
+var status = {}; // Index internal status JSON strings by type.
+var statusRe = /^conjure:([^:]+):(.*)$/;
 
 // Recursively find matching test scripts.
 // Use cd() so we can just apply --grep-file to paths relative to the test dir.
@@ -113,7 +115,6 @@ function runCasper(file, cb) {
 
   var testRelPath = file.replace(testDir, '');
   output[testRelPath] = [];
-  function formatData(data) { return testRelPath + ': ' + data.toString().trim(); }
 
   var combinedArgs = [__dirname + '/../bootstrap.js'].concat(
     '--rootdir=' + input.rootDir,
@@ -125,19 +126,30 @@ function runCasper(file, cb) {
 
   var casper = spawn('casperjs', combinedArgs);
 
-  casper.stdout.on('data', function (data) {
-    if (/Looks like you didn't run any test/.test(data.toString())) {
+  casper.stdout.on('data', function(data) {
+    data = data.toString().trim();
+
+    if (/Looks like you didn't run any test/.test(data)) {
       verbose('No matching tests: %s', file);
       noTestsRan = true;
     }
-    output[testRelPath].push({data: data.toString()});
+
+    var statusMatch = data.match(statusRe);
+    if (statusMatch) {
+      var type = statusMatch[1];
+      status[type] = status[type] || [];
+      status[type].push(statusMatch[2]);
+      return;
+    }
+
+    output[testRelPath].push({data: data});
   });
 
-  casper.stderr.on('data', function (data) {
+  casper.stderr.on('data', function(data) {
     output[testRelPath].push({err: true, data: data.toString()});
   });
 
-  casper.on('exit', function (code) {
+  casper.on('exit', function(code) {
     // Skip output when --grep[v]-case excluded a file's entire suite.
     if (!noTestsRan || (!input.grepCase && !input.grepvCase)) {
       each(output[testRelPath], function(log) {
@@ -160,7 +172,15 @@ function runCasper(file, cb) {
       verbose('Auto-killed %s after %dms timeout', file, input.timeout);
     }, input.timeout);
   }
+
+  function formatData() {
+    var args = [].slice.call(arguments);
+    args[0] = testRelPath + ': ' + args[0];
+    return sprintf.apply(null, args);
+  }
 }
 
-function onCasperData(data) {
+function lastStatus(type) {
+  var list = status[type];
+  return list && list.length ? JSON.parse(list[list.length - 1]) : null;
 }
