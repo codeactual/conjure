@@ -108,16 +108,6 @@ Conjure.prototype.test = function(name, cb) {
 };
 
 /**
- * Convert a relative URL into a full.
- *
- * @param {string} relUrl Includes leading slash.
- * @return {string}
- */
-Conjure.prototype.url = function(relUrl) {
-  return this.get('baseUrl') + relUrl;
-};
-
-/**
  * Run collected BBD layers.
  */
 Conjure.prototype.run = function() {
@@ -288,6 +278,16 @@ thenContext.thenSendKeys = function(sel, keys) {
   this.andThen(function() {
     this.sendKeys(sel, keys);
   });
+};
+
+/**
+ * Convert a relative URL into a full.
+ *
+ * @param {string} relUrl Includes leading slash.
+ * @return {string}
+ */
+thenContext.url = function(relUrl) {
+  return this.get('baseUrl') + relUrl;
 };
 
 mixin(thenContext);
