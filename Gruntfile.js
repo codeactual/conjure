@@ -78,6 +78,12 @@ module.exports = function(grunt) {
           '--bootstrap test/fixture/custom-bootstrap.js ' +
           '--grep-file "^bootstrap\\.js$" '
       },
+      test_empty_test: {
+        options: baseConjureOpt,
+        command:
+          baseConjureCmd +
+          '--grep-file "^empty-test\\.js$" '
+      },
       test_flow: {
         options: baseConjureOpt,
         command:
@@ -100,6 +106,7 @@ module.exports = function(grunt) {
   grunt.registerTask('test_bin', [
     'build',
     'shell:test_bootstrap',
+    'shell:test_empty_test',
     'shell:test_flow',
     'shell:test_grepv_case'
   ]);
