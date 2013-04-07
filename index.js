@@ -186,7 +186,7 @@ thenContext.andClick = function(sel) {
 thenContext.andThen = function(cb) {
   var self = this;
   this.casper.then(function() {
-    var targetContext = {casper: this};
+    var targetContext = {casper: this, test: this.test, utils: self.utils};
     var keys = Object.keys(self).concat(Object.keys(thenContext));
     each(keys, function(key) {
       if (typeof self[key] === 'undefined') {
@@ -214,6 +214,22 @@ thenContext.assertSelText = function(sel, text) {
         return $(sel).text();
       }, sel),
       text
+    );
+  });
+};
+
+/**
+ * assertType() alternative that reveals the actual type on mismatch.
+ *
+ * @param {mixed} val
+ * @param {string} expected
+ */
+thenContext.assertType = function(val, expected, subject) {
+  this.andThen(function() {
+    this.test.assertEquals(
+      this.utils.betterTypeOf(val),
+      expected,
+      this.utils.format('%s should be a %s', subject || 'subject', expected)
     );
   });
 };

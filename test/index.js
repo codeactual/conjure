@@ -6,11 +6,12 @@ var sprintf = util.format;
 var should = chai.should();
 chai.Assertion.includeStack = true;
 
-var baseConjureCmd =
-  'bin/conjure ' +
-    '--server bin/test-server ' +
-    '--root-dir ' + __dirname + '/../ ' +
-    '--verbose ';
+var baseConjureCmd = [
+  'bin/conjure',
+  '--server bin/test-server',
+  '--root-dir ' + __dirname + '/..',
+  '--verbose'
+].join(' ') + ' ';
 var baseConjureOpt = {stdout: true, stderr: true, failOnError: false};
 
 function itShouldRunCasperWith(file, cb) {
@@ -48,7 +49,7 @@ function detailedRun(file, args, cb) {
 }
 
 describe('/bin/conjure', function() {
-  var basicTestFiles = [];
+  var basicTestFiles = ['context-props']
   basicTestFiles.forEach(function(file) {
     basicRun(file);
   });
@@ -71,6 +72,6 @@ describe('/bin/conjure', function() {
 
   detailedRun('^flow\\.js$', [], function(res) {
     res.code.should.equal(0);
-    res.output.should.match(/path=flow,describe1,describe2,describe3,it1\n/);
+    res.output.should.match(/path=bdd-flow integration,describe1,describe2,describe3,it1\n/);
   });
 });
