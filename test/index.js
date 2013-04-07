@@ -48,7 +48,7 @@ function detailedRun(file, args, cb) {
 }
 
 describe('/bin/conjure', function() {
-  var basicTestFiles = ['flow'];
+  var basicTestFiles = [];
   basicTestFiles.forEach(function(file) {
     basicRun(file);
   });
@@ -67,5 +67,10 @@ describe('/bin/conjure', function() {
     res.output.should.match(
       /Potential timeout reason.*selector-does-not-exist.*selectorExists/
     );
+  });
+
+  detailedRun('^flow\\.js$', [], function(res) {
+    res.code.should.equal(0);
+    res.output.should.match(/path=flow,describe1,describe2,describe3,it1\n/);
   });
 });
