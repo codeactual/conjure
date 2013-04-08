@@ -8,8 +8,9 @@ chai.Assertion.includeStack = true;
 
 var baseConjureCmd = [
   'bin/conjure',
-  '--server bin/test-server',
-  '--root-dir ' + __dirname + '/..',
+  '--server ' + __dirname + '/../../bin/test-server',
+  '--root-dir ' + __dirname + '/../..',
+  '--test-dir test/casper',
   '--verbose'
 ].join(' ') + ' ';
 var baseConjureOpt = {stdout: true, stderr: true, failOnError: false};

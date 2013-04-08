@@ -10,6 +10,6 @@ var app = express();
 var pid = '/tmp/parapsyc-test-server.pid';
 var port = 8174;
 
-app.use(express.static(__dirname + '/../test/express-static'));
+app.use(express.static(__dirname + '/../test/fixture/express-static'));
 
 app.listen(port);

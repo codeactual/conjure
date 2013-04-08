@@ -61,7 +61,7 @@ module.exports = function(grunt) {
       },
       test_bin: {
         options: { stdout: true, stderr: true, failOnError: true },
-        command: 'mocha --reporter tap test/index.js'
+        command: 'mocha --reporter tap test/mocha'
       }
     }
   });
