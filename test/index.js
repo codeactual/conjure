@@ -9,7 +9,6 @@ chai.Assertion.includeStack = true;
 var baseConjureCmd = [
   'bin/conjure',
   '--server bin/test-server',
-  '--timeout 10000',
   '--root-dir ' + __dirname + '/..',
   '--verbose'
 ].join(' ') + ' ';
@@ -50,7 +49,7 @@ function detailedRun(file, args, cb) {
 }
 
 describe('/bin/conjure', function() {
-  var basicTestFiles = ['context-props'];
+  var basicTestFiles = [];
   basicTestFiles.forEach(function(file) {
     basicRun(file);
   });
@@ -60,6 +59,7 @@ describe('/bin/conjure', function() {
     res.code.should.equal(1);
   });
 
+  detailedRun('^context-props\\.js$', '--timeout 6000');
   detailedRun('^bootstrap\\.js$', '--bootstrap test/fixture/custom-bootstrap.js');
   detailedRun('^grepv-case\\.js$', '--grepv-case should prevent this from running');
 
