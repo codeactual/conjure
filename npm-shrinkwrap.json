@@ -192,11 +192,6 @@
       "from": "https://registry.npmjs.org/shelljs/-/shelljs-0.1.2.tgz",
       "resolved": "https://registry.npmjs.org/shelljs/-/shelljs-0.1.2.tgz"
     },
-    "chai": {
-      "version": "1.5.0",
-      "from": "chai@1.5.0",
-      "resolved": "https://registry.npmjs.org/chai/-/chai-1.5.0.tgz"
-    },
     "grunt-shell": {
       "version": "0.2.1",
       "from": "grunt-shell@0.2.1",
@@ -206,6 +201,11 @@
       "version": "2.3.1",
       "from": "sinon-chai@2.3.1",
       "resolved": "https://registry.npmjs.org/sinon-chai/-/sinon-chai-2.3.1.tgz"
+    },
+    "chai": {
+      "version": "1.5.0",
+      "from": "chai@1.5.0",
+      "resolved": "https://registry.npmjs.org/chai/-/chai-1.5.0.tgz"
     },
     "express": {
       "version": "3.1.0",
@@ -294,6 +294,25 @@
         }
       }
     },
+    "sinon": {
+      "version": "1.6.0",
+      "from": "sinon@1.6.0",
+      "resolved": "https://registry.npmjs.org/sinon/-/sinon-1.6.0.tgz",
+      "dependencies": {
+        "buster-format": {
+          "version": "0.5.5",
+          "from": "buster-format@0.5.5",
+          "resolved": "https://registry.npmjs.org/buster-format/-/buster-format-0.5.5.tgz",
+          "dependencies": {
+            "buster-core": {
+              "version": "0.6.4",
+              "from": "buster-core@0.6.4",
+              "resolved": "https://registry.npmjs.org/buster-core/-/buster-core-0.6.4.tgz"
+            }
+          }
+        }
+      }
+    },
     "mocha": {
       "version": "1.8.2",
       "from": "mocha@1.8.2",
@@ -340,25 +359,6 @@
           "version": "0.3.0",
           "from": "ms@0.3.0",
           "resolved": "https://registry.npmjs.org/ms/-/ms-0.3.0.tgz"
-        }
-      }
-    },
-    "sinon": {
-      "version": "1.6.0",
-      "from": "sinon@1.6.0",
-      "resolved": "https://registry.npmjs.org/sinon/-/sinon-1.6.0.tgz",
-      "dependencies": {
-        "buster-format": {
-          "version": "0.5.5",
-          "from": "buster-format@0.5.5",
-          "resolved": "https://registry.npmjs.org/buster-format/-/buster-format-0.5.5.tgz",
-          "dependencies": {
-            "buster-core": {
-              "version": "0.6.4",
-              "from": "buster-core@0.6.4",
-              "resolved": "https://registry.npmjs.org/buster-core/-/buster-core-0.6.4.tgz"
-            }
-          }
         }
       }
     },
