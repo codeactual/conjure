@@ -9,6 +9,7 @@ chai.Assertion.includeStack = true;
 var baseConjureCmd = [
   'bin/conjure',
   '--server bin/test-server',
+  '--timeout 10000',
   '--root-dir ' + __dirname + '/..',
   '--verbose'
 ].join(' ') + ' ';
@@ -49,7 +50,7 @@ function detailedRun(file, args, cb) {
 }
 
 describe('/bin/conjure', function() {
-  var basicTestFiles = ['context-props']
+  var basicTestFiles = ['context-props'];
   basicTestFiles.forEach(function(file) {
     basicRun(file);
   });
