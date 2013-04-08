@@ -10,13 +10,6 @@ var app = express();
 var pid = '/tmp/parapsyc-test-server.pid';
 var port = 8174;
 
-app.get('/', function(req, res){
-  var body = '<html><body><div id="greeting">Hello World</div></body></html>';
-  res.setHeader('Content-Type', 'text/html');
-  res.setHeader('Content-Length', body.length);
-  res.end(body);
-});
-
-require('fs').writeFileSync(pid, process.pid);
+app.use(express.static(__dirname + '/../test/express-static'));
 
 app.listen(port);
