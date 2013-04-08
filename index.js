@@ -213,7 +213,7 @@ thenContext.andClick = function(sel) {
 };
 
 /**
- * then() wrapper that injects the same context as the outer it().
+ * then() wrapper that with access to it() API.
  *
  * @param {function} cb
  */

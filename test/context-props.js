@@ -23,12 +23,6 @@ module.exports = function(conjure) {
           refuteCommonProps(this, 'andThen');
         });
       });
-      //this.it('should include props from outer it' , function() {
-        //this.prop = 'foo';
-        //this.andThen(function() {
-          //this.test.assertEqual(this.prop, 'foo');
-        //});
-      //});
     });
 
     this.describe('in before', function() {

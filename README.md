@@ -169,7 +169,7 @@ Selector matching relies on jQuery's `$` already being present.
 
 ### `andThen(cb)`
 
-> then() wrapper that injections the same context as the outer it().
+> then() wrapper that with access to it() API.
 
 ### `assertSelText(sel, text)`
 
