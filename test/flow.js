@@ -7,7 +7,7 @@ module.exports = function(conjure) {
       this.describe('describe2', function() {
         this.describe('describe3', function() {
           this.it('it1' , function() {
-            console.log('path=' + this.__path);
+            console.log('path=' + this.__conjure__path);
             this.test.assert(true);
           });
         });
