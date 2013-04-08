@@ -32,7 +32,6 @@ module.exports = function(conjure) {
       });
       this.it('should omit expected' , function() {
         refuteCommonProps(this, 'before');
-        this.assertType(this.beforeContext.test, 'undefined', 'this.test in before');
       });
     });
 
@@ -43,7 +42,6 @@ module.exports = function(conjure) {
       });
       this.it('should omit expected' , function() {
         refuteCommonProps(this, 'beforeEach');
-        this.assertType(this.beforeEachContext.test, 'undefined', 'this.test in beforeEach');
       });
     });
 
@@ -52,12 +50,12 @@ module.exports = function(conjure) {
         this.itContext = this;
         assertCommonProps(this, 'it');
       });
-      //this.it('should omit expected' , function() {
-        //refuteCommonProps(this, 'it');
-        //this.assertType(this.itContext.it, 'undefined', 'this.it in it');
-        //this.assertType(this.itContext.describe, 'undefined', 'this.describe in it');
-        //this.assertType(this.itContext.before, 'undefined', 'this.before in it');
-      //});
+      this.it('should omit expected' , function() {
+        refuteCommonProps(this, 'it');
+        this.assertType(this.itContext.it, 'undefined', 'this.it in it');
+        this.assertType(this.itContext.describe, 'undefined', 'this.describe in it');
+        this.assertType(this.itContext.before, 'undefined', 'this.before in it');
+      });
     });
 
     this.describe('in after (prep)', function() {
@@ -70,7 +68,6 @@ module.exports = function(conjure) {
       });
       this.it('should omit expected', function() {
         refuteCommonProps(this, 'after');
-        this.assertType(this.afterContext.test, 'undefined', 'this.test in after');
       });
     });
 
@@ -82,7 +79,6 @@ module.exports = function(conjure) {
       });
       this.it('should omit expected' , function() {
         refuteCommonProps(this, 'afterEach');
-        this.assertType(this.afterEachContext.test, 'undefined', 'this.test in afterEach');
       });
     });
   });
