@@ -243,7 +243,8 @@ thenContext.assertSelText = function(sel, text) {
  * assertType() alternative that reveals the actual type on mismatch.
  *
  * @param {mixed} val
- * @param {string} expected
+ * @param {string} expected Ex. 'number'
+ * @param {string} subject Ex. 'user ID'
  */
 thenContext.assertType = function(val, expected, subject) {
   this.andThen(function() {
