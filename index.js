@@ -84,9 +84,8 @@ Conjure.createContext = function(parent, pluck, omit) {
   pluck = [].concat(pluck || []);
   omit = [].concat(omit || []);
   var context = {};
-  var keys = Object.keys(parent);
+  var keys = pluck.length ? pluck : Object.keys(parent);
   each(keys, function(key) {
-    if (pluck.length && -1 === pluck.indexOf(key)) { return; }
     if (-1 !== omit.indexOf(key)) { return; }
     if (is.Function(parent[key])) {
       context[key] = bind(parent, parent[key]);
@@ -135,7 +134,11 @@ Conjure.prototype.test = function(name, cb) {
     });
   });
   this.flow.set('describeWrap', function(name, cb) {
-    cb.call(Conjure.createContext(self, ['casper', 'utils']));
+    var contextKeys = [].concat(
+      ['casper', 'utils', 'colorizer'],
+      Object.keys(thenContext)
+    );
+    cb.call(Conjure.createContext(self, contextKeys));
   });
 
   this.casper.start(this.url(this.get('initPath')));
@@ -216,9 +219,14 @@ thenContext.andClick = function(sel) {
  * @param {function} cb
  */
 thenContext.andThen = function(cb) {
-  var context = Conjure.createContext(this, ['casper', 'utils', 'colorizer']);
+  var self = this;
+  var contextKeys = [].concat(
+    ['utils', 'colorizer'],
+    Object.keys(thenContext)
+  );
+  var context = Conjure.createContext(this, contextKeys);
   this.casper.then(function() {
-    cb.call(extend(context, {casper: this.casper, test: this.test}));
+    cb.call(extend(context, {casper: self.casper, test: this.test}));
   });
 };
 
