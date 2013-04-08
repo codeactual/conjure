@@ -2,15 +2,16 @@ module.exports = function(conjure) {
   'use strict';
 
   function assertCommonProps(test, loc) {
-    test.assertType(test.sutContext.casper, 'object', 'test.casper in ' + loc);
-    test.assertType(test.sutContext.utils, 'object', 'test.utils in ' + loc);
-    test.assertType(test.sutContext.colorizer, 'object', 'test.colorizer in ' + loc);
+    test.assertType(test.sutContext.casper, 'object', 'this.casper in ' + loc);
+    test.assertType(test.sutContext.utils, 'object', 'this.utils in ' + loc);
+    test.assertType(test.sutContext.colorizer, 'object', 'this.colorizer in ' + loc);
+    test.assertType(test.sutContext.andThen, 'function', 'this.andThen in ' + loc);
   }
 
   function refuteCommonProps(test, loc) {
-    test.assertType(test.sutContext.flow, 'undefined', 'test.flow in ' + loc);
-    test.assertType(test.sutContext.settings, 'undefined', 'test.settings in ' + loc);
-    test.assertType(test.sutContext.running, 'undefined', 'test.running in ' + loc);
+    test.assertType(test.sutContext.flow, 'undefined', 'this.flow in ' + loc);
+    test.assertType(test.sutContext.settings, 'undefined', 'this.settings in ' + loc);
+    test.assertType(test.sutContext.running, 'undefined', 'this.running in ' + loc);
   }
 
   conjure.test('context properties', function() {
