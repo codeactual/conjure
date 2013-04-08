@@ -1,8 +1,8 @@
 module.exports = function(conjure) {
   'use strict';
 
-  conjure.test('--grepv-case', function() {
-    this.it('should let this run' , function() {
+  conjure.test('--grep-case', function() {
+    this.it('should only run this' , function() {
       this.test.assertEquals(this.fetchText('body').trim(), 'Hello World');
     });
 
