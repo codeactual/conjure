@@ -20,6 +20,7 @@ var bddflow = require('bdd-flow');
 var bind = require('bind');
 var configurable = require('configurable.js');
 var each = require('each');
+var extend = require('extend');
 var is = require('is');
 
 /**
@@ -69,6 +70,34 @@ function Conjure(require) {
 configurable(Conjure.prototype);
 
 /**
+ * Build a context object that includes:
+ *
+ * - All enumerable keys from the parent.
+ * - Where functions are bound to the parent.
+ *
+ * @param {object} parent
+ * @param {string|array} pluck Key(s) from parent to pluck.
+ * @param {string|array} omit Key(s) from parent to omit.
+ * @return {object}
+ */
+Conjure.createContext = function(parent, pluck, omit) {
+  pluck = [].concat(pluck || []);
+  omit = [].concat(omit || []);
+  var context = {};
+  var keys = Object.keys(parent);
+  each(keys, function(key) {
+    if (pluck.length && -1 === pluck.indexOf(key)) { return; }
+    if (-1 !== omit.indexOf(key)) { return; }
+    if (is.Function(parent[key])) {
+      context[key] = bind(parent, parent[key]);
+    } else {
+      context[key] = parent[key];
+    }
+  });
+  return context;
+};
+
+/**
  * Check if (internal) run() has been called.
  *
  * @return {boolean}
@@ -104,6 +133,9 @@ Conjure.prototype.test = function(name, cb) {
     self.casper.then(function() {
       cb.call(this);
     });
+  });
+  this.flow.set('describeWrap', function(name, cb) {
+    cb.call(Conjure.createContext(self, ['casper', 'utils']));
   });
 
   this.casper.start(this.url(this.get('initPath')));
@@ -184,20 +216,9 @@ thenContext.andClick = function(sel) {
  * @param {function} cb
  */
 thenContext.andThen = function(cb) {
-  var self = this;
+  var context = Conjure.createContext(this, ['casper', 'utils', 'colorizer']);
   this.casper.then(function() {
-    var targetContext = {casper: this, test: this.test, utils: self.utils};
-    var keys = Object.keys(self).concat(Object.keys(thenContext));
-    each(keys, function(key) {
-      if (typeof self[key] === 'undefined') {
-        if (is.Function(self[key])) {
-          targetContext[key] = bind(self, self[key]);
-        } else {
-          targetContext[key] = self[key];
-        }
-      }
-    });
-    cb.call(targetContext);
+    cb.call(extend(context, {casper: this.casper, test: this.test}));
   });
 };
 

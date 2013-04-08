@@ -1,21 +1,28 @@
 module.exports = function(conjure) {
   'use strict';
 
-  function assertCommonProps(loc) {
-    this.assertType(this.sutContext.casper, 'object', 'this.casper in #' + loc);
-    this.assertType(this.sutContext.utils, 'object', 'this.utils in #' + loc);
-    this.assertType(this.sutContext.colorizer, 'object', 'this.colorizer in #' + loc);
+  function assertCommonProps(test, loc) {
+    test.assertType(test.sutContext.casper, 'object', 'test.casper in #' + loc);
+    test.assertType(test.sutContext.utils, 'object', 'test.utils in #' + loc);
+    test.assertType(test.sutContext.colorizer, 'object', 'test.colorizer in #' + loc);
+  }
+
+  function refuteCommonProps(test, loc) {
+    test.assertType(test.sutContext.flow, 'undefined', 'test.flow in #' + loc);
+    test.assertType(test.sutContext.settings, 'undefined', 'test.settings in #' + loc);
+    test.assertType(test.sutContext.running, 'undefined', 'test.running in #' + loc);
   }
 
   conjure.test('context properties', function() {
     this.describe('in #before', function() {
       this.before(function() { this.sutContext = this; });
 
-      this.it('should include expected' , function() {
-        assertCommonProps.call(this, 'before');
+      this.it('should pluck expected' , function() {
+        assertCommonProps(this, 'before');
       });
 
       this.it('should omit expected' , function() {
+        refuteCommonProps(this, 'before');
         this.assertType(this.sutContext.test, 'undefined', 'this.test in #before');
       });
     });
@@ -23,45 +30,48 @@ module.exports = function(conjure) {
     this.describe('in #beforeEach', function() {
       this.beforeEach(function() { this.sutContext = this; });
 
-      this.it('should include expected' , function() {
-        assertCommonProps.call(this, 'beforeEach');
+      this.it('should pluck expected' , function() {
+        assertCommonProps(this, 'beforeEach');
       });
 
       this.it('should omit expected' , function() {
+        refuteCommonProps(this, 'beforeEach');
         this.assertType(this.sutContext.test, 'undefined', 'this.test in #beforeEach');
       });
     });
 
     this.describe('in #it', function() {
-      this.it('should include expected' , function() {
+      this.it('should pluck expected' , function() {
         this.sutContext = this;
-        assertCommonProps.call(this, 'it');
+        assertCommonProps(this, 'it');
       });
-    });
 
-    this.describe('#after sutContext collection', function() {
-      this.after(function() {
-        this.sutContext = this;
+      this.it('should omit expected' , function() {
+        refuteCommonProps(this, 'it');
       });
-      this.it('should have happened' , function() {});
     });
 
     this.describe('in #after', function() {
-      this.it('should include expected' , function() {
-        assertCommonProps.call(this, 'after');
-      });
-    });
-
-    this.describe('#afterEach sutContext collection', function() {
-      this.afterEach(function() {
+      this.after(function() {
         this.sutContext = this;
+        assertCommonProps(this, 'after');
       });
-      this.it('should have happened' , function() {});
+
+      this.it('should omit expected' , function() {
+        refuteCommonProps(this, 'after');
+        this.assertType(this.sutContext.test, 'undefined', 'this.test in #after');
+      });
     });
 
     this.describe('in #afterEach', function() {
-      this.it('should include expected' , function() {
-        assertCommonProps.call(this, 'afterEach');
+      this.after(function() {
+        this.sutContext = this;
+        assertCommonProps(this, 'afterEach');
+      });
+
+      this.it('should omit expected' , function() {
+        refuteCommonProps(this, 'afterEach');
+        this.assertType(this.sutContext.test, 'undefined', 'this.test in #afterEach');
       });
     });
   });
