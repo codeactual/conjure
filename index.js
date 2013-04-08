@@ -134,8 +134,7 @@ Conjure.prototype.test = function(name, cb) {
     });
   });
   this.flow.set('describeWrap', function(name, cb) {
-    var contextKeys = [].concat(
-      ['casper', 'utils', 'colorizer'],
+    var contextKeys = ['casper', 'utils', 'colorizer'].concat(
       Object.keys(thenContext)
     );
     cb.call(Conjure.createContext(self, contextKeys));
