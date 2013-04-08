@@ -175,6 +175,12 @@ Selector matching relies on jQuery's `$` already being present.
 
 > assertTextExists() alternative that uses jQuery selectors.
 
+### `assertType(val, expected, subject)`
+
+> assertType() alternative that reveals the actual type on mismatch.
+
+* `{string} subject` Ex. 'user ID'
+
 ### `forEach(list, cb)`
 
 > casper.each() alternative that injects the same context as the outer it().
