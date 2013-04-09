@@ -23,10 +23,13 @@ describe('helpers', function() {
 
     // Stub targets
     this.testApi = {}; // CasperJS's this.test API
+    this.utilsApi = {}; // CasperJS's this.utils API
     this.extendResult = {iAmA: 'extend() component'};
     this.createdContext = {iAmA: 'createdContext() return value'};
     this.requiredComponent = {iAmA: 'component-land require() return value'};
     this.evaluateResult = {iAmA: 'casper.evaluate() return value'};
+    this.betterTypeOf = {iAmA: 'utils.betterTypeOf() return value'};
+    this.format = {iAmA: 'utils.format() return value'};
 
     this.stubs = {}; // Reusable stub collection
 
@@ -59,6 +62,20 @@ describe('helpers', function() {
         'click', 'text'
       ]
     );
+    this.stubs.utils = this.stubMany(
+      this.utilsApi,
+      [
+        'betterTypeOf', 'format'
+      ]
+    );
+    this.stubs.utils.betterTypeOf.returns(this.betterTypeOf);
+    this.stubs.utils.format.returns(this.format);
+    this.stubs.test = this.stubMany(
+      this.testApi,
+      [
+        'assertEquals', 'assertMatch'
+      ]
+    );
     this.stubs.casper = this.stubMany(
       this.conjure.casper,
       [
@@ -66,10 +83,13 @@ describe('helpers', function() {
       ]
     );
     this.stubs.casper.evaluate.returns(this.evaluateResult);
-    this.stubs.casper.then.yieldsOn({
-      test: this.testApi,
-      evaluate: this.stubs.casper.evaluate
-    });
+    var thenContext = {
+      test: this.stubs.test,
+      evaluate: this.stubs.casper.evaluate,
+      utils: this.stubs.utils
+    };
+    this.stubs.casper.then.yieldsOn(thenContext);
+    this.stubs.conjure.then.yieldsOn(thenContext);
     this.stubs.createContext = this.stub(Conjure, 'createContext');
     this.stubs.createContext.returns(this.createdContext);
     this.stubs.extend = this.stub();
@@ -77,12 +97,6 @@ describe('helpers', function() {
     this.stubs.require = this.stub(conjure, 'require');
     this.stubs.require.withArgs('extend').returns(this.stubs.extend);
     conjure.setRequire(this.stubs.require);
-    this.stubs.test = this.stubMany(
-      this.testApi,
-      [
-        'assertEquals', 'assertMatch'
-      ]
-    );
     this.restoreComponentRequire = function() {
       conjure.setRequire(requireComponent);
     };
@@ -135,6 +149,31 @@ describe('helpers', function() {
       this.stubs.test.assertMatch.should.have.been.calledWithExactly(
         this.evaluateResult,
         this.reNeedle
+      );
+    });
+  });
+
+  describe('assertType', function() {
+    beforeEach(function() {
+      this.stubs.conjure.assertType.restore();
+    });
+    it('should use assertEquals()' , function() {
+      this.conjure.assertType(this.sel, 'string');
+      this.stubs.utils.betterTypeOf.should.have.been.calledWithExactly(this.sel);
+      this.stubs.utils.format.should.have.been.calledWithExactly(
+        '%s should be a %s', 'subject', 'string'
+      );
+      this.stubs.test.assertEquals.should.have.been.calledWithExactly(
+        this.betterTypeOf,
+        'string',
+        this.format
+      );
+    });
+    it('should apply custom subject label' , function() {
+      var subject = 'testString';
+      this.conjure.assertType(this.sel, 'string', subject);
+      this.stubs.utils.format.should.have.been.calledWithExactly(
+        '%s should be a %s', subject, 'string'
       );
     });
   });
