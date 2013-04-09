@@ -23,6 +23,7 @@ describe('helpers', function() {
     addStubTargets.call(this);
     stubRequire.call(this);
     stubConjure.call(this);
+    stubWindow.call(this);
     stubJQuery.call(this);
     addFixtures.call(this);
     stubUtilsApi.call(this);
@@ -121,6 +122,21 @@ describe('helpers', function() {
       });
     });
   });
+
+  describe('openHash', function() {
+    beforeEach(function() {
+      this.stubs.conjure.openHash.restore();
+      this.hash = 'top';
+      this.fullHash = '#' + this.hash;
+    });
+    it('should update location hash' , function() {
+      this.stubs.casper.thenEvaluate.yields(this.hash);
+      this.conjure.openHash(this.hash);
+      window.location.hash.should.equal(this.fullHash);
+    });
+    it('should optionally wait for a selector to exist' , function() {
+    });
+  });
 });
 
 /**
@@ -159,6 +175,14 @@ function stubRequire() {
 function stubConjure() {
   this.conjure = conjure.create(this.stubs.casperRequire);
   this.stubs.conjure = this.stub(this.conjure.conjure);
+}
+
+function stubWindow() {
+  GLOBAL.window = {
+    location: {
+      hash: ''
+    }
+  };
 }
 
 function stubJQuery() {
