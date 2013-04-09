@@ -19,12 +19,9 @@ module.exports = {
   setRequire: function(stub) { require = stub; }
 };
 
+var requireComponent = require;
 var bddflow = require('bdd-flow');
-var bind = require('bind');
 var configurable = require('configurable.js');
-var each = require('each');
-var extend = require('extend');
-var is = require('is');
 
 /**
  * Allow test scripts to easily create common-case Conjure instances.
@@ -63,6 +60,11 @@ function Conjure(require) {
     cli: {}, // Native CasperJS CLI interface
     casperRequire: require // CasperJS-env require()
   };
+
+  this.flow = bddflow.create();
+  this.utils = this.require('utils');
+  this.colorizer = this.require('colorizer').create('Colorizer');
+  this.running = false;
 }
 
 configurable(Conjure.prototype);
@@ -79,6 +81,10 @@ configurable(Conjure.prototype);
  * @return {object}
  */
 Conjure.createContext = function(parent, pluck, omit) {
+  var bind = require('bind');
+  var each = require('each');
+  var is = require('is');
+
   pluck = [].concat(pluck || []);
   omit = [].concat(omit || []);
   var context = {};
@@ -109,12 +115,7 @@ Conjure.prototype.isRunning = function() {
  */
 Conjure.prototype.test = function(name, cb) {
   var self = this;
-  var require = this.get('casperRequire');
-
-  this.flow = bddflow.create();
-  this.utils = require('utils');
-  this.colorizer = require('colorizer').create('Colorizer');
-  this.running = false;
+  var bind = requireComponent('bind');
 
   var cli = this.get('cli');
   if (cli.options.grep) { // Convert `--grep[v] foo bar baz` to /foo bar baz/
@@ -223,6 +224,7 @@ thenContext.click = function(sel) {
  */
 thenContext.then = function(cb) {
   var self = this;
+  var extend = require('extend');
   var contextKeys = [].concat(
     ['utils', 'colorizer'],
     Object.keys(thenContext)
@@ -240,6 +242,7 @@ thenContext.then = function(cb) {
  * @param {string|regexp} text
  */
 thenContext.assertSelText = function(sel, text) {
+  var is = require('is');
   this.casper.then(function() {
     this.test['assert' + (is.string(text) ? 'Equals' : 'Match')](
       this.evaluate(function(sel) {
