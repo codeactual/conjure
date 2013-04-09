@@ -306,10 +306,11 @@ helpers.openInitUrl = function() {
 };
 
 /**
- * require() any file relative to --rootdir.
+ * require() a CasperJS module or any file relative to --rootdir.
  *
- * @param {string} name Prefix with leading './'.
- *  If rootdir is /path/to/proj, './foo' will require /path/to/proj/foo.js.
+ * @param {string} name Ex. 'casper' or './relative/path/module.js'.
+ *   For local file: prefix with leading './'.
+ *     If rootdir is /path/to/proj, './foo' will lead to require('/path/to/proj/foo.js').
  * @return {mixed} Loaded module.
  */
 helpers.require = function(name) {

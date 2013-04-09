@@ -65,9 +65,10 @@ module.exports = function(conjure, customArg1, customArg2) {
 
 ## `require(name)`
 
-> require() any file relative to `--root-dir`.
+> require() a CasperJS module or any file relative to --rootdir.
 
-If rootdir is `/path/to/proj`, `'./foo'` will require `/path/to/proj/foo.js`.
+* For local file: prefix with leading `./`.
+ * If rootdir is `/path/to/proj`, `./foo` will lead to `require('/path/to/proj/foo.js')`.
 
 ## `selectorExists(sel, [negate])`
 
