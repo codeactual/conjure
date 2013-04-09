@@ -38,6 +38,9 @@ function create(require) {
  * @param {function} require CasperJS-env require()
  */
 function Conjure(require) {
+  var self = this;
+  var bind = requireComponent('bind');
+
   this.settings = {
     // Advertised.
     baseUrl: 'http://localhost:8174', // for url()
@@ -65,6 +68,12 @@ function Conjure(require) {
   this.utils = this.require('utils');
   this.colorizer = this.require('colorizer').create('Colorizer');
   this.running = false;
+
+  // Bound helper mixins. Added as a property so mixins refer to others internally.
+  this.conjure = {};
+  Object.keys(helpers).forEach(function(key) {
+    self.conjure[key] = bind(self, self[key]);
+  });
 }
 
 configurable(Conjure.prototype);
@@ -115,7 +124,6 @@ Conjure.prototype.isRunning = function() {
  */
 Conjure.prototype.test = function(name, cb) {
   var self = this;
-  var bind = requireComponent('bind');
 
   var cli = this.get('cli');
   if (cli.options.grep) { // Convert `--grep[v] foo bar baz` to /foo bar baz/
@@ -128,12 +136,6 @@ Conjure.prototype.test = function(name, cb) {
   this.flow.addContextProp('casper', this.casper);
   this.flow.addContextProp('colorizer', this.colorizer);
   this.flow.addContextProp('utils', this.utils);
-
-  var boundHelpers = {};
-  Object.keys(helpers).forEach(function(key) {
-    boundHelpers[key] = bind(self, self[key]);
-  });
-  this.conjure = boundHelpers;
 
   this.flow.set('itWrap', function(name, cb) {
     self.casper.then(function() {
