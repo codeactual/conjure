@@ -19,87 +19,17 @@ describe('helpers', function() {
    * as small/clear as possible.
    */
   beforeEach(function() {
-    var self = this;
-
-    // Stub targets
-    this.testApi = {}; // CasperJS's this.test API
-    this.utilsApi = {}; // CasperJS's this.utils API
-    this.extendResult = {iAmA: 'extend() component'};
-    this.createdContext = {iAmA: 'createdContext() return value'};
-    this.requiredComponent = {iAmA: 'component-land require() return value'};
-    this.evaluateResult = {iAmA: 'casper.evaluate() return value'};
-    this.betterTypeOf = {iAmA: 'utils.betterTypeOf() return value'};
-    this.format = {iAmA: 'utils.format() return value'};
-
-    this.stubs = {}; // Reusable stub collection
-
-    // Stubbing CasperJS-land require(), ex. for colorizer module
-    this.stubs.requiredComponentCreate = this.stubMany(
-      this.requiredComponent, 'create'
-    ).create;
-    this.stubs.casperRequire = this.stub();
-    this.stubs.casperRequire.returns(this.requiredComponent);
-
-    this.conjure = conjure.create(this.stubs.casperRequire);
-    this.conjure.casper = {}; // Stub target for CasperJS's this.casper API
-    this.stubs.conjure = this.stub(this.conjure.conjure);
-
-    // Use for stubs like: $(sel).<some method>().
-    this.stubs.$result = {};
-
-    // Use this.$stub to know what selector $ received.
-    GLOBAL.$ = function() {};
-    this.stubs.$global = this.stub(GLOBAL, '$').returns(this.stubs.$result);
-
-    // More fixtures and prepared stubs
-    this.sel = '.klass';
-    this.textNeedle = 'foo';
-    this.reNeedle = /foo/;
-    this.stubs.cb = this.stub();
-    this.stubs.$ = this.stubMany(
-      this.stubs.$result,
-      [
-        'click', 'text'
-      ]
-    );
-    this.stubs.utils = this.stubMany(
-      this.utilsApi,
-      [
-        'betterTypeOf', 'format'
-      ]
-    );
-    this.stubs.utils.betterTypeOf.returns(this.betterTypeOf);
-    this.stubs.utils.format.returns(this.format);
-    this.stubs.test = this.stubMany(
-      this.testApi,
-      [
-        'assertEquals', 'assertMatch'
-      ]
-    );
-    this.stubs.casper = this.stubMany(
-      this.conjure.casper,
-      [
-        'evaluate', 'then', 'thenEvaluate'
-      ]
-    );
-    this.stubs.casper.evaluate.returns(this.evaluateResult);
-    var thenContext = {
-      test: this.stubs.test,
-      evaluate: this.stubs.casper.evaluate,
-      utils: this.stubs.utils
-    };
-    this.stubs.casper.then.yieldsOn(thenContext);
-    this.stubs.conjure.then.yieldsOn(thenContext);
-    this.stubs.createContext = this.stub(Conjure, 'createContext');
-    this.stubs.createContext.returns(this.createdContext);
-    this.stubs.extend = this.stub();
-    this.stubs.extend.returns(this.extendResult);
-    this.stubs.require = this.stub(conjure, 'require');
-    this.stubs.require.withArgs('extend').returns(this.stubs.extend);
-    conjure.setRequire(this.stubs.require);
-    this.restoreComponentRequire = function() {
-      conjure.setRequire(requireComponent);
-    };
+    this.stubs = {};
+    addStubTargets.call(this);
+    stubRequire.call(this);
+    stubConjure.call(this);
+    stubJQuery.call(this);
+    addFixtures.call(this);
+    stubUtilsApi.call(this);
+    stubTestApi.call(this);
+    stubCasperApi.call(this);
+    stubThenMethods.call(this);
+    stubMisc.call(this);
   });
 
   describe('click', function() {
@@ -178,3 +108,110 @@ describe('helpers', function() {
     });
   });
 });
+
+/**
+ * Organize, and isolate from beforeEach(), for sanity.
+ */
+
+function addStubTargets() {
+  this.testApi = {}; // CasperJS's this.test API
+  this.utilsApi = {}; // CasperJS's this.utils API
+  this.extendResult = {iAmA: 'extend() component'};
+  this.createdContext = {iAmA: 'createdContext() return value'};
+  this.requiredComponent = {iAmA: 'component-land require() return value'};
+  this.evaluateResult = {iAmA: 'casper.evaluate() return value'};
+  this.betterTypeOf = {iAmA: 'utils.betterTypeOf() return value'};
+  this.format = {iAmA: 'utils.format() return value'};
+}
+
+function stubRequire() {
+  // Stubbing CasperJS-land require(), ex. for colorizer module
+  this.stubs.requiredComponentCreate = this.stubMany(
+    this.requiredComponent, 'create'
+  ).create;
+  this.stubs.casperRequire = this.stub();
+  this.stubs.casperRequire.returns(this.requiredComponent);
+
+  this.stubs.extend = this.stub();
+  this.stubs.extend.returns(this.extendResult);
+  this.stubs.require = this.stub(conjure, 'require');
+  this.stubs.require.withArgs('extend').returns(this.stubs.extend);
+  conjure.setRequire(this.stubs.require);
+  this.restoreComponentRequire = function() {
+    conjure.setRequire(requireComponent);
+  };
+}
+
+function stubConjure() {
+  this.conjure = conjure.create(this.stubs.casperRequire);
+  this.stubs.conjure = this.stub(this.conjure.conjure);
+}
+
+function stubJQuery() {
+  // Use for stubs like: $(sel).<some method>().
+  this.stubs.$result = {};
+
+  // Use this.$stub to know what selector $ received.
+  GLOBAL.$ = function() {};
+  this.stubs.$global = this.stub(GLOBAL, '$').returns(this.stubs.$result);
+
+  this.stubs.$ = this.stubMany(
+    this.stubs.$result,
+    [
+      'click', 'text'
+    ]
+  );
+}
+
+function addFixtures() {
+  this.sel = '.klass';
+  this.textNeedle = 'foo';
+  this.reNeedle = /foo/;
+  this.stubs.cb = this.stub();
+}
+
+function stubUtilsApi() {
+  this.stubs.utils = this.stubMany(
+    this.utilsApi,
+    [
+      'betterTypeOf', 'format'
+    ]
+  );
+  this.stubs.utils.betterTypeOf.returns(this.betterTypeOf);
+  this.stubs.utils.format.returns(this.format);
+}
+
+function stubTestApi() {
+  this.stubs.test = this.stubMany(
+    this.testApi,
+    [
+      'assertEquals', 'assertMatch'
+    ]
+  );
+}
+
+function stubCasperApi() {
+  this.conjure.casper = {};
+  this.stubs.casper = this.stubMany(
+    this.conjure.casper,
+    [
+      'evaluate', 'then', 'thenEvaluate'
+    ]
+  );
+  this.stubs.casper.evaluate.returns(this.evaluateResult);
+}
+
+function stubThenMethods() {
+  var thenContext = {
+    test: this.stubs.test,
+    evaluate: this.stubs.casper.evaluate,
+    utils: this.stubs.utils
+  };
+  this.stubs.casper.then.yieldsOn(thenContext);
+  this.stubs.conjure.then.yieldsOn(thenContext);
+}
+
+function stubMisc() {
+  this.stubs.createContext = this.stub(Conjure, 'createContext');
+  this.stubs.createContext.returns(this.createdContext);
+}
