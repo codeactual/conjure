@@ -244,9 +244,7 @@ helpers.assertSelText = function(sel, text) {
   var is = require('is');
   this.casper.then(function() {
     this.test['assert' + (is.string(text) ? 'Equals' : 'Match')](
-      this.evaluate(function(sel) {
-        return $(sel).text();
-      }, sel),
+      this.evaluate(function(sel) { return $(sel).text(); }, sel),
       text
     );
   });

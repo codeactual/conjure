@@ -11,56 +11,86 @@ var requireComponent = conjure.require;
 
 requireComponent('sinon-doublist')(sinon, 'mocha');
 
-describe('mixins', function() {
+describe('helpers', function() {
   'use strict';
 
+  /**
+   * Pack any remotely reusable boilerplate here to keep the actual tests
+   * as small/clear as possible.
+   */
   beforeEach(function() {
-    // Stub targets.
-    this.testApi = {}; // CasperJS testing API
-    this.extendResult = {}; // extend() component
-    this.createdContext = {}; // createdContext() return value
-    this.requiredComponent = {};
+    var self = this;
 
-    this.stubs = {}; // Namespace the stubs for sanity.
+    // Stub targets
+    this.testApi = {}; // CasperJS's this.test API
+    this.extendResult = {iAmA: 'extend() component'};
+    this.createdContext = {iAmA: 'createdContext() return value'};
+    this.requiredComponent = {iAmA: 'component-land require() return value'};
+    this.evaluateResult = {iAmA: 'casper.evaluate() return value'};
 
-    this.stubs.requiredComponentCreate = this.stubMany( // For colorizer
+    this.stubs = {}; // Reusable stub collection
+
+    // Stubbing CasperJS-land require(), ex. for colorizer module
+    this.stubs.requiredComponentCreate = this.stubMany(
       this.requiredComponent, 'create'
     ).create;
     this.stubs.casperRequire = this.stub();
     this.stubs.casperRequire.returns(this.requiredComponent);
 
     this.conjure = conjure.create(this.stubs.casperRequire);
-    this.conjure.casper = {};
+    this.conjure.casper = {}; // Stub target for CasperJS's this.casper API
     this.stubs.conjure = this.stub(this.conjure.conjure);
 
-    // Use for stubs like: $(sel).<some method>()
+    // Use for stubs like: $(sel).<some method>().
     this.stubs.$result = {};
 
     // Use this.$stub to know what selector $ received.
     GLOBAL.$ = function() {};
-    this.stubs.$ = this.stub(GLOBAL, '$').returns(this.stubs.$result);
+    this.stubs.$global = this.stub(GLOBAL, '$').returns(this.stubs.$result);
 
-    // Collection of fixtures and more prepared stubs.
+    // More fixtures and prepared stubs
     this.sel = '.klass';
+    this.textNeedle = 'foo';
+    this.reNeedle = /foo/;
     this.stubs.cb = this.stub();
-    this.stubs.thenEval = this.stubMany(this.conjure.casper, 'thenEvaluate').thenEvaluate;
-    this.stubs.$click = this.stubMany(this.stubs.$result, 'click').click;
-    this.stubs.casperThen = this.stubMany(this.conjure.casper, 'then').then;
-
+    this.stubs.$ = this.stubMany(
+      this.stubs.$result,
+      [
+        'click', 'text'
+      ]
+    );
+    this.stubs.casper = this.stubMany(
+      this.conjure.casper,
+      [
+        'evaluate', 'then', 'thenEvaluate'
+      ]
+    );
+    this.stubs.casper.evaluate.returns(this.evaluateResult);
+    this.stubs.casper.then.yieldsOn({
+      test: this.testApi,
+      evaluate: this.stubs.casper.evaluate
+    });
     this.stubs.createContext = this.stub(Conjure, 'createContext');
     this.stubs.createContext.returns(this.createdContext);
-
     this.stubs.extend = this.stub();
     this.stubs.extend.returns(this.extendResult);
-
-    this.stubs.require = this.stub();
+    this.stubs.require = this.stub(conjure, 'require');
     this.stubs.require.withArgs('extend').returns(this.stubs.extend);
     conjure.setRequire(this.stubs.require);
+    this.stubs.test = this.stubMany(
+      this.testApi,
+      [
+        'assertEquals', 'assertMatch'
+      ]
+    );
+    this.restoreComponentRequire = function() {
+      conjure.setRequire(requireComponent);
+    };
   });
 
   describe('click', function() {
     beforeEach(function() {
-      this.stubs.thenEval.yields(this.sel);
+      this.stubs.casper.thenEvaluate.yields(this.sel);
       this.stubs.conjure.click.restore();
       this.conjure.click(this.sel);
     });
@@ -68,21 +98,44 @@ describe('mixins', function() {
       this.stubs.conjure.selectorExists.calledWithExactly(this.sel);
     });
     it('should use jQuery to click' , function() {
-      this.stubs.thenEval.should.be.called;
-      this.stubs.$.should.have.been.calledWithExactly(this.sel);
-      this.stubs.$click.should.have.been.called;
+      this.stubs.casper.thenEvaluate.should.be.called;
+      this.stubs.$global.should.have.been.calledWithExactly(this.sel);
+      this.stubs.$.click.should.have.been.called;
     });
   });
 
   describe('then', function() {
     beforeEach(function() {
-      this.stubs.casperThen.yieldsOn({test: this.testApi});
       this.stubs.conjure.then.restore();
       this.conjure.then(this.stubs.cb);
-
     });
-    it('should wait for selector match' , function() {
+    it('should inject context' , function() {
+      this.stubs.extend.should.have.been.calledWith(
+        this.createdContext,
+        {casper: this.conjure.casper, test: this.testApi}
+      );
       this.stubs.cb.should.have.been.calledOn(this.extendResult);
+    });
+  });
+
+  describe('assertSelText', function() {
+    beforeEach(function() {
+      this.stubs.conjure.assertSelText.restore();
+      this.restoreComponentRequire();
+    });
+    it('should use jQuery text()' , function() {
+      this.conjure.assertSelText(this.sel, this.textNeedle);
+      this.stubs.test.assertEquals.should.have.been.calledWithExactly(
+        this.evaluateResult,
+        this.textNeedle
+      );
+    });
+    it('should support regex' , function() {
+      this.conjure.assertSelText(this.sel, this.reNeedle);
+      this.stubs.test.assertMatch.should.have.been.calledWithExactly(
+        this.evaluateResult,
+        this.reNeedle
+      );
     });
   });
 });
