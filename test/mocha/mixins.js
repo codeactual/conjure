@@ -15,16 +15,23 @@ describe('mixins', function() {
   'use strict';
 
   beforeEach(function() {
-    this.stubs = {}; // Namespace the stubs for sanity.
-
-    this.conjure = conjure.create();
-    this.stubs.conjure = this.stub(this.conjure);
-
     // Stub targets.
     this.testApi = {}; // CasperJS testing API
-    this.conjure.casper = {};
     this.extendResult = {}; // extend() component
     this.createdContext = {}; // createdContext() return value
+    this.requiredComponent = {};
+
+    this.stubs = {}; // Namespace the stubs for sanity.
+
+    this.stubs.requiredComponentCreate = this.stubMany( // For colorizer
+      this.requiredComponent, 'create'
+    ).create;
+    this.stubs.casperRequire = this.stub();
+    this.stubs.casperRequire.returns(this.requiredComponent);
+
+    this.conjure = conjure.create(this.stubs.casperRequire);
+    this.conjure.casper = {};
+    this.stubs.conjure = this.stub(this.conjure.conjure);
 
     // Use for stubs like: $(sel).<some method>()
     this.stubs.$result = {};
