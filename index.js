@@ -13,7 +13,10 @@ module.exports = {
   Conjure: Conjure,
   create: create,
   mixin: mixin,
-  require: require // Allow tests to use component-land require.
+
+  // Allow tests to use component-land require.
+  require: require,
+  setRequire: function(stub) { require = stub; }
 };
 
 var bddflow = require('bdd-flow');
