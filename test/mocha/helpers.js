@@ -107,6 +107,20 @@ describe('helpers', function() {
       );
     });
   });
+
+  describe('each', function() {
+    beforeEach(function() {
+      this.stubs.conjure.each.restore();
+    });
+    it('should invoke callback inside custom then()' , function() {
+      var self = this;
+      this.conjure.each(this.strList, this.stubs.cb);
+      this.stubs.cb.should.have.been.calledOn(this.thenContext);
+      this.strList.forEach(function(item) {
+        self.stubs.cb.should.have.been.calledWithExactly(item);
+      });
+    });
+  });
 });
 
 /**
@@ -168,6 +182,7 @@ function addFixtures() {
   this.textNeedle = 'foo';
   this.reNeedle = /foo/;
   this.stubs.cb = this.stub();
+  this.strList = ['one', 'two', 'three'];
 }
 
 function stubUtilsApi() {
@@ -202,13 +217,13 @@ function stubCasperApi() {
 }
 
 function stubThenMethods() {
-  var thenContext = {
+  this.thenContext = {
     test: this.stubs.test,
     evaluate: this.stubs.casper.evaluate,
     utils: this.stubs.utils
   };
-  this.stubs.casper.then.yieldsOn(thenContext);
-  this.stubs.conjure.then.yieldsOn(thenContext);
+  this.stubs.casper.then.yieldsOn(this.thenContext);
+  this.stubs.conjure.then.yieldsOn(this.thenContext);
 }
 
 function stubMisc() {
