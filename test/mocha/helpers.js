@@ -128,13 +128,27 @@ describe('helpers', function() {
       this.stubs.conjure.openHash.restore();
       this.hash = 'top';
       this.fullHash = '#' + this.hash;
+      this.stubs.casper.thenEvaluate.yields(this.hash);
     });
     it('should update location hash' , function() {
-      this.stubs.casper.thenEvaluate.yields(this.hash);
       this.conjure.openHash(this.hash);
       window.location.hash.should.equal(this.fullHash);
     });
     it('should optionally wait for a selector to exist' , function() {
+      this.conjure.openHash(this.hash, this.sel);
+      this.stubs.conjure.selectorExists.should.have.been.calledWithExactly(this.sel);
+    });
+  });
+
+  describe('openInitUrl', function() {
+    beforeEach(function() {
+      this.stubs.conjure.openInitUrl.restore();
+    });
+    it('should use thenOpen()' , function() {
+      this.conjure.openInitUrl();
+      this.stubs.casper.thenOpen.should.have.been.calledWithExactly(
+        'http://localhost:8174/'
+      );
     });
   });
 });
@@ -234,7 +248,7 @@ function stubCasperApi() {
   this.stubs.casper = this.stubMany(
     this.conjure.casper,
     [
-      'evaluate', 'then', 'thenEvaluate'
+      'evaluate', 'then', 'thenEvaluate', 'thenOpen'
     ]
   );
   this.stubs.casper.evaluate.returns(this.evaluateResult);
