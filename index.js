@@ -109,6 +109,7 @@ Conjure.prototype.isRunning = function() {
  */
 Conjure.prototype.test = function(name, cb) {
   var self = this;
+  var require = this.get('casperRequire');
 
   this.flow = bddflow.create();
   this.utils = require('utils');
