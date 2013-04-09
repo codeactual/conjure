@@ -207,6 +207,25 @@
       "from": "sinon-chai@2.3.1",
       "resolved": "https://registry.npmjs.org/sinon-chai/-/sinon-chai-2.3.1.tgz"
     },
+    "sinon": {
+      "version": "1.6.0",
+      "from": "sinon@1.6.0",
+      "resolved": "https://registry.npmjs.org/sinon/-/sinon-1.6.0.tgz",
+      "dependencies": {
+        "buster-format": {
+          "version": "0.5.5",
+          "from": "buster-format@0.5.5",
+          "resolved": "https://registry.npmjs.org/buster-format/-/buster-format-0.5.5.tgz",
+          "dependencies": {
+            "buster-core": {
+              "version": "0.6.4",
+              "from": "buster-core@0.6.4",
+              "resolved": "https://registry.npmjs.org/buster-core/-/buster-core-0.6.4.tgz"
+            }
+          }
+        }
+      }
+    },
     "express": {
       "version": "3.1.0",
       "from": "express@",
@@ -340,25 +359,6 @@
           "version": "0.3.0",
           "from": "ms@0.3.0",
           "resolved": "https://registry.npmjs.org/ms/-/ms-0.3.0.tgz"
-        }
-      }
-    },
-    "sinon": {
-      "version": "1.6.0",
-      "from": "sinon@1.6.0",
-      "resolved": "https://registry.npmjs.org/sinon/-/sinon-1.6.0.tgz",
-      "dependencies": {
-        "buster-format": {
-          "version": "0.5.5",
-          "from": "buster-format@0.5.5",
-          "resolved": "https://registry.npmjs.org/buster-format/-/buster-format-0.5.5.tgz",
-          "dependencies": {
-            "buster-core": {
-              "version": "0.6.4",
-              "from": "buster-core@0.6.4",
-              "resolved": "https://registry.npmjs.org/buster-core/-/buster-core-0.6.4.tgz"
-            }
-          }
         }
       }
     },
