@@ -2,22 +2,31 @@ module.exports = function(conjure) {
   'use strict';
 
   function assertCommonProps(test, loc) {
-    test.assertType(test[loc + 'Context'].casper, 'object', 'this.casper in ' + loc);
-    test.assertType(test[loc + 'Context'].utils, 'object', 'this.utils in ' + loc);
-    test.assertType(test[loc + 'Context'].colorizer, 'object', 'this.colorizer in ' + loc);
-    test.assertType(test[loc + 'Context'].then, 'function', 'this.then in ' + loc);
+    var types = {casper: 'object', utils: 'object', colorizer: 'object'};
+    Object.keys(types).forEach(function(prop) {
+      test.conjure.assertType(
+        test[loc + 'Context'][prop],
+        types[prop],
+        'this.' + prop + ' in ' + loc
+      );
+    });
   }
 
   function refuteCommonProps(test, loc) {
-    test.assertType(test[loc + 'Context'].flow, 'undefined', 'this.flow in ' + loc);
-    test.assertType(test[loc + 'Context'].settings, 'undefined', 'this.settings in ' + loc);
-    test.assertType(test[loc + 'Context'].running, 'undefined', 'this.running in ' + loc);
+    var props = ['flow', 'settings', 'running'];
+    props.forEach(function(prop) {
+      test.conjure.assertType(
+        test[loc + 'Context'][prop],
+        'undefined',
+        'this.' + prop + ' in ' + loc
+      );
+    });
   }
 
   conjure.test('context properties', function() {
     this.describe('in then', function() {
       this.it('should pluck expected' , function() {
-        this.then(function() {
+        this.conjure.then(function() {
           this.thenContext = this;
           assertCommonProps(this, 'then');
           refuteCommonProps(this, 'then');
@@ -52,9 +61,9 @@ module.exports = function(conjure) {
       });
       this.it('should omit expected' , function() {
         refuteCommonProps(this, 'it');
-        this.assertType(this.itContext.it, 'undefined', 'this.it in it');
-        this.assertType(this.itContext.describe, 'undefined', 'this.describe in it');
-        this.assertType(this.itContext.before, 'undefined', 'this.before in it');
+        this.conjure.assertType(this.itContext.it, 'undefined', 'this.it in it');
+        this.conjure.assertType(this.itContext.describe, 'undefined', 'this.describe in it');
+        this.conjure.assertType(this.itContext.before, 'undefined', 'this.before in it');
       });
     });
 

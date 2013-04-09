@@ -6,7 +6,7 @@
  */
 
 /*jshint node:true*/
-/*global window:false, $:false*/
+/*global window:false, $:false, require:true*/
 'use strict';
 
 module.exports = {
@@ -129,9 +129,11 @@ Conjure.prototype.test = function(name, cb) {
   this.flow.addContextProp('colorizer', this.colorizer);
   this.flow.addContextProp('utils', this.utils);
 
-  Object.keys(thenContext).forEach(function(key) {
-    self.flow.addContextProp(key, bind(self, self[key]));
+  var boundHelpers = {};
+  Object.keys(helpers).forEach(function(key) {
+    boundHelpers[key] = bind(self, self[key]);
   });
+  this.conjure = boundHelpers;
 
   this.flow.set('itWrap', function(name, cb) {
     self.casper.then(function() {
@@ -139,9 +141,7 @@ Conjure.prototype.test = function(name, cb) {
     });
   });
   this.flow.set('describeWrap', function(name, cb) {
-    var contextKeys = ['casper', 'utils', 'colorizer'].concat(
-      Object.keys(thenContext)
-    );
+    var contextKeys = ['casper', 'utils', 'colorizer', 'conjure'];
     cb.call(Conjure.createContext(self, contextKeys));
   });
 
@@ -151,7 +151,7 @@ Conjure.prototype.test = function(name, cb) {
 
   this.flow.addRootDescribe(descName, function() {
     this.it('should be loaded/found', function() {
-      this.selectorExists(self.get('initSel'));
+      this.conjure.selectorExists(self.get('initSel'));
     });
   });
 
@@ -203,15 +203,15 @@ Conjure.prototype.status = function(source, type, detail) {
 /**
  * Methods mixed in to each it()/then() context.
  */
-var thenContext = {};
+var helpers = {};
 
 /**
  * click() alternative that uses jQuery selectors and first waits for a match.
  *
  * @param {string} sel
  */
-thenContext.click = function(sel) {
-  this.selectorExists(sel);
+helpers.click = function(sel) {
+  this.conjure.selectorExists(sel);
   this.casper.thenEvaluate(function(sel) {
     $(sel).click();
   }, sel);
@@ -222,13 +222,10 @@ thenContext.click = function(sel) {
  *
  * @param {function} cb
  */
-thenContext.then = function(cb) {
+helpers.then = function(cb) {
   var self = this;
   var extend = require('extend');
-  var contextKeys = [].concat(
-    ['utils', 'colorizer'],
-    Object.keys(thenContext)
-  );
+  var contextKeys = ['utils', 'colorizer', 'conjure'];
   var context = Conjure.createContext(this, contextKeys);
   this.casper.then(function() {
     cb.call(extend(context, {casper: self.casper, test: this.test}));
@@ -241,7 +238,7 @@ thenContext.then = function(cb) {
  * @param {string} sel
  * @param {string|regexp} text
  */
-thenContext.assertSelText = function(sel, text) {
+helpers.assertSelText = function(sel, text) {
   var is = require('is');
   this.casper.then(function() {
     this.test['assert' + (is.string(text) ? 'Equals' : 'Match')](
@@ -260,8 +257,8 @@ thenContext.assertSelText = function(sel, text) {
  * @param {string} expected Ex. 'number'
  * @param {string} subject Ex. 'user ID'
  */
-thenContext.assertType = function(val, expected, subject) {
-  this.then(function() {
+helpers.assertType = function(val, expected, subject) {
+  this.conjure.then(function() {
     this.test.assertEquals(
       this.utils.betterTypeOf(val),
       expected,
@@ -276,7 +273,7 @@ thenContext.assertType = function(val, expected, subject) {
  * @param {array} list
  * @param {function} cb Receives (val).
  */
-thenContext.forEach = function(list, cb) {
+helpers.forEach = function(list, cb) {
   var self = this;
   this.casper.each(list, function(__self, item) {
     cb.apply(self, [].slice.call(arguments, 1));
@@ -289,19 +286,19 @@ thenContext.forEach = function(list, cb) {
  * @param {string} hash Without leading '#'.
  * @param {string} [sel] Optional selector to wait for after navigation.
  */
-thenContext.openHash = function(hash, sel) {
+helpers.openHash = function(hash, sel) {
   this.casper.thenEvaluate(function _openHash(hash) {
     window.location.hash = '#' + hash;
   }, hash);
   if (sel) {
-    this.selectorExists(sel);
+    this.conjure.selectorExists(sel);
   }
 };
 
 /**
  * Re-open the initial URL.
  */
-thenContext.openInitUrl = function() {
+helpers.openInitUrl = function() {
   this.casper.thenOpen(this.url(this.get('initPath')));
 };
 
@@ -312,7 +309,7 @@ thenContext.openInitUrl = function() {
  *  If rootdir is /path/to/proj, './foo' will require /path/to/proj/foo.js.
  * @return {mixed} Loaded module.
  */
-thenContext.require = function(name) {
+helpers.require = function(name) {
   var require = this.get('casperRequire');
   var relPathRe = /^\.\//;
   if (relPathRe.test(name)) {
@@ -328,7 +325,7 @@ thenContext.require = function(name) {
  * @param {string} sel
  * @param {boolean} [negate] Use true if selector is not expected to match.
  */
-thenContext.selectorExists = function(sel, negate) {
+helpers.selectorExists = function(sel, negate) {
   var self = this;
   var jQueryExists = this.casper.evaluate(function() { return typeof $ === 'function'; });
 
@@ -357,8 +354,8 @@ thenContext.selectorExists = function(sel, negate) {
  *
  * @param {string} sel
  */
-thenContext.selectorMissing = function(sel) {
-  this.selectorExists(sel, true);
+helpers.selectorMissing = function(sel) {
+  this.conjure.selectorExists(sel, true);
 };
 
 /**
@@ -367,9 +364,9 @@ thenContext.selectorMissing = function(sel) {
  * @param {string} sel
  * @param {string} keys
  */
-thenContext.thenSendKeys = function(sel, keys) {
-  this.selectorExists(sel);
-  this.then(function() {
+helpers.thenSendKeys = function(sel, keys) {
+  this.conjure.selectorExists(sel);
+  this.conjure.then(function() {
     this.sendKeys(sel, keys);
   });
 };
@@ -380,11 +377,11 @@ thenContext.thenSendKeys = function(sel, keys) {
  * @param {string} relUrl Includes leading slash.
  * @return {string}
  */
-thenContext.url = function(relUrl) {
+helpers.url = function(relUrl) {
   return this.get('baseUrl') + relUrl;
 };
 
-mixin(thenContext);
+mixin(helpers);
 
 /**
  * Mix the given function set into Conjure's prototype.
