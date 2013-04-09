@@ -50,9 +50,10 @@ module.exports = function(conjure, customArg1, customArg2) {
 
 * `{string} subject` Ex. 'user ID'
 
-## `forEach(list, cb)`
+## `each(list, cb)`
 
-> casper.each() alternative that injects the same context as the outer it().
+> casper.each() alternative executes the callback inside the custom then().
+> Callback receives the context of the enclosing then().
 
 ## `openHash(hash, sel)`
 

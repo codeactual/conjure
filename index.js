@@ -268,15 +268,18 @@ helpers.assertType = function(val, expected, subject) {
 };
 
 /**
- * casper.each() alternative that injects the same context as the outer it().
+ * casper.each() alternative executes the callback inside the custom then().
+ * Callback receives the context of the enclosing then().
  *
  * @param {array} list
- * @param {function} cb Receives (val).
+ * @param {function} cb Receives (listItem).
  */
-helpers.forEach = function(list, cb) {
+helpers.each = function(list, cb) {
   var self = this;
-  this.casper.each(list, function(__self, item) {
-    cb.apply(self, [].slice.call(arguments, 1));
+  list.forEach(function(item) {
+    self.conjure.then(function() {
+      cb.call(this, item);
+    });
   });
 };
 
