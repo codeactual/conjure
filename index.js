@@ -201,11 +201,11 @@ Conjure.prototype.status = function(source, type, detail) {
 var thenContext = {};
 
 /**
- * Wait for matching element to exist, then click it.
+ * click() alternative that uses jQuery selectors and first waits for a match.
  *
  * @param {string} sel
  */
-thenContext.andClick = function(sel) {
+thenContext.click = function(sel) {
   this.selectorExists(sel);
   this.casper.thenEvaluate(function(sel) {
     $(sel).click();

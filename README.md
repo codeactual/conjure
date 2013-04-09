@@ -161,11 +161,11 @@ To modifiy:
 
 ## `it()` API
 
-Selector matching relies on jQuery's `$` already being present.
+>Selector matching relies on jQuery's `$` already being present.
 
-### `andClick(cb)`
+### `click(cb)`
 
-> Wait for matching element to exist, then click it.
+> click() alternative that uses jQuery selectors and first waits for a match.
 
 ### `andThen(cb)`
 
