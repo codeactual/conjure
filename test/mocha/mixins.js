@@ -15,37 +15,67 @@ describe('mixins', function() {
   'use strict';
 
   beforeEach(function() {
-    this.conjure = conjure.create();
-    this.conjureStub = this.stub(this.conjure);
+    this.stubs = {}; // Namespace the stubs for sanity.
 
+    this.conjure = conjure.create();
+    this.stubs.conjure = this.stub(this.conjure);
+
+    // Stub targets.
+    this.testApi = {}; // CasperJS testing API
     this.conjure.casper = {};
+    this.extendResult = {}; // extend() component
+    this.createdContext = {}; // createdContext() return value
 
     // Use for stubs like: $(sel).<some method>()
-    this.$resStub = {};
+    this.stubs.$result = {};
 
     // Use this.$stub to know what selector $ received.
     GLOBAL.$ = function() {};
-    this.$stub = this.stub(GLOBAL, '$').returns(this.$resStub);
+    this.stubs.$ = this.stub(GLOBAL, '$').returns(this.stubs.$result);
 
     // Collection of fixtures and more prepared stubs.
     this.sel = '.klass';
-    this.evalStub = this.stubMany(this.conjure.casper, 'thenEvaluate').thenEvaluate;
-    this.clickStub = this.stubMany(this.$resStub, 'click').click;
+    this.stubs.cb = this.stub();
+    this.stubs.thenEval = this.stubMany(this.conjure.casper, 'thenEvaluate').thenEvaluate;
+    this.stubs.$click = this.stubMany(this.stubs.$result, 'click').click;
+    this.stubs.casperThen = this.stubMany(this.conjure.casper, 'then').then;
+
+    this.stubs.createContext = this.stub(Conjure, 'createContext');
+    this.stubs.createContext.returns(this.createdContext);
+
+    this.stubs.extend = this.stub();
+    this.stubs.extend.returns(this.extendResult);
+
+    this.stubs.require = this.stub();
+    this.stubs.require.withArgs('extend').returns(this.stubs.extend);
+    conjure.setRequire(this.stubs.require);
   });
 
   describe('click', function() {
     beforeEach(function() {
-      this.evalStub.yields(this.sel);
-      this.conjureStub.click.restore();
+      this.stubs.thenEval.yields(this.sel);
+      this.stubs.conjure.click.restore();
       this.conjure.click(this.sel);
     });
     it('should wait for selector match' , function() {
-      this.conjureStub.selectorExists.calledWithExactly(this.sel);
+      this.stubs.conjure.selectorExists.calledWithExactly(this.sel);
     });
     it('should use jQuery to click' , function() {
-      this.evalStub.should.be.called;
-      this.$stub.should.have.been.calledWithExactly(this.sel);
-      this.clickStub.should.have.been.called;
+      this.stubs.thenEval.should.be.called;
+      this.stubs.$.should.have.been.calledWithExactly(this.sel);
+      this.stubs.$click.should.have.been.called;
+    });
+  });
+
+  describe('then', function() {
+    beforeEach(function() {
+      this.stubs.casperThen.yieldsOn({test: this.testApi});
+      this.stubs.conjure.then.restore();
+      this.conjure.then(this.stubs.cb);
+
+    });
+    it('should wait for selector match' , function() {
+      this.stubs.cb.should.have.been.calledOn(this.extendResult);
     });
   });
 });
