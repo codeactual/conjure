@@ -36,11 +36,11 @@ describe('helpers', function() {
   describe('click', function() {
     beforeEach(function() {
       this.stubs.casper.thenEvaluate.yields(this.sel);
-      this.stubs.conjure.click.restore();
+      this.stubs.helper.click.restore();
       this.conjure.click(this.sel);
     });
     it('should wait for selector match' , function() {
-      this.stubs.conjure.selectorExists.calledWithExactly(this.sel);
+      this.stubs.helper.selectorExists.calledWithExactly(this.sel);
     });
     it('should use jQuery to click' , function() {
       this.stubs.casper.thenEvaluate.should.be.called;
@@ -51,7 +51,7 @@ describe('helpers', function() {
 
   describe('then', function() {
     beforeEach(function() {
-      this.stubs.conjure.then.restore();
+      this.stubs.helper.then.restore();
       this.conjure.then(this.stubs.cb);
     });
     it('should inject context' , function() {
@@ -65,7 +65,7 @@ describe('helpers', function() {
 
   describe('assertSelText', function() {
     beforeEach(function() {
-      this.stubs.conjure.assertSelText.restore();
+      this.stubs.helper.assertSelText.restore();
       this.restoreComponentRequire();
     });
     it('should use jQuery text()' , function() {
@@ -86,7 +86,7 @@ describe('helpers', function() {
 
   describe('assertType', function() {
     beforeEach(function() {
-      this.stubs.conjure.assertType.restore();
+      this.stubs.helper.assertType.restore();
     });
     it('should use assertEquals()' , function() {
       this.conjure.assertType(this.sel, 'string');
@@ -111,7 +111,7 @@ describe('helpers', function() {
 
   describe('each', function() {
     beforeEach(function() {
-      this.stubs.conjure.each.restore();
+      this.stubs.helper.each.restore();
     });
     it('should invoke callback inside custom then()' , function() {
       var self = this;
@@ -125,7 +125,7 @@ describe('helpers', function() {
 
   describe('openHash', function() {
     beforeEach(function() {
-      this.stubs.conjure.openHash.restore();
+      this.stubs.helper.openHash.restore();
       this.hash = 'top';
       this.fullHash = '#' + this.hash;
       this.stubs.casper.thenEvaluate.yields(this.hash);
@@ -136,18 +136,32 @@ describe('helpers', function() {
     });
     it('should optionally wait for a selector to exist' , function() {
       this.conjure.openHash(this.hash, this.sel);
-      this.stubs.conjure.selectorExists.should.have.been.calledWithExactly(this.sel);
+      this.stubs.helper.selectorExists.should.have.been.calledWithExactly(this.sel);
     });
   });
 
   describe('openInitUrl', function() {
     beforeEach(function() {
-      this.stubs.conjure.openInitUrl.restore();
+      this.stubs.helper.openInitUrl.restore();
+      this.stubs.conjure.get.restore();
     });
     it('should use thenOpen()' , function() {
       this.conjure.openInitUrl();
       this.stubs.casper.thenOpen.should.have.been.calledWithExactly(
         'http://localhost:8174/'
+      );
+    });
+  });
+
+  describe('require', function() {
+    beforeEach(function() {
+      this.stubs.helper.require.restore();
+    });
+    it('should detect local path' , function() {
+      var path = 'lib/sub/module.js';
+      this.conjure.require('./' + path);
+      this.stubs.casperRequire.should.have.been.calledWithExactly(
+        this.cliApi.options.rootdir + '/' + path
       );
     });
   });
@@ -160,6 +174,11 @@ describe('helpers', function() {
 function addStubTargets() {
   this.testApi = {}; // CasperJS's this.test API
   this.utilsApi = {}; // CasperJS's this.utils API
+  this.cliApi = { // CasperJS's CLI API
+    options: {
+      rootdir: '/path/to/proj'
+    }
+  };
   this.extendResult = {iAmA: 'extend() component'};
   this.createdContext = {iAmA: 'createdContext() return value'};
   this.requiredComponent = {iAmA: 'component-land require() return value'};
@@ -188,7 +207,17 @@ function stubRequire() {
 
 function stubConjure() {
   this.conjure = conjure.create(this.stubs.casperRequire);
-  this.stubs.conjure = this.stub(this.conjure.conjure);
+  this.stubs.helper = this.stub(this.conjure.conjure);
+
+  this.stubConfig = function(key, val) {
+    this.stubs.conjure.get.withArgs(key).returns(val);
+  };
+
+  this.stubs.conjure = {
+    get: this.stub(this.conjure, 'get')
+  };
+  this.stubConfig('cli', this.cliApi);
+  this.stubConfig('casperRequire', this.stubs.casperRequire);
 }
 
 function stubWindow() {
@@ -261,7 +290,7 @@ function stubThenMethods() {
     utils: this.stubs.utils
   };
   this.stubs.casper.then.yieldsOn(this.thenContext);
-  this.stubs.conjure.then.yieldsOn(this.thenContext);
+  this.stubs.helper.then.yieldsOn(this.thenContext);
 }
 
 function stubMisc() {
