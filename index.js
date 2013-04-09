@@ -60,11 +60,6 @@ function Conjure(require) {
     cli: {}, // Native CasperJS CLI interface
     casperRequire: require // CasperJS-env require()
   };
-
-  this.flow = bddflow.create();
-  this.utils = require('utils');
-  this.colorizer = require('colorizer').create('Colorizer');
-  this.running = false;
 }
 
 configurable(Conjure.prototype);
@@ -111,8 +106,13 @@ Conjure.prototype.isRunning = function() {
  */
 Conjure.prototype.test = function(name, cb) {
   var self = this;
-  var cli = this.get('cli');
 
+  this.flow = bddflow.create();
+  this.utils = require('utils');
+  this.colorizer = require('colorizer').create('Colorizer');
+  this.running = false;
+
+  var cli = this.get('cli');
   if (cli.options.grep) { // Convert `--grep[v] foo bar baz` to /foo bar baz/
     this.flow.set('grep', new RegExp(cli.args.join(' ')));
   } else if (cli.options.grepv) {
