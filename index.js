@@ -200,7 +200,7 @@ Conjure.prototype.status = function(source, type, detail) {
 };
 
 /**
- * Methods mixed in to each it()/andThen() context.
+ * Methods mixed in to each it()/then() context.
  */
 var thenContext = {};
 
@@ -217,11 +217,11 @@ thenContext.click = function(sel) {
 };
 
 /**
- * then() wrapper that with access to it() API.
+ * then() alternative that with access to the same API as it().
  *
  * @param {function} cb
  */
-thenContext.andThen = function(cb) {
+thenContext.then = function(cb) {
   var self = this;
   var contextKeys = [].concat(
     ['utils', 'colorizer'],
@@ -258,7 +258,7 @@ thenContext.assertSelText = function(sel, text) {
  * @param {string} subject Ex. 'user ID'
  */
 thenContext.assertType = function(val, expected, subject) {
-  this.andThen(function() {
+  this.then(function() {
     this.test.assertEquals(
       this.utils.betterTypeOf(val),
       expected,
@@ -366,7 +366,7 @@ thenContext.selectorMissing = function(sel) {
  */
 thenContext.thenSendKeys = function(sel, keys) {
   this.selectorExists(sel);
-  this.andThen(function() {
+  this.then(function() {
     this.sendKeys(sel, keys);
   });
 };

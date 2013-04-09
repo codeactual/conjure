@@ -5,7 +5,7 @@ module.exports = function(conjure) {
     test.assertType(test[loc + 'Context'].casper, 'object', 'this.casper in ' + loc);
     test.assertType(test[loc + 'Context'].utils, 'object', 'this.utils in ' + loc);
     test.assertType(test[loc + 'Context'].colorizer, 'object', 'this.colorizer in ' + loc);
-    test.assertType(test[loc + 'Context'].andThen, 'function', 'this.andThen in ' + loc);
+    test.assertType(test[loc + 'Context'].then, 'function', 'this.then in ' + loc);
   }
 
   function refuteCommonProps(test, loc) {
@@ -15,12 +15,12 @@ module.exports = function(conjure) {
   }
 
   conjure.test('context properties', function() {
-    this.describe('in andThen', function() {
+    this.describe('in then', function() {
       this.it('should pluck expected' , function() {
-        this.andThen(function() {
-          this.andThenContext = this;
-          assertCommonProps(this, 'andThen');
-          refuteCommonProps(this, 'andThen');
+        this.then(function() {
+          this.thenContext = this;
+          assertCommonProps(this, 'then');
+          refuteCommonProps(this, 'then');
         });
       });
     });

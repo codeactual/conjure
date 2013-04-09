@@ -167,9 +167,9 @@ To modifiy:
 
 > click() alternative that uses jQuery selectors and first waits for a match.
 
-### `andThen(cb)`
+### `then(cb)`
 
-> then() wrapper that with access to it() API.
+> then() alternative that with access to the same API as it().
 
 ### `assertSelText(sel, text)`
 
