@@ -4,9 +4,13 @@
 
 > Create a new `Conjure` instance. Pass the CasperJS-environment `require`.
 
-## `mixin(ext)`
+## `mixinConjure(ext)`
 
 > Extend `Conjure.prototype` with function set `ext`.
+
+## `mixinHelpers(ext)`
+
+> Extend the [Test API](docs/test-api.md) helper set.
 
 # Conjure
 

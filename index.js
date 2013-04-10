@@ -12,7 +12,8 @@
 module.exports = {
   Conjure: Conjure,
   create: create,
-  mixin: mixin,
+  mixinConjure: mixinConjure,
+  mixinHelpers: mixinHelpers,
 
   // Allow tests to use component-land require.
   require: require,
@@ -64,16 +65,18 @@ function Conjure(require) {
     casperRequire: require // CasperJS-env require()
   };
 
-  this.flow = bddflow.create();
-  this.utils = this.require('utils');
-  this.colorizer = this.require('colorizer').create('Colorizer');
-  this.running = false;
+  _mixin(helpers, this);
 
   // Bound helper mixins. Added as a property so mixins refer to others internally.
   this.conjure = {};
   Object.keys(helpers).forEach(function(key) {
     self.conjure[key] = bind(self, self[key]);
   });
+
+  this.flow = bddflow.create();
+  this.utils = this.require('utils');
+  this.colorizer = this.require('colorizer').create('Colorizer');
+  this.running = false;
 }
 
 configurable(Conjure.prototype);
@@ -380,16 +383,19 @@ helpers.url = function(relUrl) {
   return this.get('baseUrl') + relUrl;
 };
 
-mixin(helpers);
+/**
+ * Mix the given function set into Conjure's prototype.
+ *
+ * @param {object} ext
+ */
+function mixinConjure(ext) { _mixin(ext, Conjure.prototype); }
 
 /**
  * Mix the given function set into Conjure's prototype.
  *
  * @param {object} ext
  */
-function mixin(ext) {
-  _mixin(ext, Conjure.prototype);
-}
+function mixinHelpers(ext) { _mixin(ext, helpers); }
 
 function _mixin(src, dst) {
   Object.keys(src).forEach(function(key) {
