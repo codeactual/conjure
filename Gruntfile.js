@@ -27,7 +27,7 @@ module.exports = function(grunt) {
           expr: true
         },
         files: {
-          src: ['test/**/*.js']
+          src: ['test/{mocha,casper}/*.js']
         }
       },
       json: {
