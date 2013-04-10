@@ -202,13 +202,36 @@ describe('helpers', function() {
     });
   });
 
-  describe('selectorExists', function() {
+  describe('selectorMissing', function() {
     beforeEach(function() {
       this.stubs.helper.selectorMissing.restore();
     });
-    it('should use selectorExists', function() {
+    it('should use selectorExists()', function() {
       this.conjure.selectorMissing(this.sel);
       this.stubs.helper.selectorExists.should.have.been.calledWithExactly(this.sel, true);
+    });
+  });
+
+  describe('sendKeys', function() {
+    beforeEach(function() {
+      this.stubs.helper.sendKeys.restore();
+      this.conjure.sendKeys(this.sel, this.textNeedle);
+    });
+    it('should use selectorExists()', function() {
+      this.stubs.helper.selectorExists.should.have.been.calledWithExactly(this.sel);
+    });
+    it('should use CasperJS sendKeys()', function() {
+      this.stubs.casper.sendKeys.should.have.been.calledWithExactly(this.sel, this.textNeedle);
+    });
+  });
+
+  describe('url', function() {
+    beforeEach(function() {
+      this.stubs.helper.url.restore();
+      this.stubs.conjure.get.restore();
+    });
+    it('should append relative URL to base', function() {
+      this.conjure.url(this.relUrl).should.equal('http://localhost:8174' + this.relUrl);
     });
   });
 });
@@ -298,6 +321,7 @@ function addFixtures() {
   this.reNeedle = /foo/;
   this.stubs.cb = this.stub();
   this.strList = ['one', 'two', 'three'];
+  this.relUrl = '/admin/settings';
 }
 
 function stubUtilsApi() {
@@ -325,7 +349,7 @@ function stubCasperApi() {
   this.stubs.casper = this.stubMany(
     this.conjure.casper,
     [
-      'evaluate', 'then', 'thenEvaluate', 'thenOpen', 'waitFor'
+      'evaluate', 'sendKeys', 'then', 'thenEvaluate', 'thenOpen', 'waitFor'
     ]
   );
   this.stubs.casper.evaluate.returns(this.evaluateResult);
@@ -333,8 +357,9 @@ function stubCasperApi() {
 
 function stubThenMethods() {
   this.thenContext = {
-    test: this.stubs.test,
     evaluate: this.stubs.casper.evaluate,
+    sendKeys: this.stubs.casper.sendKeys,
+    test: this.stubs.test,
     utils: this.stubs.utils
   };
   this.stubs.casper.then.yieldsOn(this.thenContext);
