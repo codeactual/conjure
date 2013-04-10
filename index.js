@@ -331,26 +331,21 @@ helpers.require = function(name) {
  */
 helpers.selectorExists = function(sel, negate) {
   var self = this;
-  var jQueryExists = this.casper.evaluate(function() { return typeof $ === 'function'; });
 
   this.status(
     'selectorExists',
     'wait',
-    {sel: sel, negate: negate, jQueryExists: jQueryExists}
+    {sel: sel, negate: negate}
   );
 
-  if (jQueryExists) {
-    this.casper.waitFor(function selectorExistsWaitFor() {
-      return this.evaluate(function selectorExistsEvaluate(sel, count) {
-        return count === $(sel).length;
-      }, sel, negate ? 0 : 1);
-    });
-    this.casper.then(function selectorExistsThen() {
-      this.test.assertTrue(true, (negate ? 'missing' : 'exists') + ': ' + sel);
-    });
-  } else {
-    this.casper['wait' + (negate ? 'While' : 'For') + 'Selector'](sel);
-  }
+  this.casper.waitFor(function selectorExistsWaitFor() {
+    return this.evaluate(function selectorExistsEvaluate(sel, count) {
+      return count === $(sel).length;
+    }, sel, negate ? 0 : 1);
+  });
+  this.casper.then(function selectorExistsThen() {
+    this.test.assertTrue(true, (negate ? 'missing' : 'exists') + ': ' + sel);
+  });
 };
 
 /**

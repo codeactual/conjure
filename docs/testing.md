@@ -24,3 +24,10 @@ This allows us to avoid testing CasperJS itself, e.g. by asserting a helper `cli
 # CasperJS-based
 
 # Fixtures
+
+## jQuery
+
+### Custom build
+
+    grunt custom:-sizzle,-css,-event-alias,-effects,-offset,-dimensions,-deprecated,-ajax/xhr,-wrap
+
