@@ -358,12 +358,12 @@ helpers.selectorMissing = function(sel) {
 };
 
 /**
- * sendKeys() wrapper that first waits for a selector to exist.
+ * sendKeys() alternative that first waits for a selector to exist.
  *
  * @param {string} sel
  * @param {string} keys
  */
-helpers.thenSendKeys = function(sel, keys) {
+helpers.sendKeys = function(sel, keys) {
   this.conjure.selectorExists(sel);
   this.conjure.then(function() {
     this.sendKeys(sel, keys);

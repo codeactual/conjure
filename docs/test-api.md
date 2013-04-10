@@ -80,9 +80,9 @@ module.exports = function(conjure, customArg1, customArg2) {
 
 > Negated selectorExists().
 
-## `thenSendKeys(sel, keys)`
+## `sendKeys(sel, keys)`
 
-> sendKeys() wrapper that first waits for a selector to exist.
+> sendKeys() alternative that first waits for a selector to exist.
 
 ## `{string} url(relUrl)`
 
