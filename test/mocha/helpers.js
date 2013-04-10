@@ -39,10 +39,10 @@ describe('helpers', function() {
       this.stubs.helper.click.restore();
       this.conjure.click(this.sel);
     });
-    it('should wait for selector match' , function() {
+    it('should wait for selector match', function() {
       this.stubs.helper.selectorExists.calledWithExactly(this.sel);
     });
-    it('should use jQuery to click' , function() {
+    it('should use jQuery to click', function() {
       this.stubs.casper.thenEvaluate.should.be.called;
       this.stubs.$global.should.have.been.calledWithExactly(this.sel);
       this.stubs.$.click.should.have.been.called;
@@ -54,7 +54,7 @@ describe('helpers', function() {
       this.stubs.helper.then.restore();
       this.conjure.then(this.stubs.cb);
     });
-    it('should inject context' , function() {
+    it('should inject context', function() {
       this.stubs.extend.should.have.been.calledWith(
         this.createdContext,
         {casper: this.conjure.casper, test: this.testApi}
@@ -68,14 +68,14 @@ describe('helpers', function() {
       this.stubs.helper.assertSelText.restore();
       this.restoreComponentRequire();
     });
-    it('should use jQuery text()' , function() {
+    it('should use jQuery text()', function() {
       this.conjure.assertSelText(this.sel, this.textNeedle);
       this.stubs.test.assertEquals.should.have.been.calledWithExactly(
         this.evaluateResult,
         this.textNeedle
       );
     });
-    it('should support regex' , function() {
+    it('should support regex', function() {
       this.conjure.assertSelText(this.sel, this.reNeedle);
       this.stubs.test.assertMatch.should.have.been.calledWithExactly(
         this.evaluateResult,
@@ -88,7 +88,7 @@ describe('helpers', function() {
     beforeEach(function() {
       this.stubs.helper.assertType.restore();
     });
-    it('should use assertEquals()' , function() {
+    it('should use assertEquals()', function() {
       this.conjure.assertType(this.sel, 'string');
       this.stubs.utils.betterTypeOf.should.have.been.calledWithExactly(this.sel);
       this.stubs.utils.format.should.have.been.calledWithExactly(
@@ -100,7 +100,7 @@ describe('helpers', function() {
         this.format
       );
     });
-    it('should apply custom subject label' , function() {
+    it('should apply custom subject label', function() {
       var subject = 'testString';
       this.conjure.assertType(this.sel, 'string', subject);
       this.stubs.utils.format.should.have.been.calledWithExactly(
@@ -113,7 +113,7 @@ describe('helpers', function() {
     beforeEach(function() {
       this.stubs.helper.each.restore();
     });
-    it('should invoke callback inside custom then()' , function() {
+    it('should invoke callback inside custom then()', function() {
       var self = this;
       this.conjure.each(this.strList, this.stubs.cb);
       this.stubs.cb.should.have.been.calledOn(this.thenContext);
@@ -130,11 +130,11 @@ describe('helpers', function() {
       this.fullHash = '#' + this.hash;
       this.stubs.casper.thenEvaluate.yields(this.hash);
     });
-    it('should update location hash' , function() {
+    it('should update location hash', function() {
       this.conjure.openHash(this.hash);
       window.location.hash.should.equal(this.fullHash);
     });
-    it('should optionally wait for a selector to exist' , function() {
+    it('should optionally wait for a selector to exist', function() {
       this.conjure.openHash(this.hash, this.sel);
       this.stubs.helper.selectorExists.should.have.been.calledWithExactly(this.sel);
     });
@@ -145,7 +145,7 @@ describe('helpers', function() {
       this.stubs.helper.openInitUrl.restore();
       this.stubs.conjure.get.restore();
     });
-    it('should use thenOpen()' , function() {
+    it('should use thenOpen()', function() {
       this.conjure.openInitUrl();
       this.stubs.casper.thenOpen.should.have.been.calledWithExactly(
         'http://localhost:8174/'
@@ -157,11 +157,47 @@ describe('helpers', function() {
     beforeEach(function() {
       this.stubs.helper.require.restore();
     });
-    it('should detect local path' , function() {
+    it('should detect local path', function() {
       var path = 'lib/sub/module.js';
       this.conjure.require('./' + path);
       this.stubs.casperRequire.should.have.been.calledWithExactly(
         this.cliApi.options.rootdir + '/' + path
+      );
+    });
+    it('should detect casper module name', function() {
+      this.conjure.require('utils');
+      this.stubs.casperRequire.should.have.been.calledWithExactly('utils');
+    });
+  });
+
+  describe('selectorExists', function() {
+    beforeEach(function() {
+      this.stubs.helper.selectorExists.restore();
+    });
+    it('should use jQuery', function() {
+      this.stubs.casper.evaluate.yields(this.sel, 1);
+      this.conjure.selectorExists(this.sel);
+      this.stubs.casper.evaluate.should.have.been.calledWithExactly(
+        sinon.match.func, this.sel, 1
+      );
+      this.stubs.$global.should.have.been.calledWithExactly(this.sel);
+      this.stubs.test.assertTrue.should.have.been.calledWithExactly(
+        true, 'exists: ' + this.sel
+      );
+    });
+    it('should emit status event', function() {
+      this.conjure.selectorExists(this.sel);
+      this.stubs.conjure.status.should.have.been.calledWithExactly(
+        'selectorExists', 'wait', {sel: this.sel, negate: undefined}
+      );
+    });
+    it('should optionally negate expectation', function() {
+      this.conjure.selectorExists(this.sel, true);
+      this.stubs.casper.evaluate.should.have.been.calledWithExactly(
+        sinon.match.func, this.sel, 0
+      );
+      this.stubs.test.assertTrue.should.have.been.calledWithExactly(
+        true, 'missing: ' + this.sel
       );
     });
   });
@@ -218,6 +254,8 @@ function stubConjure() {
   };
   this.stubConfig('cli', this.cliApi);
   this.stubConfig('casperRequire', this.stubs.casperRequire);
+
+  this.stubs.conjure.status = this.stub(this.conjure, 'status');
 }
 
 function stubWindow() {
@@ -230,7 +268,7 @@ function stubWindow() {
 
 function stubJQuery() {
   // Use for stubs like: $(sel).<some method>().
-  this.stubs.$result = {};
+  this.stubs.$result = {length: 0};
 
   // Use this.$stub to know what selector $ received.
   GLOBAL.$ = function() {};
@@ -267,7 +305,7 @@ function stubTestApi() {
   this.stubs.test = this.stubMany(
     this.testApi,
     [
-      'assertEquals', 'assertMatch'
+      'assertEquals', 'assertMatch', 'assertTrue'
     ]
   );
 }
@@ -277,7 +315,7 @@ function stubCasperApi() {
   this.stubs.casper = this.stubMany(
     this.conjure.casper,
     [
-      'evaluate', 'then', 'thenEvaluate', 'thenOpen'
+      'evaluate', 'then', 'thenEvaluate', 'thenOpen', 'waitFor'
     ]
   );
   this.stubs.casper.evaluate.returns(this.evaluateResult);
@@ -290,6 +328,7 @@ function stubThenMethods() {
     utils: this.stubs.utils
   };
   this.stubs.casper.then.yieldsOn(this.thenContext);
+  this.stubs.casper.waitFor.yieldsOn(this.thenContext);
   this.stubs.helper.then.yieldsOn(this.thenContext);
 }
 
