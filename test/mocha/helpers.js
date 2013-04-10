@@ -201,6 +201,16 @@ describe('helpers', function() {
       );
     });
   });
+
+  describe('selectorExists', function() {
+    beforeEach(function() {
+      this.stubs.helper.selectorMissing.restore();
+    });
+    it('should use selectorExists', function() {
+      this.conjure.selectorMissing(this.sel);
+      this.stubs.helper.selectorExists.should.have.been.calledWithExactly(this.sel, true);
+    });
+  });
 });
 
 /**
