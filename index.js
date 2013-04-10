@@ -65,7 +65,7 @@ function Conjure(require) {
     casperRequire: require // CasperJS-env require()
   };
 
-  _mixin(helpers, this);
+  requireComponent('extend')(this, helpers);
 
   // Bound helper mixins. Added as a property so mixins refer to others internally.
   this.conjure = {};
@@ -388,19 +388,11 @@ helpers.url = function(relUrl) {
  *
  * @param {object} ext
  */
-function mixinConjure(ext) { _mixin(ext, Conjure.prototype); }
+function mixinConjure(ext) {  require('extend')(Conjure.prototype, ext); }
 
 /**
  * Mix the given function set into Conjure's prototype.
  *
  * @param {object} ext
  */
-function mixinHelpers(ext) { _mixin(ext, helpers); }
-
-function _mixin(src, dst) {
-  Object.keys(src).forEach(function(key) {
-    if (typeof src[key] === 'function') {
-      dst[key] = src[key];
-    }
-  });
-}
+function mixinHelpers(ext) { require('extend')(helpers, ext); }
