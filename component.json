@@ -22,7 +22,8 @@
     "component/each": "8b1f645",
     "visionmedia/batch": "0.3.2",
     "codeactual/outer-shelljs": "0.2.0",
-    "codeactual/extend": "0.1.0"
+    "codeactual/extend": "0.1.0",
+    "component/enumerable": "0.3.1"
   },
   "development": {
     "codeactual/sinon-doublist": "0.2.3"
