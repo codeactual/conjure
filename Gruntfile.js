@@ -67,7 +67,7 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('default', ['jshint', 'shell:shrinkwrap']);
-  grunt.registerTask('build', ['shell:build']);
-  grunt.registerTask('dist', ['shell:dist', 'uglify:dist']);
+  grunt.registerTask('build', ['default', 'shell:build']);
+  grunt.registerTask('dist', ['default', 'shell:dist', 'uglify:dist']);
   grunt.registerTask('test_bin', ['build', 'shell:test_bin']);
 };
