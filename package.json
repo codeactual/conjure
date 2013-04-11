@@ -31,6 +31,7 @@
     "url": "https://github.com/codeactual/conjure.git"
   },
   "dependencies": {
+    "cli-mod": "~0.1.0",
     "commander": "~1.1.1",
     "component": "~0.13.1",
     "shelljs": "https://registry.npmjs.org/shelljs/-/shelljs-0.1.2.tgz"

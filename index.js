@@ -388,10 +388,10 @@ helpers.url = function(relUrl) {
  *
  * @param {object} ext
  */
-function mixinConjure(ext) {  require('extend')(Conjure.prototype, ext); }
+function mixinConjure(ext) { require('extend')(Conjure.prototype, ext); }
 
 /**
- * Mix the given function set into Conjure's prototype.
+ * Mix the given function set into the helpers object.
  *
  * @param {object} ext
  */

@@ -27,10 +27,12 @@ function itShouldRunCasperWith(file, cb) {
 
 function basicRun(file) {
   itShouldRunCasperWith(file, function() {
-    exec(
+    var res = exec(
       baseConjureCmd +
       '--grep-file "^' + file + '\\.js$" '
-    ).code.should.equal(0);
+    );
+    res.code.should.equal(0);
+    res.output.trim().should.not.equal('');
   });
 }
 
@@ -44,7 +46,9 @@ function detailedRun(file, args, cb) {
     });
   } else {
     itShouldRunCasperWith(file, function() {
-      exec(baseConjureCmd + args.join(' ')).code.should.equal(0);
+      var res = exec(baseConjureCmd + args.join(' '));
+      res.code.should.equal(0);
+      res.output.trim().should.not.equal('');
     });
   }
 }
@@ -56,7 +60,7 @@ describe('/bin/conjure', function() {
   });
 
   detailedRun('^empty-test\\.js$', [], function(res) {
-    res.output.should.match(/\/empty-test.js:.*Did not call conjure.test\(\)/);
+    res.output.should.match(/\/empty-test.js.*Did not call conjure.test\(\)/);
     res.code.should.equal(1);
   });
 
