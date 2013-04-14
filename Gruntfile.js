@@ -56,9 +56,6 @@ module.exports = function(grunt) {
       dist: {
         command: 'component build --standalone conjure --name conjure --out dist'
       },
-      shrinkwrap: {
-        command: 'npm shrinkwrap'
-      },
       test_bin: {
         options: { stdout: true, stderr: true, failOnError: true },
         command: 'mocha --reporter tap --globals $,window test/mocha'
@@ -66,7 +63,7 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.registerTask('default', ['jshint', 'shell:shrinkwrap']);
+  grunt.registerTask('default', ['jshint']);
   grunt.registerTask('build', ['default', 'shell:build']);
   grunt.registerTask('dist', ['default', 'shell:dist', 'uglify:dist']);
   grunt.registerTask('test_bin', ['build', 'shell:test_bin']);
