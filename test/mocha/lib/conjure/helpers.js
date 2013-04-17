@@ -5,11 +5,11 @@ var should = chai.should();
 chai.Assertion.includeStack = true;
 chai.use(require('sinon-chai'));
 
-var conjure = require('../../dist/conjure');
+var conjure = require('../../../..');
 var Conjure = conjure.Conjure;
 var requireComponent = conjure.require;
 
-require('sinon-doublist')('mocha');
+require('sinon-doublist')(sinon, 'mocha');
 
 describe('helpers', function() {
   'use strict';

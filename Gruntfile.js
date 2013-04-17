@@ -63,7 +63,7 @@ module.exports = function(grunt) {
       },
       test_bin: {
         options: mochaShelljsOpt,
-        command: 'mocha --reporter tap --globals $,window test/mocha/lib/conjure/index.js'
+        command: 'mocha --reporter tap --globals $,window test/mocha/bin.js'
       },
       test_helpers: {
         options: mochaShelljsOpt,
