@@ -5,11 +5,11 @@ var should = chai.should();
 chai.Assertion.includeStack = true;
 chai.use(require('sinon-chai'));
 
-var conjure = require('../../dist/conjure');
+var conjure = require('../../../..');
 var Conjure = conjure.Conjure;
 var requireComponent = conjure.require;
 
-requireComponent('sinon-doublist')(sinon, 'mocha');
+require('sinon-doublist')(sinon, 'mocha');
 
 describe('helpers', function() {
   'use strict';
@@ -160,13 +160,13 @@ describe('helpers', function() {
     it('should detect local path', function() {
       var path = 'lib/sub/module.js';
       this.conjure.require('./' + path);
-      this.stubs.casperRequire.should.have.been.calledWithExactly(
+      this.stubs.requireCasper.should.have.been.calledWithExactly(
         this.cliApi.options.rootdir + '/' + path
       );
     });
     it('should detect casper module name', function() {
       this.conjure.require('utils');
-      this.stubs.casperRequire.should.have.been.calledWithExactly('utils');
+      this.stubs.requireCasper.should.have.been.calledWithExactly('utils');
     });
   });
 
@@ -261,8 +261,8 @@ function stubRequire() {
   this.stubs.requiredComponentCreate = this.stubMany(
     this.requiredComponent, 'create'
   ).create;
-  this.stubs.casperRequire = this.stub();
-  this.stubs.casperRequire.returns(this.requiredComponent);
+  this.stubs.requireCasper = this.stub();
+  this.stubs.requireCasper.returns(this.requiredComponent);
 
   this.stubs.extend = this.stub();
   this.stubs.extend.returns(this.extendResult);
@@ -275,7 +275,7 @@ function stubRequire() {
 }
 
 function stubConjure() {
-  this.conjure = conjure.create(this.stubs.casperRequire);
+  this.conjure = conjure.create(this.stubs.requireCasper);
   this.stubs.helper = this.stub(this.conjure.conjure);
 
   this.stubConfig = function(key, val) {
@@ -286,7 +286,7 @@ function stubConjure() {
     get: this.stub(this.conjure, 'get')
   };
   this.stubConfig('cli', this.cliApi);
-  this.stubConfig('casperRequire', this.stubs.casperRequire);
+  this.stubConfig('requireCasper', this.stubs.requireCasper);
 
   this.stubs.conjure.status = this.stub(this.conjure, 'status');
 }

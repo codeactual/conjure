@@ -2,7 +2,7 @@
   "name": "conjure",
   "description": "Parallel CasperJS runner, BDD flow, module-based tests, API helpers",
   "version": "0.1.0",
-  "main": "./dist/conjure.js",
+  "main": "index.js",
   "bin": "./bin/conjure",
   "keywords": [
     "casper",
@@ -31,26 +31,28 @@
     "url": "https://github.com/codeactual/conjure.git"
   },
   "dependencies": {
-    "cli-mod": "~0.1.0",
+    "bdd-flow": "~0.1.0",
+    "codeactual-cli-mod": "~0.1.0",
     "commander": "~1.1.1",
-    "component": "~0.13.1",
-    "shelljs": "~0.1.2"
+    "outer-shelljs": "~0.3.0"
   },
   "devDependencies": {
     "chai": "~1.5.0",
-    "component": "~0.13.1",
+    "component": "~0.13.2",
+    "express": "~3.1.0",
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.6",
     "grunt-contrib-jshint": "~0.3.0",
     "grunt-contrib-uglify": "~0.2.0",
     "grunt-shell": "~0.2.1",
-    "mocha": "~1.8.2",
+    "mocha": "~1.9.0",
     "sinon": "~1.6.0",
     "sinon-chai": "~2.3.1",
-    "express": "~3.1.0"
+    "sinon-doublist": "~0.3.0",
+    "sinon-doublist-fs": "~0.2.0"
   },
   "scripts": {
-    "test": "grunt test_bin"
+    "test": "grunt test"
   },
   "gitemplate": {
     "originSha": "b6670a51c1",

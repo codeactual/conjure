@@ -5,6 +5,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-shell');
 
+  var mochaShelljsOpt = {stdout: true, stderr: true};
+
   grunt.initConfig({
     jshint: {
       src: {
@@ -56,15 +58,22 @@ module.exports = function(grunt) {
       dist: {
         command: 'component build --standalone conjure --name conjure --out dist'
       },
+      shrinkwrap: {
+        command: 'npm shrinkwrap'
+      },
       test_bin: {
-        options: { stdout: true, stderr: true, failOnError: true },
-        command: 'mocha --reporter tap --globals $,window test/mocha'
+        options: mochaShelljsOpt,
+        command: 'mocha --reporter tap --globals $,window test/mocha/bin.js'
+      },
+      test_helpers: {
+        options: mochaShelljsOpt,
+        command: 'mocha --reporter tap --globals $,window test/mocha/lib/conjure/helpers.js'
       }
     }
   });
 
   grunt.registerTask('default', ['jshint']);
   grunt.registerTask('build', ['default', 'shell:build']);
-  grunt.registerTask('dist', ['default', 'shell:dist', 'uglify:dist']);
-  grunt.registerTask('test_bin', ['build', 'shell:test_bin']);
+  grunt.registerTask('dist', ['default', 'shell:dist', 'uglify:dist', 'shell:shrinkwrap']);
+  grunt.registerTask('test', ['build', 'shell:test_helpers', 'shell:test_bin']);
 };
