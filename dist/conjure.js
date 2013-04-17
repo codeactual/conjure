@@ -83,46 +83,16 @@
         };
         return localRequire;
     };
-    require.register("visionmedia-configurable.js/index.js", function(exports, require, module) {
-        module.exports = function(obj) {
-            obj.settings = {};
-            obj.set = function(name, val) {
-                if (1 == arguments.length) {
-                    for (var key in name) {
-                        this.set(key, name[key]);
-                    }
-                } else {
-                    this.settings[name] = val;
+    require.register("codeactual-extend/index.js", function(exports, require, module) {
+        module.exports = function extend(object) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            for (var i = 0, source; source = args[i]; i++) {
+                if (!source) continue;
+                for (var property in source) {
+                    object[property] = source[property];
                 }
-                return this;
-            };
-            obj.get = function(name) {
-                return this.settings[name];
-            };
-            obj.enable = function(name) {
-                return this.set(name, true);
-            };
-            obj.disable = function(name) {
-                return this.set(name, false);
-            };
-            obj.enabled = function(name) {
-                return !!this.get(name);
-            };
-            obj.disabled = function(name) {
-                return !this.get(name);
-            };
-            return obj;
-        };
-    });
-    require.register("component-bind/index.js", function(exports, require, module) {
-        var slice = [].slice;
-        module.exports = function(obj, fn) {
-            if ("string" == typeof fn) fn = obj[fn];
-            if ("function" != typeof fn) throw new Error("bind() requires a function");
-            var args = [].slice.call(arguments, 2);
-            return function() {
-                return fn.apply(obj, args.concat(slice.call(arguments)));
-            };
+            }
+            return object;
         };
     });
     require.register("manuelstofer-each/index.js", function(exports, require, module) {
@@ -160,6 +130,17 @@
         }
         module.exports.object = function(obj) {
             return obj === Object(obj);
+        };
+    });
+    require.register("component-bind/index.js", function(exports, require, module) {
+        var slice = [].slice;
+        module.exports = function(obj, fn) {
+            if ("string" == typeof fn) fn = obj[fn];
+            if ("function" != typeof fn) throw new Error("bind() requires a function");
+            var args = [].slice.call(arguments, 2);
+            return function() {
+                return fn.apply(obj, args.concat(slice.call(arguments)));
+            };
         };
     });
     require.register("component-type/index.js", function(exports, require, module) {
@@ -359,48 +340,6 @@
                 next();
             }
             return this;
-        };
-    });
-    require.register("codeactual-outer-shelljs/index.js", function(exports, require, module) {
-        "use strict";
-        module.exports = {
-            OuterShelljs: OuterShelljs,
-            create: create,
-            require: require
-        };
-        var emitter = require("emitter");
-        function OuterShelljs(shelljs) {
-            this.shelljs = shelljs;
-        }
-        emitter(OuterShelljs.prototype);
-        OuterShelljs.prototype.findByRegex = function(parent, regex) {
-            return this._("find", parent).filter(function(file) {
-                return file.match(regex);
-            });
-        };
-        OuterShelljs.prototype._ = function(method) {
-            var args = [].slice.call(arguments, 1);
-            var res = this.shelljs[method].apply(this.shelljs, args);
-            var eventArgs = [ "cmd", method, args, res ];
-            this.emit.apply(this, eventArgs);
-            eventArgs = [ "cmd:" + method, args, res ];
-            this.emit.apply(this, eventArgs);
-            return res;
-        };
-        function create(shelljs) {
-            return new OuterShelljs(shelljs);
-        }
-    });
-    require.register("codeactual-extend/index.js", function(exports, require, module) {
-        module.exports = function extend(object) {
-            var args = Array.prototype.slice.call(arguments, 1);
-            for (var i = 0, source; source = args[i]; i++) {
-                if (!source) continue;
-                for (var property in source) {
-                    object[property] = source[property];
-                }
-            }
-            return object;
         };
     });
     require.register("component-to-function/index.js", function(exports, require, module) {
@@ -764,6 +703,37 @@
         };
         mixin(Enumerable.prototype);
     });
+    require.register("visionmedia-configurable.js/index.js", function(exports, require, module) {
+        module.exports = function(obj) {
+            obj.settings = {};
+            obj.set = function(name, val) {
+                if (1 == arguments.length) {
+                    for (var key in name) {
+                        this.set(key, name[key]);
+                    }
+                } else {
+                    this.settings[name] = val;
+                }
+                return this;
+            };
+            obj.get = function(name) {
+                return this.settings[name];
+            };
+            obj.enable = function(name) {
+                return this.set(name, true);
+            };
+            obj.disable = function(name) {
+                return this.set(name, false);
+            };
+            obj.enabled = function(name) {
+                return !!this.get(name);
+            };
+            obj.disabled = function(name) {
+                return !this.get(name);
+            };
+            return obj;
+        };
+    });
     require.register("component-clone/index.js", function(exports, require, module) {
         var type;
         try {
@@ -809,7 +779,12 @@
         "use strict";
         module.exports = {
             Bddflow: Bddflow,
-            create: create,
+            create: function() {
+                return new Bddflow();
+            },
+            mixin: function(ext) {
+                extend(Bddflow.prototype, ext);
+            },
             require: require
         };
         var Batch = require("batch");
@@ -825,9 +800,6 @@
             it: [ flowFnRegex ],
             rootDescribe: []
         };
-        function create() {
-            return new Bddflow();
-        }
         function Bddflow() {
             this.settings = {
                 done: noOp,
@@ -1104,13 +1076,19 @@
             });
         }
     });
-    require.register("conjure/index.js", function(exports, require, module) {
+    require.register("conjure/lib/conjure/index.js", function(exports, require, module) {
         "use strict";
         module.exports = {
             Conjure: Conjure,
-            create: create,
-            mixinConjure: mixinConjure,
-            mixinHelpers: mixinHelpers,
+            create: function(requireCasper) {
+                return new Conjure(requireCasper);
+            },
+            mixinConjure: function(ext) {
+                require("extend")(Conjure.prototype, ext);
+            },
+            mixinHelpers: function(ext) {
+                require("extend")(helpers, ext);
+            },
             require: require,
             setRequire: function(stub) {
                 require = stub;
@@ -1119,10 +1097,7 @@
         var requireComponent = require;
         var bddflow = require("bdd-flow");
         var configurable = require("configurable.js");
-        function create(require) {
-            return new Conjure(require);
-        }
-        function Conjure(require) {
+        function Conjure(requireCasper) {
             var self = this;
             var bind = requireComponent("bind");
             this.settings = {
@@ -1146,7 +1121,7 @@
                     }
                 },
                 cli: {},
-                casperRequire: require
+                requireCasper: requireCasper
             };
             requireComponent("extend")(this, helpers);
             this.conjure = {};
@@ -1287,7 +1262,7 @@
             this.casper.thenOpen(this.url(this.get("initPath")));
         };
         helpers.require = function(name) {
-            var require = this.get("casperRequire");
+            var require = this.get("requireCasper");
             var relPathRe = /^\.\//;
             if (relPathRe.test(name)) {
                 return require(this.get("cli").options.rootdir + "/" + name.replace(relPathRe, ""));
@@ -1321,28 +1296,19 @@
         helpers.url = function(relUrl) {
             return this.get("baseUrl") + relUrl;
         };
-        function mixinConjure(ext) {
-            require("extend")(Conjure.prototype, ext);
-        }
-        function mixinHelpers(ext) {
-            require("extend")(helpers, ext);
-        }
     });
-    require.alias("visionmedia-configurable.js/index.js", "conjure/deps/configurable.js/index.js");
-    require.alias("component-bind/index.js", "conjure/deps/bind/index.js");
+    require.alias("codeactual-extend/index.js", "conjure/deps/extend/index.js");
     require.alias("codeactual-is/index.js", "conjure/deps/is/index.js");
     require.alias("manuelstofer-each/index.js", "codeactual-is/deps/each/index.js");
+    require.alias("component-bind/index.js", "conjure/deps/bind/index.js");
     require.alias("component-each/index.js", "conjure/deps/each/index.js");
     require.alias("component-type/index.js", "component-each/deps/type/index.js");
     require.alias("visionmedia-batch/index.js", "conjure/deps/batch/index.js");
     require.alias("component-emitter/index.js", "visionmedia-batch/deps/emitter/index.js");
     require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
-    require.alias("codeactual-outer-shelljs/index.js", "conjure/deps/outer-shelljs/index.js");
-    require.alias("component-emitter/index.js", "codeactual-outer-shelljs/deps/emitter/index.js");
-    require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
-    require.alias("codeactual-extend/index.js", "conjure/deps/extend/index.js");
     require.alias("component-enumerable/index.js", "conjure/deps/enumerable/index.js");
     require.alias("component-to-function/index.js", "component-enumerable/deps/to-function/index.js");
+    require.alias("visionmedia-configurable.js/index.js", "conjure/deps/configurable.js/index.js");
     require.alias("bdd-flow/index.js", "conjure/deps/bdd-flow/index.js");
     require.alias("visionmedia-configurable.js/index.js", "bdd-flow/deps/configurable.js/index.js");
     require.alias("codeactual-extend/index.js", "bdd-flow/deps/extend/index.js");
@@ -1352,6 +1318,7 @@
     require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
     require.alias("component-clone/index.js", "bdd-flow/deps/clone/index.js");
     require.alias("component-type/index.js", "component-clone/deps/type/index.js");
+    require.alias("conjure/lib/conjure/index.js", "conjure/index.js");
     if (typeof exports == "object") {
         module.exports = require("conjure");
     } else if (typeof define == "function" && define.amd) {

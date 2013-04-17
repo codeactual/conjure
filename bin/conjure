@@ -21,4 +21,4 @@ commander
   .option('-G, --grepv-case', 'Omit test cases with RegExp built from arguments [none]')
   .parse(process.argv);
 
-require('cli-mod').create().run(commander, require('../lib/cli/conjure'));
+require('codeactual-cli-mod').create().run(commander, require('../lib/cli/conjure'));
