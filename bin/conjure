@@ -18,7 +18,6 @@ commander
   .option('-T, --timeout <ms>', 'Max run time of a casperjs process', Number, 5000)
   .option('-v, --verbose')
   .option('-g, --grep-case', 'Filter test cases with RegExp built from arguments [none]')
-  .option('-G, --grepv-case', 'Omit test cases with RegExp built from arguments [none]')
-  .parse(process.argv);
+  .option('-G, --grepv-case', 'Omit test cases with RegExp built from arguments [none]');
 
-require('codeactual-cli-mod').create().run(commander, require('../lib/cli/conjure'));
+require('impulse-bin').create().run(commander, require('../lib/cli/conjure'));

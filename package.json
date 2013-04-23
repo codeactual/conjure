@@ -32,8 +32,8 @@
   },
   "dependencies": {
     "bdd-flow": "~0.1.0",
-    "codeactual-cli-mod": "~0.1.0",
     "commander": "~1.1.1",
+    "impulse-bin": "~0.1.0",
     "outer-shelljs": "~0.3.0"
   },
   "devDependencies": {
