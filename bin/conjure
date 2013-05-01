@@ -6,18 +6,7 @@
  * Organize their concurrent output by script, exit w/ non-zero on any error, etc.
  */
 
-var commander = require('commander');
-
-commander
-  .option('-s, --server <script>', 'Test server startup script', String)
-  .option('-c, --concurrent <num>', 'casperjs process count [2]', Number, 2)
-  .option('-r, --root-dir <dir>', 'Project root directory [cwd]', String, process.cwd())
-  .option('-t, --test-dir <dir>', 'Test directory, relative to root [test]', String, 'test')
-  .option('-f, --grep-file <regex>', 'Test file regex filter [.js]', String, '\\.js$')
-  .option('-b, --bootstrap <file>', 'Bootstrap all test modules [none]', String)
-  .option('-T, --timeout <ms>', 'Max run time of a casperjs process', Number, 5000)
-  .option('-v, --verbose')
-  .option('-g, --grep-case', 'Filter test cases with RegExp built from arguments [none]')
-  .option('-G, --grepv-case', 'Omit test cases with RegExp built from arguments [none]');
-
-require('impulse-bin').create().run(commander, require('../lib/cli/conjure'));
+require('impulse-bin').create().run(
+  require('commander'),
+  require('../lib/cli/conjure')
+);
