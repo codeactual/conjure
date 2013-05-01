@@ -5,7 +5,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-shell');
 
-  var mochaShelljsOpt = {stdout: true, stderr: true};
+  var mochaShelljsOpt = {stdout: true, stderr: false};
 
   grunt.initConfig({
     jshint: {
@@ -68,12 +68,16 @@ module.exports = function(grunt) {
       test_helpers: {
         options: mochaShelljsOpt,
         command: 'mocha --reporter tap --globals $,window test/mocha/lib/conjure/helpers.js'
+      },
+      dox_lib: {
+        command: 'gitemplate-dox --input lib/conjure/index.js --output docs/Conjure.md'
       }
     }
   });
 
   grunt.registerTask('default', ['jshint']);
+  grunt.registerTask('dox', ['shell:dox_lib']);
   grunt.registerTask('build', ['default', 'shell:build']);
-  grunt.registerTask('dist', ['default', 'shell:dist', 'uglify:dist', 'shell:shrinkwrap']);
+  grunt.registerTask('dist', ['default', 'shell:dist', 'uglify:dist', 'shell:shrinkwrap', 'dox']);
   grunt.registerTask('test', ['build', 'shell:test_helpers', 'shell:test_bin']);
 };

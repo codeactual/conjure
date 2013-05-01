@@ -44,6 +44,8 @@ Basic run:
 
 ## API
 
+### Example: Basic test
+
 ```js
 var casper = require('casper').create();
 var conjure = require(rootDir + '/dist/conjure').create(require);
@@ -56,10 +58,39 @@ conjure.test('Login page', function() {
 });
 ```
 
+### Example: Bootstrap global settings and custom arguments
+
+```js
+// bootstrap module
+module.exports = function(conjure, testFile) {
+  conjure.set('baseUrl', 'http://localhost:9000/admin');
+
+  // If test location is '/path/to/proj/test/register/validation.js',
+  // then testFile is 'register/validation.js'
+
+  return ['foo', 'bar'];
+};
+
+// test module
+module.exports = function(conjure, customArg1, customArg2) {
+  // baseUrl = 'http://localhost:9000/admin'
+  // customArg1 = 'foo'
+  // customArg2 = 'bar'
+};
+
+```
+
+### Context properties in `it()` callbacks
+
+* `utils`: Native CasperJS module.
+* `colorizer`: Native CasperjS module.
+* `casper`: Native CasperJS module.
+* `conjure`: Helpers described below.
+* Custom properties added to `this` in subsequently executed hooks and `it()` callbacks.
+
 ### Documentation
 
-* [Test API](docs/test-api.md)
-* [Internal API](docs/internal-api.md)
+* [Conjure / Test Helpers](docs/Conjure.md)
 
 ## Installation
 

@@ -775,20 +775,17 @@
             }
         }
     });
-    require.register("bdd-flow/index.js", function(exports, require, module) {
+    require.register("bdd-flow/lib/bdd-flow/index.js", function(exports, require, module) {
         "use strict";
-        module.exports = {
-            Bddflow: Bddflow,
-            create: function() {
-                return new Bddflow();
-            },
-            mixin: function(ext) {
-                extend(Bddflow.prototype, ext);
-            },
-            require: require
+        exports.Bddflow = Bddflow;
+        exports.create = function() {
+            return new Bddflow();
         };
+        exports.extend = function(ext) {
+            return extend(Bddflow.prototype, ext);
+        };
+        exports.requireComponent = require;
         var Batch = require("batch");
-        var bind = require("bind");
         var clone = require("clone");
         var configurable = require("configurable.js");
         var extend = require("extend");
@@ -825,7 +822,7 @@
         Bddflow.prototype.addRootDescribe = function(name, cb) {
             var self = this;
             var desc = new Describe(name);
-            desc.describe(name, cb, true);
+            desc.describe(name, cb);
             this.rootDescribes.push(desc);
             return this;
         };
@@ -900,7 +897,7 @@
         Describe.prototype.it = function(name, cb) {
             this.steps.push(new ItCallback(name, cb));
         };
-        Describe.prototype.describe = function(name, cb, isRoot) {
+        Describe.prototype.describe = function(name, cb) {
             var self = this;
             var step = function(done) {
                 var desc = new Describe(name);
@@ -913,12 +910,12 @@
                 describeWrap(name, function() {
                     var wrapContext = this || {};
                     var mergedContext = desc.extendSharedContext(wrapContext, "describe");
-                    mergedContext.describe = bind(desc, "describe");
-                    mergedContext.it = bind(desc, "it");
-                    mergedContext.before = bind(desc, "before");
-                    mergedContext.beforeEach = bind(desc, "beforeEach");
-                    mergedContext.after = bind(desc, "after");
-                    mergedContext.afterEach = bind(desc, "afterEach");
+                    mergedContext.describe = desc.describe.bind(desc);
+                    mergedContext.it = desc.it.bind(desc);
+                    mergedContext.before = desc.before.bind(desc);
+                    mergedContext.beforeEach = desc.beforeEach.bind(desc);
+                    mergedContext.after = desc.after.bind(desc);
+                    mergedContext.afterEach = desc.afterEach.bind(desc);
                     addInternalProp(mergedContext, "name", name);
                     cb.call(mergedContext);
                 });
@@ -941,7 +938,7 @@
                     desc.steps = desc.steps.map(function(step) {
                         if (step instanceof DescribeCallback) {
                             var context = desc.getSharedContext("describe");
-                            return new DescribeCallback(step.name, bind(context, step.cb));
+                            return new DescribeCallback(step.name, step.cb.bind(context));
                         }
                         var itPath = path.concat(step.name);
                         var grep = desc.get("grep");
@@ -1078,21 +1075,19 @@
     });
     require.register("conjure/lib/conjure/index.js", function(exports, require, module) {
         "use strict";
-        module.exports = {
-            Conjure: Conjure,
-            create: function(requireCasper) {
-                return new Conjure(requireCasper);
-            },
-            mixinConjure: function(ext) {
-                require("extend")(Conjure.prototype, ext);
-            },
-            mixinHelpers: function(ext) {
-                require("extend")(helpers, ext);
-            },
-            require: require,
-            setRequire: function(stub) {
-                require = stub;
-            }
+        exports.Conjure = Conjure;
+        exports.create = function(requireCasper) {
+            return new Conjure(requireCasper);
+        };
+        exports.extendConjure = function(ext) {
+            return require("extend")(Conjure.prototype, ext);
+        };
+        exports.extendHelpers = function(ext) {
+            return require("extend")(helpers, ext);
+        };
+        exports.requireComponent = require;
+        exports.setRequire = function(stub) {
+            require = stub;
         };
         var requireComponent = require;
         var bddflow = require("bdd-flow");
@@ -1309,15 +1304,16 @@
     require.alias("component-enumerable/index.js", "conjure/deps/enumerable/index.js");
     require.alias("component-to-function/index.js", "component-enumerable/deps/to-function/index.js");
     require.alias("visionmedia-configurable.js/index.js", "conjure/deps/configurable.js/index.js");
-    require.alias("bdd-flow/index.js", "conjure/deps/bdd-flow/index.js");
+    require.alias("bdd-flow/lib/bdd-flow/index.js", "conjure/deps/bdd-flow/lib/bdd-flow/index.js");
+    require.alias("bdd-flow/lib/bdd-flow/index.js", "conjure/deps/bdd-flow/index.js");
     require.alias("visionmedia-configurable.js/index.js", "bdd-flow/deps/configurable.js/index.js");
     require.alias("codeactual-extend/index.js", "bdd-flow/deps/extend/index.js");
-    require.alias("component-bind/index.js", "bdd-flow/deps/bind/index.js");
     require.alias("visionmedia-batch/index.js", "bdd-flow/deps/batch/index.js");
     require.alias("component-emitter/index.js", "visionmedia-batch/deps/emitter/index.js");
     require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
     require.alias("component-clone/index.js", "bdd-flow/deps/clone/index.js");
     require.alias("component-type/index.js", "component-clone/deps/type/index.js");
+    require.alias("bdd-flow/lib/bdd-flow/index.js", "bdd-flow/index.js");
     require.alias("conjure/lib/conjure/index.js", "conjure/index.js");
     if (typeof exports == "object") {
         module.exports = require("conjure");

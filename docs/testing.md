@@ -1,5 +1,3 @@
-# Walkthrough
-
 # Commands
 
 ## Test everything

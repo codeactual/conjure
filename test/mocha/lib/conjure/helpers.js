@@ -1,3 +1,4 @@
+/*jshint expr:true*/
 var sinon = require('sinon');
 var chai = require('chai');
 
@@ -7,7 +8,7 @@ chai.use(require('sinon-chai'));
 
 var conjure = require('../../../..');
 var Conjure = conjure.Conjure;
-var requireComponent = conjure.require;
+var requireComponent = conjure.requireComponent;
 
 require('sinon-doublist')(sinon, 'mocha');
 
@@ -266,9 +267,9 @@ function stubRequire() {
 
   this.stubs.extend = this.stub();
   this.stubs.extend.returns(this.extendResult);
-  this.stubs.require = this.stub(conjure, 'require');
-  this.stubs.require.withArgs('extend').returns(this.stubs.extend);
-  conjure.setRequire(this.stubs.require);
+  this.stubs.requireComponent = this.stub(conjure, 'requireComponent');
+  this.stubs.requireComponent.withArgs('extend').returns(this.stubs.extend);
+  conjure.setRequire(this.stubs.requireComponent);
   this.restoreComponentRequire = function() {
     conjure.setRequire(requireComponent);
   };
