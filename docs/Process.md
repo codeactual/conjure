@@ -40,8 +40,8 @@ _Source: [lib/cli/conjure/process.js](../lib/cli/conjure/process.js)_
 **See:**
 
 - [ImpulseBin](https://github.com/codeactual/impulse-bin/blob/master/docs/ImpulseBin.md)
-- ProcessData ProcessData.md
-- StatusList StatusList.md
+- [ProcessData](ProcessData.md)
+- [StatusList](StatusList.md)
 
 # Process.prototype.spawn()
 
