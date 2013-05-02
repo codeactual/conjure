@@ -92,6 +92,14 @@ module.exports = function(conjure, customArg1, customArg2) {
 
 * [Conjure / Test Helpers](docs/Conjure.md)
 
+Internals:
+
+* [Process](docs/Process.md)
+* [ProcessBatch](docs/ProcessBatch.md)
+* [ProcessData](docs/ProcessData.md)
+* [Status](docs/Status.md)
+* [StatusList](docs/StatusList.md)
+
 ## Installation
 
 ### CLI and API
