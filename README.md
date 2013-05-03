@@ -102,13 +102,9 @@ Internals:
 
 ## Installation
 
-### CLI and API
+### [NPM](https://npmjs.org/package/conjure)
 
     npm install conjure
-
-### API [component](https://github.com/component/component) only
-
-    component install codeactual/conjure
 
 ## Tests
 
