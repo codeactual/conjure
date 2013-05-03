@@ -25,10 +25,12 @@ _Source: [lib/cli/conjure/process-data.js](../lib/cli/conjure/process-data.js)_
 **Properties:**
 
 - `{array} list` Objects describing stdout/stderr
+  - Added by `enumerable-prop`
 
 **See:**
 
 - [ProcessData.prototype.push](#processdataprototypepushdata) for property list
+- [enumerable-prop](https://github.com/codeactual/enumerable-prop)
 
 # ProcessData.prototype.push(data)
 

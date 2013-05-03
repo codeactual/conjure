@@ -21,10 +21,12 @@ _Source: [lib/cli/conjure/status-list.js](../lib/cli/conjure/status-list.js)_
 **Properties:**
 
 - `{array} list` Status objects
+  - Added by `enumerable-prop`
 
 **See:**
 
 - [Status](Status.md)
+- [enumerable-prop](https://github.com/codeactual/enumerable-prop)
 
 # StatusList.prototype.push(str)
 
