@@ -21,7 +21,6 @@
     "component/bind": "9a55368",
     "component/each": "8b1f645",
     "visionmedia/batch": "0.3.2",
-    "component/enumerable": "0.3.1",
     "visionmedia/configurable.js": "f87ca5f"
   },
   "development": {
@@ -30,7 +29,8 @@
     "locals"
   ],
   "local": [
-    "bdd-flow"
+    "bdd-flow",
+    "enumerable-prop"
   ],
   "main": "lib/conjure/index.js",
   "scripts": [
