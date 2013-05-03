@@ -10,7 +10,15 @@ var casper = require('casper').create();
 var cli = casper.cli;
 var rootDir = cli.raw.get('rootdir');
 var testDir = cli.raw.get('testdir');
-var conjure = require(rootDir + '/dist/conjure').create(require);
+
+var conjure;
+try { // Common-case
+  conjure = require(rootDir + '/node_modules/conjure/dist/conjure').create(require);
+} catch (e) {}
+if (!conjure) { // Conjure dev environment
+  conjure = require(rootDir + '/dist/conjure').create(require);
+}
+
 conjure.set('cli', cli);
 
 var testFile = cli.raw.get('testfile');
