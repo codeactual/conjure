@@ -342,6 +342,371 @@
             return this;
         };
     });
+    require.register("visionmedia-configurable.js/index.js", function(exports, require, module) {
+        module.exports = function(obj) {
+            obj.settings = {};
+            obj.set = function(name, val) {
+                if (1 == arguments.length) {
+                    for (var key in name) {
+                        this.set(key, name[key]);
+                    }
+                } else {
+                    this.settings[name] = val;
+                }
+                return this;
+            };
+            obj.get = function(name) {
+                return this.settings[name];
+            };
+            obj.enable = function(name) {
+                return this.set(name, true);
+            };
+            obj.disable = function(name) {
+                return this.set(name, false);
+            };
+            obj.enabled = function(name) {
+                return !!this.get(name);
+            };
+            obj.disabled = function(name) {
+                return !this.get(name);
+            };
+            return obj;
+        };
+    });
+    require.register("component-clone/index.js", function(exports, require, module) {
+        var type;
+        try {
+            type = require("type");
+        } catch (e) {
+            type = require("type-component");
+        }
+        module.exports = clone;
+        function clone(obj) {
+            switch (type(obj)) {
+              case "object":
+                var copy = {};
+                for (var key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        copy[key] = clone(obj[key]);
+                    }
+                }
+                return copy;
+
+              case "array":
+                var copy = new Array(obj.length);
+                for (var i = 0, l = obj.length; i < l; i++) {
+                    copy[i] = clone(obj[i]);
+                }
+                return copy;
+
+              case "regexp":
+                var flags = "";
+                flags += obj.multiline ? "m" : "";
+                flags += obj.global ? "g" : "";
+                flags += obj.ignoreCase ? "i" : "";
+                return new RegExp(obj.source, flags);
+
+              case "date":
+                return new Date(obj.getTime());
+
+              default:
+                return obj;
+            }
+        }
+    });
+    require.register("bdd-flow/lib/bdd-flow/index.js", function(exports, require, module) {
+        "use strict";
+        exports.Bddflow = Bddflow;
+        exports.create = function() {
+            return new Bddflow();
+        };
+        exports.extend = function(ext) {
+            return extend(Bddflow.prototype, ext);
+        };
+        exports.requireComponent = require;
+        var Batch = require("batch");
+        var clone = require("clone");
+        var configurable = require("configurable.js");
+        var extend = require("extend");
+        var flowFnRegex = /^(it|describe|before|beforeEach|after|afterEach)$/;
+        var defOmitContextRegex = {
+            all: [ /^__conjure__/ ],
+            describe: [],
+            hook: [ flowFnRegex ],
+            it: [ flowFnRegex ],
+            rootDescribe: []
+        };
+        function Bddflow() {
+            this.settings = {
+                done: noOp,
+                itWrap: null,
+                describeWrap: null,
+                omitContextRegex: clone(defOmitContextRegex),
+                path: [],
+                grep: /.?/,
+                grepv: null,
+                sharedContext: {}
+            };
+            this.rootDescribes = [];
+            this.batch = new Batch();
+            this.seedProps = {};
+        }
+        Bddflow.describeConfigKeys = [ "describeWrap", "itWrap", "omitContextRegex", "path", "grep", "grepv", "sharedContext" ];
+        configurable(Bddflow.prototype);
+        Bddflow.prototype.addContextProp = function(key, val) {
+            this.seedProps[key] = val;
+            return this;
+        };
+        Bddflow.prototype.addRootDescribe = function(name, cb) {
+            var self = this;
+            var desc = new Describe(name);
+            desc.describe(name, cb);
+            this.rootDescribes.push(desc);
+            return this;
+        };
+        Bddflow.prototype.hideContextProp = function(type, regex) {
+            if (typeof regex === "string") {
+                regex = new RegExp("^" + regex + "$");
+            }
+            this.get("omitContextRegex")[type].push(regex);
+            return this;
+        };
+        Bddflow.prototype.run = function() {
+            var self = this;
+            var batch = new Batch();
+            batch.concurrency(1);
+            this.set("sharedContext", this.seedProps);
+            this.rootDescribes.forEach(function(desc) {
+                batch.push(function(taskDone) {
+                    self.set("path", []);
+                    Bddflow.describeConfigKeys.forEach(function(key) {
+                        desc.set(key, self.get(key));
+                    });
+                    runSteps(desc.steps, taskDone);
+                });
+            });
+            batch.end(this.get("done"));
+        };
+        Bddflow.defaultHookImpl = function(done) {
+            done();
+        };
+        function HookSet() {
+            this.before = Bddflow.defaultHookImpl;
+            this.beforeEach = Bddflow.defaultHookImpl;
+            this.after = Bddflow.defaultHookImpl;
+            this.afterEach = Bddflow.defaultHookImpl;
+        }
+        function ItCallback(name, cb) {
+            this.name = name;
+            this.cb = cb;
+        }
+        function Describe(name) {
+            this.name = name;
+            this.steps = [];
+            this.hooks = new HookSet();
+            this.settings = {};
+        }
+        configurable(Describe.prototype);
+        Describe.prototype.extendSharedContext = function(ext, type) {
+            return extend(this.get("sharedContext"), this.filterProps(ext, type));
+        };
+        Describe.prototype.filterProps = function(obj, type) {
+            var omitContextRegex = this.get("omitContextRegex");
+            var regex = omitContextRegex.all.concat(omitContextRegex[type]);
+            return Object.keys(obj).reduce(function(memo, key) {
+                var omit = false;
+                regex.forEach(function(re) {
+                    omit = omit || re.test(key);
+                });
+                if (omit) {
+                    return memo;
+                }
+                memo[key] = obj[key];
+                return memo;
+            }, {});
+        };
+        Describe.prototype.getSharedContext = function(type) {
+            return this.filterProps(this.get("sharedContext"), type);
+        };
+        Describe.prototype.it = function(name, cb) {
+            this.steps.push(new ItCallback(name, cb));
+        };
+        Describe.prototype.describe = function(name, cb) {
+            var self = this;
+            var step = function(done) {
+                var desc = new Describe(name);
+                Bddflow.describeConfigKeys.forEach(function(key) {
+                    desc.set(key, self.get(key));
+                });
+                var path = desc.get("path");
+                path.push(name);
+                var describeWrap = desc.get("describeWrap") || defDescribeWrap;
+                describeWrap(name, function() {
+                    var wrapContext = this || {};
+                    var mergedContext = desc.extendSharedContext(wrapContext, "describe");
+                    mergedContext.describe = desc.describe.bind(desc);
+                    mergedContext.it = desc.it.bind(desc);
+                    mergedContext.before = desc.before.bind(desc);
+                    mergedContext.beforeEach = desc.beforeEach.bind(desc);
+                    mergedContext.after = desc.after.bind(desc);
+                    mergedContext.afterEach = desc.afterEach.bind(desc);
+                    addInternalProp(mergedContext, "name", name);
+                    cb.call(mergedContext);
+                });
+                var batch = new Batch();
+                batch.push(function(done) {
+                    function asyncCb() {
+                        desc.extendSharedContext(context, "hook");
+                        done();
+                    }
+                    var hook = desc.hooks.before;
+                    var context = desc.getSharedContext("hook");
+                    if (hook.length) {
+                        desc.hooks.before.call(context, asyncCb);
+                    } else {
+                        desc.hooks.before.call(context);
+                        asyncCb();
+                    }
+                });
+                batch.push(function(done) {
+                    desc.steps = desc.steps.map(function(step) {
+                        if (step instanceof DescribeCallback) {
+                            var context = desc.getSharedContext("describe");
+                            return new DescribeCallback(step.name, step.cb.bind(context));
+                        }
+                        var itPath = path.concat(step.name);
+                        var grep = desc.get("grep");
+                        var grepv = desc.get("grepv");
+                        if (grepv) {
+                            if (grepv.test(itPath.join(" "))) {
+                                return new ItCallback(step.name, batchNoOp);
+                            }
+                        } else if (grep) {
+                            if (!grep.test(itPath.join(" "))) {
+                                return new ItCallback(step.name, batchNoOp);
+                            }
+                        }
+                        return new ItCallback(step.name, function(done) {
+                            var batch = new Batch();
+                            batch.push(function(done) {
+                                function asyncCb() {
+                                    desc.extendSharedContext(context, "hook");
+                                    done();
+                                }
+                                var hook = desc.hooks.beforeEach;
+                                var context = desc.getSharedContext("hook");
+                                if (hook.length) {
+                                    desc.hooks.beforeEach.call(context, asyncCb);
+                                } else {
+                                    desc.hooks.beforeEach.call(context);
+                                    asyncCb();
+                                }
+                            });
+                            batch.push(function(done) {
+                                var context = desc.getSharedContext("it");
+                                function asyncCb() {
+                                    desc.extendSharedContext(context, "it");
+                                    done();
+                                }
+                                var itWrap = desc.get("itWrap") || defItWrap;
+                                itWrap(step.name, function() {
+                                    var wrapContext = this || {};
+                                    extend(context, wrapContext);
+                                    addInternalProp(context, "name", step.name, true);
+                                    addInternalProp(context, "path", itPath, true);
+                                    if (step.cb.length) {
+                                        step.cb.call(context, asyncCb);
+                                    } else {
+                                        step.cb.call(context);
+                                        asyncCb();
+                                    }
+                                });
+                            });
+                            batch.push(function(done) {
+                                function asyncCb() {
+                                    desc.extendSharedContext(context, "hook");
+                                    done();
+                                }
+                                var hook = desc.hooks.afterEach;
+                                var context = desc.getSharedContext("hook");
+                                if (hook.length) {
+                                    desc.hooks.afterEach.call(context, asyncCb);
+                                } else {
+                                    desc.hooks.afterEach.call(context);
+                                    asyncCb();
+                                }
+                            });
+                            batch.concurrency(1);
+                            batch.end(done);
+                        });
+                    });
+                    runSteps(desc.steps, done);
+                });
+                batch.push(function(done) {
+                    function asyncCb() {
+                        desc.extendSharedContext(context, "hook");
+                        done();
+                    }
+                    var hook = desc.hooks.after;
+                    var context = desc.getSharedContext("hook");
+                    if (hook.length) {
+                        desc.hooks.after.call(context, asyncCb);
+                    } else {
+                        desc.hooks.after.call(context);
+                        asyncCb();
+                    }
+                });
+                batch.concurrency(1);
+                batch.end(done);
+            };
+            this.steps.push(new DescribeCallback(name, step));
+        };
+        Describe.prototype.before = function(cb) {
+            this.hooks.before = cb;
+        };
+        Describe.prototype.beforeEach = function(cb) {
+            this.hooks.beforeEach = cb;
+        };
+        Describe.prototype.after = function(cb) {
+            this.hooks.after = cb;
+        };
+        Describe.prototype.afterEach = function(cb) {
+            this.hooks.afterEach = cb;
+        };
+        function DescribeCallback(name, cb) {
+            this.name = name;
+            this.cb = cb;
+        }
+        function runSteps(steps, cb) {
+            var batch = new Batch();
+            batch.concurrency(1);
+            steps.forEach(function(step) {
+                batch.push(step.cb);
+            });
+            batch.end(cb);
+        }
+        function noOp() {}
+        function batchNoOp(taskDone) {
+            taskDone();
+        }
+        function defItWrap(name, cb) {
+            cb();
+        }
+        function defDescribeWrap(name, cb) {
+            cb();
+        }
+        function delInternalProp(obj, key) {
+            delete obj["__conjure__" + key];
+        }
+        function addInternalProp(obj, key, val, writable) {
+            Object.defineProperty(obj, "__conjure__" + key, {
+                value: val,
+                enumerable: false,
+                configurable: true,
+                writable: !!writable
+            });
+        }
+    });
     require.register("component-to-function/index.js", function(exports, require, module) {
         module.exports = toFunction;
         function toFunction(obj) {
@@ -703,374 +1068,45 @@
         };
         mixin(Enumerable.prototype);
     });
-    require.register("visionmedia-configurable.js/index.js", function(exports, require, module) {
-        module.exports = function(obj) {
-            obj.settings = {};
-            obj.set = function(name, val) {
-                if (1 == arguments.length) {
-                    for (var key in name) {
-                        this.set(key, name[key]);
-                    }
-                } else {
-                    this.settings[name] = val;
-                }
-                return this;
-            };
-            obj.get = function(name) {
-                return this.settings[name];
-            };
-            obj.enable = function(name) {
-                return this.set(name, true);
-            };
-            obj.disable = function(name) {
-                return this.set(name, false);
-            };
-            obj.enabled = function(name) {
-                return !!this.get(name);
-            };
-            obj.disabled = function(name) {
-                return !this.get(name);
-            };
-            return obj;
-        };
-    });
-    require.register("component-clone/index.js", function(exports, require, module) {
-        var type;
-        try {
-            type = require("type");
-        } catch (e) {
-            type = require("type-component");
-        }
-        module.exports = clone;
-        function clone(obj) {
-            switch (type(obj)) {
-              case "object":
-                var copy = {};
-                for (var key in obj) {
-                    if (obj.hasOwnProperty(key)) {
-                        copy[key] = clone(obj[key]);
-                    }
-                }
-                return copy;
-
-              case "array":
-                var copy = new Array(obj.length);
-                for (var i = 0, l = obj.length; i < l; i++) {
-                    copy[i] = clone(obj[i]);
-                }
-                return copy;
-
-              case "regexp":
-                var flags = "";
-                flags += obj.multiline ? "m" : "";
-                flags += obj.global ? "g" : "";
-                flags += obj.ignoreCase ? "i" : "";
-                return new RegExp(obj.source, flags);
-
-              case "date":
-                return new Date(obj.getTime());
-
-              default:
-                return obj;
-            }
-        }
-    });
-    require.register("bdd-flow/lib/bdd-flow/index.js", function(exports, require, module) {
+    require.register("enumerable-prop/lib/enumerable-prop/index.js", function(exports, require, module) {
         "use strict";
-        exports.Bddflow = Bddflow;
-        exports.create = function() {
-            return new Bddflow();
+        module.exports = enumerableProp;
+        var enumerable = require("enumerable");
+        var defaultConfig = {
+            prop: "list",
+            init: []
         };
-        exports.extend = function(ext) {
-            return extend(Bddflow.prototype, ext);
-        };
-        exports.requireComponent = require;
-        var Batch = require("batch");
-        var clone = require("clone");
-        var configurable = require("configurable.js");
-        var extend = require("extend");
-        var flowFnRegex = /^(it|describe|before|beforeEach|after|afterEach)$/;
-        var defOmitContextRegex = {
-            all: [ /^__conjure__/ ],
-            describe: [],
-            hook: [ flowFnRegex ],
-            it: [ flowFnRegex ],
-            rootDescribe: []
-        };
-        function Bddflow() {
-            this.settings = {
-                done: noOp,
-                itWrap: null,
-                describeWrap: null,
-                omitContextRegex: clone(defOmitContextRegex),
-                path: [],
-                grep: /.?/,
-                grepv: null,
-                sharedContext: {}
-            };
-            this.rootDescribes = [];
-            this.batch = new Batch();
-            this.seedProps = {};
-            this.running = false;
-        }
-        Bddflow.describeConfigKeys = [ "describeWrap", "itWrap", "omitContextRegex", "path", "grep", "grepv", "sharedContext" ];
-        configurable(Bddflow.prototype);
-        Bddflow.prototype.addContextProp = function(key, val) {
-            this.seedProps[key] = val;
-            return this;
-        };
-        Bddflow.prototype.addRootDescribe = function(name, cb) {
-            var self = this;
-            var desc = new Describe(name);
-            desc.describe(name, cb);
-            this.rootDescribes.push(desc);
-            return this;
-        };
-        Bddflow.prototype.hideContextProp = function(type, regex) {
-            if (typeof regex === "string") {
-                regex = new RegExp("^" + regex + "$");
+        function enumerableProp(instance, config) {
+            config = config || {};
+            Object.keys(defaultConfig).forEach(function(key) {
+                config[key] = config[key] || defaultConfig[key];
+            });
+            instance[config.prop] = config.init;
+            if (!instance.constructor.prototype.__iterate__) {
+                instance.constructor.prototype.__iterate__ = createIterator(instance, config.prop);
+                instance.constructor.prototype.push = createPusher(instance, config.prop);
+                enumerable(instance.constructor.prototype);
             }
-            this.get("omitContextRegex")[type].push(regex);
-            return this;
-        };
-        Bddflow.prototype.isRunning = function() {
-            return this.running;
-        };
-        Bddflow.prototype.run = function() {
-            var self = this;
-            this.running = true;
-            var batch = new Batch();
-            batch.concurrency(1);
-            this.set("sharedContext", this.seedProps);
-            this.rootDescribes.forEach(function(desc) {
-                batch.push(function(taskDone) {
-                    self.set("path", []);
-                    Bddflow.describeConfigKeys.forEach(function(key) {
-                        desc.set(key, self.get(key));
-                    });
-                    runSteps(desc.steps, taskDone);
-                });
-            });
-            batch.end(this.get("done"));
-        };
-        Bddflow.defaultHookImpl = function(done) {
-            done();
-        };
-        function HookSet() {
-            this.before = Bddflow.defaultHookImpl;
-            this.beforeEach = Bddflow.defaultHookImpl;
-            this.after = Bddflow.defaultHookImpl;
-            this.afterEach = Bddflow.defaultHookImpl;
         }
-        function ItCallback(name, cb) {
-            this.name = name;
-            this.cb = cb;
-        }
-        function Describe(name) {
-            this.name = name;
-            this.steps = [];
-            this.hooks = new HookSet();
-            this.settings = {};
-        }
-        configurable(Describe.prototype);
-        Describe.prototype.extendSharedContext = function(ext, type) {
-            return extend(this.get("sharedContext"), this.filterProps(ext, type));
-        };
-        Describe.prototype.filterProps = function(obj, type) {
-            var omitContextRegex = this.get("omitContextRegex");
-            var regex = omitContextRegex.all.concat(omitContextRegex[type]);
-            return Object.keys(obj).reduce(function(memo, key) {
-                var omit = false;
-                regex.forEach(function(re) {
-                    omit = omit || re.test(key);
-                });
-                if (omit) {
-                    return memo;
-                }
-                memo[key] = obj[key];
-                return memo;
-            }, {});
-        };
-        Describe.prototype.getSharedContext = function(type) {
-            return this.filterProps(this.get("sharedContext"), type);
-        };
-        Describe.prototype.it = function(name, cb) {
-            this.steps.push(new ItCallback(name, cb));
-        };
-        Describe.prototype.describe = function(name, cb) {
-            var self = this;
-            var step = function(done) {
-                var desc = new Describe(name);
-                Bddflow.describeConfigKeys.forEach(function(key) {
-                    desc.set(key, self.get(key));
-                });
-                var path = desc.get("path");
-                path.push(name);
-                var describeWrap = desc.get("describeWrap") || defDescribeWrap;
-                describeWrap(name, function() {
-                    var wrapContext = this || {};
-                    var mergedContext = desc.extendSharedContext(wrapContext, "describe");
-                    mergedContext.describe = desc.describe.bind(desc);
-                    mergedContext.it = desc.it.bind(desc);
-                    mergedContext.before = desc.before.bind(desc);
-                    mergedContext.beforeEach = desc.beforeEach.bind(desc);
-                    mergedContext.after = desc.after.bind(desc);
-                    mergedContext.afterEach = desc.afterEach.bind(desc);
-                    addInternalProp(mergedContext, "name", name);
-                    cb.call(mergedContext);
-                });
-                var batch = new Batch();
-                batch.push(function(done) {
-                    function asyncCb() {
-                        desc.extendSharedContext(context, "hook");
-                        done();
+        function createIterator(instance, prop) {
+            return function() {
+                return {
+                    length: function() {
+                        return instance[prop].length;
+                    },
+                    get: function(i) {
+                        return instance[prop][i];
                     }
-                    var hook = desc.hooks.before;
-                    var context = desc.getSharedContext("hook");
-                    if (hook.length) {
-                        desc.hooks.before.call(context, asyncCb);
-                    } else {
-                        desc.hooks.before.call(context);
-                        asyncCb();
-                    }
-                });
-                batch.push(function(done) {
-                    desc.steps = desc.steps.map(function(step) {
-                        if (step instanceof DescribeCallback) {
-                            var context = desc.getSharedContext("describe");
-                            return new DescribeCallback(step.name, step.cb.bind(context));
-                        }
-                        var itPath = path.concat(step.name);
-                        var grep = desc.get("grep");
-                        var grepv = desc.get("grepv");
-                        if (grepv) {
-                            if (grepv.test(itPath.join(" "))) {
-                                return new ItCallback(step.name, batchNoOp);
-                            }
-                        } else if (grep) {
-                            if (!grep.test(itPath.join(" "))) {
-                                return new ItCallback(step.name, batchNoOp);
-                            }
-                        }
-                        return new ItCallback(step.name, function(done) {
-                            var batch = new Batch();
-                            batch.push(function(done) {
-                                function asyncCb() {
-                                    desc.extendSharedContext(context, "hook");
-                                    done();
-                                }
-                                var hook = desc.hooks.beforeEach;
-                                var context = desc.getSharedContext("hook");
-                                if (hook.length) {
-                                    desc.hooks.beforeEach.call(context, asyncCb);
-                                } else {
-                                    desc.hooks.beforeEach.call(context);
-                                    asyncCb();
-                                }
-                            });
-                            batch.push(function(done) {
-                                var context = desc.getSharedContext("it");
-                                function asyncCb() {
-                                    desc.extendSharedContext(context, "it");
-                                    done();
-                                }
-                                var itWrap = desc.get("itWrap") || defItWrap;
-                                itWrap(step.name, function() {
-                                    var wrapContext = this || {};
-                                    extend(context, wrapContext);
-                                    addInternalProp(context, "name", step.name, true);
-                                    addInternalProp(context, "path", itPath, true);
-                                    if (step.cb.length) {
-                                        step.cb.call(context, asyncCb);
-                                    } else {
-                                        step.cb.call(context);
-                                        asyncCb();
-                                    }
-                                });
-                            });
-                            batch.push(function(done) {
-                                function asyncCb() {
-                                    desc.extendSharedContext(context, "hook");
-                                    done();
-                                }
-                                var hook = desc.hooks.afterEach;
-                                var context = desc.getSharedContext("hook");
-                                if (hook.length) {
-                                    desc.hooks.afterEach.call(context, asyncCb);
-                                } else {
-                                    desc.hooks.afterEach.call(context);
-                                    asyncCb();
-                                }
-                            });
-                            batch.concurrency(1);
-                            batch.end(done);
-                        });
-                    });
-                    runSteps(desc.steps, done);
-                });
-                batch.push(function(done) {
-                    function asyncCb() {
-                        desc.extendSharedContext(context, "hook");
-                        done();
-                    }
-                    var hook = desc.hooks.after;
-                    var context = desc.getSharedContext("hook");
-                    if (hook.length) {
-                        desc.hooks.after.call(context, asyncCb);
-                    } else {
-                        desc.hooks.after.call(context);
-                        asyncCb();
-                    }
-                });
-                batch.concurrency(1);
-                batch.end(done);
+                };
             };
-            this.steps.push(new DescribeCallback(name, step));
-        };
-        Describe.prototype.before = function(cb) {
-            this.hooks.before = cb;
-        };
-        Describe.prototype.beforeEach = function(cb) {
-            this.hooks.beforeEach = cb;
-        };
-        Describe.prototype.after = function(cb) {
-            this.hooks.after = cb;
-        };
-        Describe.prototype.afterEach = function(cb) {
-            this.hooks.afterEach = cb;
-        };
-        function DescribeCallback(name, cb) {
-            this.name = name;
-            this.cb = cb;
         }
-        function runSteps(steps, cb) {
-            var batch = new Batch();
-            batch.concurrency(1);
-            steps.forEach(function(step) {
-                batch.push(step.cb);
-            });
-            batch.end(cb);
-        }
-        function noOp() {}
-        function batchNoOp(taskDone) {
-            taskDone();
-        }
-        function defItWrap(name, cb) {
-            cb();
-        }
-        function defDescribeWrap(name, cb) {
-            cb();
-        }
-        function delInternalProp(obj, key) {
-            delete obj["__conjure__" + key];
-        }
-        function addInternalProp(obj, key, val, writable) {
-            Object.defineProperty(obj, "__conjure__" + key, {
-                value: val,
-                enumerable: false,
-                configurable: true,
-                writable: !!writable
-            });
+        function createPusher(instance, prop) {
+            if (instance.constructor.prototype.push) {
+                return instance.constructor.prototype.push;
+            }
+            return function(item) {
+                return instance[prop].push(item);
+            };
         }
     });
     require.register("conjure/lib/conjure/index.js", function(exports, require, module) {
@@ -1301,8 +1337,6 @@
     require.alias("visionmedia-batch/index.js", "conjure/deps/batch/index.js");
     require.alias("component-emitter/index.js", "visionmedia-batch/deps/emitter/index.js");
     require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
-    require.alias("component-enumerable/index.js", "conjure/deps/enumerable/index.js");
-    require.alias("component-to-function/index.js", "component-enumerable/deps/to-function/index.js");
     require.alias("visionmedia-configurable.js/index.js", "conjure/deps/configurable.js/index.js");
     require.alias("bdd-flow/lib/bdd-flow/index.js", "conjure/deps/bdd-flow/lib/bdd-flow/index.js");
     require.alias("bdd-flow/lib/bdd-flow/index.js", "conjure/deps/bdd-flow/index.js");
@@ -1314,6 +1348,11 @@
     require.alias("component-clone/index.js", "bdd-flow/deps/clone/index.js");
     require.alias("component-type/index.js", "component-clone/deps/type/index.js");
     require.alias("bdd-flow/lib/bdd-flow/index.js", "bdd-flow/index.js");
+    require.alias("enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/lib/enumerable-prop/index.js");
+    require.alias("enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/index.js");
+    require.alias("component-enumerable/index.js", "enumerable-prop/deps/enumerable/index.js");
+    require.alias("component-to-function/index.js", "component-enumerable/deps/to-function/index.js");
+    require.alias("enumerable-prop/lib/enumerable-prop/index.js", "enumerable-prop/index.js");
     require.alias("conjure/lib/conjure/index.js", "conjure/index.js");
     if (typeof exports == "object") {
         module.exports = require("conjure");
