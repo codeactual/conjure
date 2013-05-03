@@ -1200,19 +1200,19 @@
             this.flow.addContextProp("casper", this.casper);
             this.flow.addContextProp("colorizer", this.colorizer);
             this.flow.addContextProp("utils", this.utils);
-            this.flow.set("itWrap", function(name, cb) {
-                self.casper.then(function() {
+            this.flow.set("itWrap", function conjureItWrap(name, cb) {
+                self.casper.then(function conjureItWrapThen() {
                     cb.call(this);
                 });
             });
-            this.flow.set("describeWrap", function(name, cb) {
+            this.flow.set("describeWrap", function conjureDescribeWrap(name, cb) {
                 var contextKeys = [ "casper", "utils", "colorizer", "conjure" ];
                 cb.call(Conjure.createContext(self, contextKeys));
             });
             this.casper.start(this.url(this.get("initPath")));
             var descName = "initial URL/selector";
-            this.flow.addRootDescribe(descName, function() {
-                this.it("should be loaded/found", function() {
+            this.flow.addRootDescribe(descName, function conjureRootDescribe() {
+                this.it("should be loaded/found", function conjureInitSelectorShouldExist() {
                     this.conjure.selectorExists(self.get("initSel"));
                 });
             });
@@ -1229,10 +1229,10 @@
                 initMsg += " Waiting For Selector [" + initSel + "]";
             }
             this.casper.test.info(initMsg);
-            this.casper.then(function() {
+            this.casper.then(function conjureRunBddflow() {
                 self.flow.run();
             });
-            this.casper.run(function() {
+            this.casper.run(function conjureRunCasperTests() {
                 this.test.renderResults(true);
             });
         };
@@ -1253,7 +1253,7 @@
             var extend = require("extend");
             var contextKeys = [ "utils", "colorizer", "conjure" ];
             var context = Conjure.createContext(this, contextKeys);
-            this.casper.then(function() {
+            this.casper.then(function conjureHelperThen() {
                 cb.call(extend(context, {
                     casper: self.casper,
                     test: this.test
@@ -1262,21 +1262,21 @@
         };
         helpers.assertSelText = function(sel, text) {
             var is = require("is");
-            this.casper.then(function() {
+            this.casper.then(function conjureHelperAssertSelText() {
                 this.test["assert" + (is.string(text) ? "Equals" : "Match")](this.evaluate(function(sel) {
                     return $(sel).text();
                 }, sel), text);
             });
         };
         helpers.assertType = function(val, expected, subject) {
-            this.conjure.then(function() {
+            this.conjure.then(function conjureHelperAssertType() {
                 this.test.assertEquals(this.utils.betterTypeOf(val), expected, this.utils.format("%s should be a %s", subject || "subject", expected));
             });
         };
         helpers.each = function(list, cb) {
             var self = this;
             list.forEach(function(item) {
-                self.conjure.then(function() {
+                self.conjure.then(function conjureHelperEach() {
                     cb.call(this, item);
                 });
             });
@@ -1320,7 +1320,7 @@
         };
         helpers.sendKeys = function(sel, keys) {
             this.conjure.selectorExists(sel);
-            this.conjure.then(function() {
+            this.conjure.then(function conjureHelperSendKeys() {
                 this.sendKeys(sel, keys);
             });
         };
