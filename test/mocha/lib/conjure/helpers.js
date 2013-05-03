@@ -359,7 +359,7 @@ function stubCasperApi() {
 function stubThenMethods() {
   this.thenContext = {
     evaluate: this.stubs.casper.evaluate,
-    sendKeys: this.stubs.casper.sendKeys,
+    casper: this.stubs.casper,
     test: this.stubs.test,
     utils: this.stubs.utils
   };

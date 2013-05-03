@@ -1321,7 +1321,7 @@
         helpers.sendKeys = function(sel, keys) {
             this.conjure.selectorExists(sel);
             this.conjure.then(function conjureHelperSendKeys() {
-                this.sendKeys(sel, keys);
+                this.casper.sendKeys(sel, keys);
             });
         };
         helpers.url = function(relUrl) {
