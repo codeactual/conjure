@@ -1244,23 +1244,21 @@
             });
         };
         Conjure.prototype.status = function(source, type, meta) {
-            var jsonStr;
-            try {
-                jsonStr = JSON.stringify({
-                    source: source,
-                    type: type,
-                    meta: meta || {}
-                });
-            } catch (e) {
-                jsonStr = JSON.stringify({
-                    source: source,
-                    type: type,
-                    meta: {
-                        jsonStringifyErr: e.message
-                    }
-                });
-            }
-            console.log(this.utils.format("conjure_status:%s", jsonStr));
+            meta = meta || {};
+            Object.keys(meta).forEach(function(key) {
+                try {
+                    JSON.stringify(meta[key]);
+                } catch (e) {
+                    meta[key] = {
+                        conjureJsonStringifyErr: e.message
+                    };
+                }
+            });
+            console.log(this.utils.format("conjure_status:%s", JSON.stringify({
+                source: source,
+                type: type,
+                meta: meta
+            })));
         };
         Conjure.prototype.trace = function(source, meta) {
             this.status(source, "trace", meta);
