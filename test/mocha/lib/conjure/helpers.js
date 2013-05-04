@@ -38,15 +38,20 @@ describe('helpers', function() {
     beforeEach(function() {
       this.stubs.casper.thenEvaluate.yields(this.sel);
       this.stubs.helper.click.restore();
-      this.conjure.click(this.sel);
     });
     it('should wait for selector match', function() {
+      this.conjure.click(this.sel);
       this.stubs.helper.selectorExists.calledWithExactly(this.sel);
     });
-    it('should use jQuery to click', function() {
+    it('should use jQuery to click by default', function() {
+      this.conjure.click(this.sel);
       this.stubs.casper.thenEvaluate.should.be.called;
       this.stubs.$global.should.have.been.calledWithExactly(this.sel);
       this.stubs.$.click.should.have.been.called;
+    });
+    it('should optionally use native CasperJS click', function() {
+      this.conjure.click(this.sel, true);
+      this.stubs.casper.thenClick.should.be.calledWithExactly(this.sel);
     });
   });
 
@@ -350,7 +355,7 @@ function stubCasperApi() {
   this.stubs.casper = this.stubMany(
     this.conjure.casper,
     [
-      'evaluate', 'sendKeys', 'then', 'thenEvaluate', 'thenOpen', 'waitFor'
+      'evaluate', 'sendKeys', 'then', 'thenClick', 'thenEvaluate', 'thenOpen', 'waitFor'
     ]
   );
   this.stubs.casper.evaluate.returns(this.evaluateResult);
