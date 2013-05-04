@@ -18,6 +18,10 @@ _Source: [lib/cli/conjure/status-list.js](../lib/cli/conjure/status-list.js)_
 
 > StatusList constructor.
 
+**Configuration:**
+
+- `{object} impulseBin` `ImpulseBin` instance
+
 **Properties:**
 
 - `{array} list` Status objects
@@ -27,6 +31,7 @@ _Source: [lib/cli/conjure/status-list.js](../lib/cli/conjure/status-list.js)_
 
 - [Status](Status.md)
 - [enumerable-prop](https://github.com/codeactual/enumerable-prop)
+- [ImpulseBin](https://github.com/codeactual/impulse-bin/blob/master/docs/ImpulseBin.md)
 
 # StatusList.prototype.push(str)
 

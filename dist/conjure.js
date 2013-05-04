@@ -1200,11 +1200,19 @@
             this.flow.addContextProp("colorizer", this.colorizer);
             this.flow.addContextProp("utils", this.utils);
             this.flow.set("itWrap", function conjureItWrap(name, cb) {
+                self.status("it", "trace", {
+                    name: name,
+                    origin: "Conjure#test"
+                });
                 self.casper.then(function conjureItWrapThen() {
                     cb.call(this);
                 });
             });
             this.flow.set("describeWrap", function conjureDescribeWrap(name, cb) {
+                self.status("describe", "trace", {
+                    name: name,
+                    origin: "Conjure#test"
+                });
                 var contextKeys = [ "casper", "utils", "colorizer", "conjure" ];
                 cb.call(Conjure.createContext(self, contextKeys));
             });
@@ -1235,10 +1243,12 @@
                 this.test.renderResults(true);
             });
         };
-        Conjure.prototype.status = function(source, type, detail) {
-            detail = detail || {};
-            detail.statusSource = source;
-            console.log(this.utils.format("conjure:%s:%s", type, JSON.stringify(detail)));
+        Conjure.prototype.status = function(source, type, meta) {
+            console.log(this.utils.format("conjure_status:%s", JSON.stringify({
+                source: source,
+                type: type,
+                meta: meta || {}
+            })));
         };
         var helpers = {};
         helpers.click = function(sel, nativeClick) {

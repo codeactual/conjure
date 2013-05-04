@@ -16,7 +16,7 @@ module.exports = function(conjure) {
     var props = ['flow', 'settings', 'running'];
     props.forEach(function(prop) {
       test.conjure.assertType(
-        test[loc + 'Context'][prop],
+        test[loc + 'Contextd'][prop],
         'undefined',
         'this.' + prop + ' in ' + loc
       );

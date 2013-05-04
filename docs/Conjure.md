@@ -140,7 +140,7 @@ conjure.set('exitOnError', false);
 
 # Conjure.prototype.isRunning()
 
-> Check if (internal) run() has been called.
+> Check if `run()` has been called.
 
 **Return:**
 
@@ -173,7 +173,7 @@ Silently add an initial describe() to verify initial URL/selector.
 
 # helpers.then(cb)
 
-> then() alternative that with access to the same API as it().
+> `then()` alternative that with access to the same API as `it()`.
 
 **Parameters:**
 
@@ -181,7 +181,7 @@ Silently add an initial describe() to verify initial URL/selector.
 
 # helpers.thenOpen(args*)
 
-> thenOpen() alternative that with access to the same API as it().
+> `thenOpen()` alternative that with access to the same API as `it()`.
 
 **Parameters:**
 
@@ -193,7 +193,7 @@ Silently add an initial describe() to verify initial URL/selector.
 
 # helpers.assertSelText(sel, text)
 
-> assertTextExists() alternative that uses jQuery selectors.
+> `assertTextExists()` alternative that uses jQuery selectors.
 
 **Parameters:**
 
@@ -202,7 +202,7 @@ Silently add an initial describe() to verify initial URL/selector.
 
 # helpers.assertType(val, expected, subject)
 
-> assertType() alternative that reveals the actual type on mismatch.
+> `assertType()` alternative that reveals the actual type on mismatch.
 
 **Parameters:**
 
@@ -212,8 +212,8 @@ Silently add an initial describe() to verify initial URL/selector.
 
 # helpers.each(list, cb)
 
-> casper.each() alternative executes the callback inside the custom then().
-Callback receives the context of the enclosing then().
+> `casper.each()` alternative executes the callback inside the custom `then()`.
+Callback receives the context of the enclosing `then()`.
 
 **Parameters:**
 
@@ -235,14 +235,14 @@ Callback receives the context of the enclosing then().
 
 # helpers.require(name)
 
-> require() a CasperJS module or any file relative to --rootdir.
+> `require()` a CasperJS module or any file relative to `--rootdir`.
 
 **Parameters:**
 
-- `{string} name` Ex. 'casper' or './relative/path/module.js'.
+- `{string} name` Ex. 'casper' or './relative/path/module.js'
 
-For local file: prefix with leading './'.
-If rootdir is /path/to/proj, './foo' will lead to require('/path/to/proj/foo.js').
+For local file: prefix with leading './'
+If rootdir is '/path/to/proj', './foo' will lead to `require('/path/to/proj/foo.js')`.
 
 **Return:**
 
@@ -250,7 +250,7 @@ If rootdir is /path/to/proj, './foo' will lead to require('/path/to/proj/foo.js'
 
 # helpers.selectorExists(sel, [negate])
 
-> Alternative to waitForSelector() to use jQuery selector support,
+> Alternative to `waitForSelector()` to use jQuery selector support,
 ex. ':first' syntax.
 
 **Parameters:**
@@ -260,7 +260,7 @@ ex. ':first' syntax.
 
 # helpers.selectorMissing(sel)
 
-> Negated selectorExists().
+> Negated `selectorExists()`.
 
 **Parameters:**
 
@@ -268,7 +268,7 @@ ex. ':first' syntax.
 
 # helpers.sendKeys(sel, keys)
 
-> sendKeys() alternative that first waits for a selector to exist.
+> `sendKeys()` alternative that first waits for a selector to exist.
 
 **Parameters:**
 
