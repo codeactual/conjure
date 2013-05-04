@@ -5,7 +5,7 @@ module.exports = function(conjure) {
     var types = {casper: 'object', utils: 'object', colorizer: 'object'};
     Object.keys(types).forEach(function(prop) {
       test.conjure.assertType(
-        test[loc + 'Context'][prop],
+        test[loc + 'dContext'][prop],
         types[prop],
         'this.' + prop + ' in ' + loc
       );

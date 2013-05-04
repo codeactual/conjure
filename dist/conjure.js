@@ -1156,12 +1156,23 @@
             requireComponent("extend")(this, helpers);
             this.conjure = {};
             Object.keys(helpers).forEach(function(key) {
-                self.conjure[key] = bind(self, self[key]);
+                var boundHelper = bind(self, self[key]);
+                self.conjure[key] = function() {
+                    self.casper.then(function() {
+                        self.pushStatus(key, "trace");
+                    });
+                    boundHelper();
+                    self.casper.then(function() {
+                        self.popStatus();
+                    });
+                };
             });
+            this.casper = null;
             this.flow = bddflow.create();
             this.utils = this.require("utils");
             this.colorizer = this.require("colorizer").create("Colorizer");
             this.running = false;
+            this.stackDepth = 0;
         }
         configurable(Conjure.prototype);
         Conjure.createContext = function(parent, pluck, omit) {
@@ -1200,11 +1211,14 @@
             this.flow.addContextProp("colorizer", this.colorizer);
             this.flow.addContextProp("utils", this.utils);
             this.flow.set("itWrap", function conjureItWrap(name, cb) {
-                self.trace("it", {
-                    name: name
-                });
                 self.casper.then(function conjureItWrapThen() {
+                    self.pushStatus("it", {
+                        name: name
+                    });
                     cb.call(this);
+                });
+                self.casper.then(function conjureItPopStatusThen() {
+                    self.popStatus();
                 });
             });
             this.flow.set("describeWrap", function conjureDescribeWrap(name, cb) {
@@ -1255,8 +1269,16 @@
             console.log(this.utils.format("conjure_status:%s", JSON.stringify({
                 source: source,
                 type: type,
-                meta: meta
+                meta: meta,
+                depth: this.stackDepth
             })));
+        };
+        Conjure.prototype.popStatus = function() {
+            this.stackDepth--;
+        };
+        Conjure.prototype.pushStatus = function(source, type) {
+            this.status(source, type);
+            this.stackDepth++;
         };
         Conjure.prototype.trace = function(source, meta) {
             this.status(source, "trace", meta);

@@ -108,6 +108,7 @@ conjure.set('exitOnError', false);
 **Properties:**
 
 - `{object} conjure` All `helpers` functions bound to `this`.
+- `{object} console` `LongCon` instance
 - `{object} flow` `Bddflow` instance
 - `{object} utils` Native CasperJS `utils` module
 - `{object} colorizer` Native CasperJS `colorizer` module
