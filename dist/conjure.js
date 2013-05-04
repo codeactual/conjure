@@ -1073,18 +1073,17 @@
         module.exports = enumerableProp;
         var enumerable = require("enumerable");
         var defaultConfig = {
-            prop: "list",
-            init: []
+            prop: "list"
         };
         function enumerableProp(instance, config) {
             config = config || {};
             Object.keys(defaultConfig).forEach(function(key) {
                 config[key] = config[key] || defaultConfig[key];
             });
-            instance[config.prop] = config.init;
-            if (!instance.constructor.prototype.__iterate__) {
-                instance.constructor.prototype.__iterate__ = createIterator(instance, config.prop);
-                instance.constructor.prototype.push = createPusher(instance, config.prop);
+            instance[config.prop] = [];
+            instance.__iterate__ = createIterator(instance, config.prop);
+            instance.push = createPusher(instance, config.prop);
+            if (!instance.constructor.prototype.count) {
                 enumerable(instance.constructor.prototype);
             }
         }
@@ -1242,11 +1241,15 @@
             console.log(this.utils.format("conjure:%s:%s", type, JSON.stringify(detail)));
         };
         var helpers = {};
-        helpers.click = function(sel) {
+        helpers.click = function(sel, nativeClick) {
             this.conjure.selectorExists(sel);
-            this.casper.thenEvaluate(function(sel) {
-                $(sel).click();
-            }, sel);
+            if (nativeClick) {
+                this.casper.thenClick(sel);
+            } else {
+                this.casper.thenEvaluate(function(sel) {
+                    $(sel).click();
+                }, sel);
+            }
         };
         helpers.then = function(cb) {
             var self = this;
@@ -1254,6 +1257,18 @@
             var contextKeys = [ "utils", "colorizer", "conjure" ];
             var context = Conjure.createContext(this, contextKeys);
             this.casper.then(function conjureHelperThen() {
+                cb.call(extend(context, {
+                    casper: self.casper,
+                    test: this.test
+                }));
+            });
+        };
+        helpers.thenOpen = function(url, cb) {
+            var self = this;
+            var extend = require("extend");
+            var contextKeys = [ "utils", "colorizer", "conjure" ];
+            var context = Conjure.createContext(this, contextKeys);
+            this.casper.thenOpen(url, function conjureHelperThen() {
                 cb.call(extend(context, {
                     casper: self.casper,
                     test: this.test

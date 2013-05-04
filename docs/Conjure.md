@@ -11,8 +11,9 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 - [Conjure.prototype.isRunning](#conjureprototypeisrunning)
 - [Conjure.prototype.test](#conjureprototypetestname-cb)
 - [Conjure.prototype.run](#conjureprototyperun)
-- [helpers.click](#helpersclicksel)
+- [helpers.click](#helpersclicksel-nativeclickfalse)
 - [helpers.then](#helpersthencb)
+- [helpers.thenOpen](#helpersthenopenurl-cb)
 - [helpers.assertSelText](#helpersassertseltextsel-text)
 - [helpers.assertType](#helpersasserttypeval-expected-subject)
 - [helpers.each](#helperseachlist-cb)
@@ -161,13 +162,14 @@ Silently add an initial describe() to verify initial URL/selector.
 
 > Run collected BBD layers.
 
-# helpers.click(sel)
+# helpers.click(sel, [nativeClick=false])
 
 > click() alternative that uses jQuery selectors and first waits for a match.
 
 **Parameters:**
 
 - `{string} sel`
+- `{boolean} [nativeClick=false]` Use `thenClick()` instead of jQuery's `click()`
 
 # helpers.then(cb)
 
@@ -175,6 +177,15 @@ Silently add an initial describe() to verify initial URL/selector.
 
 **Parameters:**
 
+- `{function} cb`
+
+# helpers.thenOpen(url, cb)
+
+> thenOpen() alternative that with access to the same API as it().
+
+**Parameters:**
+
+- `{string} url`
 - `{function} cb`
 
 # helpers.assertSelText(sel, text)

@@ -32,6 +32,7 @@ _Source: [lib/cli/conjure/process.js](../lib/cli/conjure/process.js)_
 - `{object} handle` `ChildProcess` instance
 - `{boolean} noTestsRan` True if caused by `--grep-case` or `--grepv-case`
 - `{object} statusList` `StatusList` instance that holds internal messages parsed from stdout
+- `{object} timeoutId` `setTimeout()` ID created in Process.prototype.spawn to enforce `--timeout`
 
 **Inherits:**
 
