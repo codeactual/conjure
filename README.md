@@ -7,6 +7,7 @@ Parallel CasperJS runner, BDD flow, module-based tests, API helpers
 * Bootstrap test modules with common settings and arguments
 * Full access to standard CasperJS APIs
 * [Helpers]](docs/test-api.md) use preexisting jQuery for selectors
+* Stack traces that cover `describe()/it()` and helpers
 
 [![Build Status](https://travis-ci.org/codeactual/conjure.png)](https://travis-ci.org/codeactual/conjure)
 
@@ -28,7 +29,20 @@ module.exports = function(conjure) {
 };
 ```
 
-[More examples](docs/test-api.md)
+### Stack trace after timeout
+
+* Consecutive repeats are collapsed into a count ('x 40').
+* Colorized and displayed after all test failures.
+
+    /my-test.js Auto-killed after 5000ms timeout
+    /my-test.js conjure trace:
+    /my-test.js     selectorExists (step: waitFor) x 40
+    /my-test.js     describe (name: login page)
+    /my-test.js     selectorExists (sel: .selector-does-not-exist)
+    /my-test.js     it (name: should be loaded/found)
+    /my-test.js     describe (name: initial URL/selector)
+
+[More](docs/examples.md)
 
 ## CLI
 
@@ -44,42 +58,6 @@ Basic run:
 
 ## API
 
-### Example: Basic test
-
-```js
-var casper = require('casper').create();
-var conjure = require(rootDir + '/dist/conjure').create(require);
-conjure.set('cli', casper.cli);
-conjure.test('Login page', function() {
-  this.it('should not auto-check "Remember Me"' , function() {
-    this.conjure.selectorExists('.remember-me');
-    this.conjure.selectorMissing('.remember-me:checked');
-  });
-});
-```
-
-### Example: Bootstrap global settings and custom arguments
-
-```js
-// bootstrap module
-module.exports = function(conjure, testFile) {
-  conjure.set('baseUrl', 'http://localhost:9000/admin');
-
-  // If test location is '/path/to/proj/test/register/validation.js',
-  // then testFile is 'register/validation.js'
-
-  return ['foo', 'bar'];
-};
-
-// test module
-module.exports = function(conjure, customArg1, customArg2) {
-  // baseUrl = 'http://localhost:9000/admin'
-  // customArg1 = 'foo'
-  // customArg2 = 'bar'
-};
-
-```
-
 ### Context properties in `it()` callbacks
 
 * `utils`: Native CasperJS module.
@@ -90,6 +68,7 @@ module.exports = function(conjure, customArg1, customArg2) {
 
 ### Documentation
 
+* [Examples](docs/examples.md)
 * [Conjure / Test Helpers](docs/Conjure.md)
 
 Internals:
