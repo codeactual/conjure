@@ -13,7 +13,7 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 - [Conjure.prototype.run](#conjureprototyperun)
 - [helpers.click](#helpersclicksel-nativeclickfalse)
 - [helpers.then](#helpersthencb)
-- [helpers.thenOpen](#helpersthenopenurl-cb)
+- [helpers.thenOpen](#helpersthenopenargs)
 - [helpers.assertSelText](#helpersassertseltextsel-text)
 - [helpers.assertType](#helpersasserttypeval-expected-subject)
 - [helpers.each](#helperseachlist-cb)
@@ -179,14 +179,17 @@ Silently add an initial describe() to verify initial URL/selector.
 
 - `{function} cb`
 
-# helpers.thenOpen(url, cb)
+# helpers.thenOpen(args*)
 
 > thenOpen() alternative that with access to the same API as it().
 
 **Parameters:**
 
-- `{string} url`
-- `{function} cb`
+- `{mixed} args*` Original `thenOpen()` arguments
+
+**See:**
+
+- [thenOpen](http://casperjs.org/api.html#casper.thenOpen)
 
 # helpers.assertSelText(sel, text)
 

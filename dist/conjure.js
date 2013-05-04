@@ -1252,28 +1252,12 @@
             }
         };
         helpers.then = function(cb) {
-            var self = this;
-            var extend = require("extend");
-            var contextKeys = [ "utils", "colorizer", "conjure" ];
-            var context = Conjure.createContext(this, contextKeys);
-            this.casper.then(function conjureHelperThen() {
-                cb.call(extend(context, {
-                    casper: self.casper,
-                    test: this.test
-                }));
-            });
+            var args = wrapFirstCallbackInConjureContext(this, arguments);
+            this.casper.then.apply(this.casper, args);
         };
-        helpers.thenOpen = function(url, cb) {
-            var self = this;
-            var extend = require("extend");
-            var contextKeys = [ "utils", "colorizer", "conjure" ];
-            var context = Conjure.createContext(this, contextKeys);
-            this.casper.thenOpen(url, function conjureHelperThen() {
-                cb.call(extend(context, {
-                    casper: self.casper,
-                    test: this.test
-                }));
-            });
+        helpers.thenOpen = function() {
+            var args = wrapFirstCallbackInConjureContext(this, arguments);
+            this.casper.thenOpen.apply(this.casper, args);
         };
         helpers.assertSelText = function(sel, text) {
             var is = require("is");
@@ -1342,6 +1326,29 @@
         helpers.url = function(relUrl) {
             return this.get("baseUrl") + relUrl;
         };
+        function wrapFirstCallbackInConjureContext(self, args) {
+            var extend = require("extend");
+            var contextKeys = [ "utils", "colorizer", "conjure" ];
+            var context = Conjure.createContext(self, contextKeys);
+            args = [].slice.call(args);
+            var cb;
+            var cbIdx;
+            args.forEach(function(val, idx) {
+                if (typeof val === "function") {
+                    cb = val;
+                    cbIdx = idx;
+                }
+            });
+            if (cb) {
+                args[cbIdx] = function conjureHelperThenOpen() {
+                    cb.call(extend(context, {
+                        casper: self.casper,
+                        test: this.test
+                    }));
+                };
+            }
+            return args;
+        }
     });
     require.alias("codeactual-extend/index.js", "conjure/deps/extend/index.js");
     require.alias("codeactual-is/index.js", "conjure/deps/is/index.js");

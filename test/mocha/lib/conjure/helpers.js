@@ -69,6 +69,21 @@ describe('helpers', function() {
     });
   });
 
+  describe('thenOpen', function() {
+    beforeEach(function() {
+      this.stubs.casper.thenOpen.yieldsOn(this.thenContext);
+      this.stubs.helper.thenOpen.restore();
+      this.conjure.thenOpen(this.url, this.stubs.cb);
+    });
+    it('should inject context', function() {
+      this.stubs.extend.should.have.been.calledWith(
+        this.createdContext,
+        {casper: this.conjure.casper, test: this.testApi}
+      );
+      this.stubs.cb.should.have.been.calledOn(this.extendResult);
+    });
+  });
+
   describe('assertSelText', function() {
     beforeEach(function() {
       this.stubs.helper.assertSelText.restore();
@@ -328,6 +343,7 @@ function addFixtures() {
   this.stubs.cb = this.stub();
   this.strList = ['one', 'two', 'three'];
   this.relUrl = '/admin/settings';
+  this.url = 'http://localhost' + this.relUrl;
 }
 
 function stubUtilsApi() {
