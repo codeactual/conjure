@@ -26,6 +26,7 @@ _Source: [lib/cli/conjure/status-list.js](../lib/cli/conjure/status-list.js)_
 
 - `{array} list` Status objects
   - Added by `enumerable-prop`
+- `{string} lastMsg` Used to collapse/count repeats
 
 **See:**
 

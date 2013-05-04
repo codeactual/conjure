@@ -206,10 +206,13 @@ describe('helpers', function() {
         true, 'exists: ' + this.sel
       );
     });
-    it('should emit status event', function() {
+    it('should trace event', function() {
       this.conjure.selectorExists(this.sel);
-      this.stubs.conjure.status.should.have.been.calledWithExactly(
-        'selectorExists', 'wait', {sel: this.sel, negate: undefined}
+      this.stubs.conjure.trace.should.have.been.calledWithExactly(
+        'selectorExists', {sel: this.sel, negate: undefined, step: 'waitFor'}
+      );
+      this.stubs.conjure.trace.should.have.been.calledWithExactly(
+        'selectorExists', {sel: this.sel, negate: undefined, step: 'then'}
       );
     });
     it('should optionally negate expectation', function() {
@@ -310,6 +313,7 @@ function stubConjure() {
   this.stubConfig('requireCasper', this.stubs.requireCasper);
 
   this.stubs.conjure.status = this.stub(this.conjure, 'status');
+  this.stubs.conjure.trace = this.stub(this.conjure, 'trace');
 }
 
 function stubWindow() {

@@ -1596,51 +1596,6 @@
             }
           }
         },
-        "grunt-contrib-uglify": {
-          "version": "0.2.0",
-          "from": "grunt-contrib-uglify@0.2.0",
-          "dependencies": {
-            "uglify-js": {
-              "version": "2.2.5",
-              "from": "uglify-js@2.2.5",
-              "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-2.2.5.tgz",
-              "dependencies": {
-                "source-map": {
-                  "version": "0.1.19",
-                  "from": "https://registry.npmjs.org/source-map/-/source-map-0.1.19.tgz",
-                  "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.1.19.tgz",
-                  "dependencies": {
-                    "amdefine": {
-                      "version": "0.0.4",
-                      "from": "amdefine@0.0.4"
-                    }
-                  }
-                },
-                "optimist": {
-                  "version": "0.3.5",
-                  "from": "optimist@0.3.5",
-                  "resolved": "https://registry.npmjs.org/optimist/-/optimist-0.3.5.tgz",
-                  "dependencies": {
-                    "wordwrap": {
-                      "version": "0.0.2",
-                      "from": "wordwrap@0.0.2"
-                    }
-                  }
-                }
-              }
-            },
-            "grunt-lib-contrib": {
-              "version": "0.6.1",
-              "from": "grunt-lib-contrib@0.6.1",
-              "dependencies": {
-                "zlib-browserify": {
-                  "version": "0.0.1",
-                  "from": "zlib-browserify@0.0.1"
-                }
-              }
-            }
-          }
-        },
         "grunt": {
           "version": "0.4.1",
           "from": "grunt@0.4.1",
@@ -1772,6 +1727,51 @@
                       "from": "underscore.string@2.3.1"
                     }
                   }
+                }
+              }
+            }
+          }
+        },
+        "grunt-contrib-uglify": {
+          "version": "0.2.0",
+          "from": "grunt-contrib-uglify@0.2.0",
+          "dependencies": {
+            "uglify-js": {
+              "version": "2.2.5",
+              "from": "uglify-js@2.2.5",
+              "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-2.2.5.tgz",
+              "dependencies": {
+                "source-map": {
+                  "version": "0.1.19",
+                  "from": "https://registry.npmjs.org/source-map/-/source-map-0.1.19.tgz",
+                  "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.1.19.tgz",
+                  "dependencies": {
+                    "amdefine": {
+                      "version": "0.0.4",
+                      "from": "amdefine@0.0.4"
+                    }
+                  }
+                },
+                "optimist": {
+                  "version": "0.3.5",
+                  "from": "optimist@0.3.5",
+                  "resolved": "https://registry.npmjs.org/optimist/-/optimist-0.3.5.tgz",
+                  "dependencies": {
+                    "wordwrap": {
+                      "version": "0.0.2",
+                      "from": "wordwrap@0.0.2"
+                    }
+                  }
+                }
+              }
+            },
+            "grunt-lib-contrib": {
+              "version": "0.6.1",
+              "from": "grunt-lib-contrib@0.6.1",
+              "dependencies": {
+                "zlib-browserify": {
+                  "version": "0.0.1",
+                  "from": "zlib-browserify@0.0.1"
                 }
               }
             }
@@ -2510,6 +2510,66 @@
       "from": "sinon-chai@2.3.1",
       "resolved": "https://registry.npmjs.org/sinon-chai/-/sinon-chai-2.3.1.tgz"
     },
+    "mocha": {
+      "version": "1.9.0",
+      "from": "mocha@1.9.0",
+      "resolved": "https://registry.npmjs.org/mocha/-/mocha-1.9.0.tgz",
+      "dependencies": {
+        "commander": {
+          "version": "0.6.1",
+          "from": "commander@0.6.1"
+        },
+        "growl": {
+          "version": "1.7.0",
+          "from": "growl@1.7.x"
+        },
+        "jade": {
+          "version": "0.26.3",
+          "from": "jade@0.26.3",
+          "dependencies": {
+            "mkdirp": {
+              "version": "0.3.0",
+              "from": "mkdirp@0.3.0"
+            }
+          }
+        },
+        "diff": {
+          "version": "1.0.2",
+          "from": "diff@1.0.2"
+        },
+        "debug": {
+          "version": "0.7.2",
+          "from": "debug@*"
+        },
+        "mkdirp": {
+          "version": "0.3.3",
+          "from": "mkdirp@0.3.3"
+        },
+        "ms": {
+          "version": "0.3.0",
+          "from": "ms@0.3.0"
+        }
+      }
+    },
+    "sinon": {
+      "version": "1.6.0",
+      "from": "sinon@1.6.0",
+      "resolved": "https://registry.npmjs.org/sinon/-/sinon-1.6.0.tgz",
+      "dependencies": {
+        "buster-format": {
+          "version": "0.5.5",
+          "from": "buster-format@0.5.5",
+          "resolved": "https://registry.npmjs.org/buster-format/-/buster-format-0.5.5.tgz",
+          "dependencies": {
+            "buster-core": {
+              "version": "0.6.4",
+              "from": "buster-core@0.6.4",
+              "resolved": "https://registry.npmjs.org/buster-core/-/buster-core-0.6.4.tgz"
+            }
+          }
+        }
+      }
+    },
     "express": {
       "version": "3.1.0",
       "from": "express@",
@@ -2594,66 +2654,6 @@
         "debug": {
           "version": "0.7.2",
           "from": "debug@*"
-        }
-      }
-    },
-    "mocha": {
-      "version": "1.9.0",
-      "from": "mocha@1.9.0",
-      "resolved": "https://registry.npmjs.org/mocha/-/mocha-1.9.0.tgz",
-      "dependencies": {
-        "commander": {
-          "version": "0.6.1",
-          "from": "commander@0.6.1"
-        },
-        "growl": {
-          "version": "1.7.0",
-          "from": "growl@1.7.x"
-        },
-        "jade": {
-          "version": "0.26.3",
-          "from": "jade@0.26.3",
-          "dependencies": {
-            "mkdirp": {
-              "version": "0.3.0",
-              "from": "mkdirp@0.3.0"
-            }
-          }
-        },
-        "diff": {
-          "version": "1.0.2",
-          "from": "diff@1.0.2"
-        },
-        "debug": {
-          "version": "0.7.2",
-          "from": "debug@*"
-        },
-        "mkdirp": {
-          "version": "0.3.3",
-          "from": "mkdirp@0.3.3"
-        },
-        "ms": {
-          "version": "0.3.0",
-          "from": "ms@0.3.0"
-        }
-      }
-    },
-    "sinon": {
-      "version": "1.6.0",
-      "from": "sinon@1.6.0",
-      "resolved": "https://registry.npmjs.org/sinon/-/sinon-1.6.0.tgz",
-      "dependencies": {
-        "buster-format": {
-          "version": "0.5.5",
-          "from": "buster-format@0.5.5",
-          "resolved": "https://registry.npmjs.org/buster-format/-/buster-format-0.5.5.tgz",
-          "dependencies": {
-            "buster-core": {
-              "version": "0.6.4",
-              "from": "buster-core@0.6.4",
-              "resolved": "https://registry.npmjs.org/buster-core/-/buster-core-0.6.4.tgz"
-            }
-          }
         }
       }
     },

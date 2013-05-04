@@ -1250,6 +1250,9 @@
                 meta: meta || {}
             })));
         };
+        Conjure.prototype.trace = function(source, meta) {
+            this.status(source, "trace", meta);
+        };
         var helpers = {};
         helpers.click = function(sel, nativeClick) {
             this.conjure.selectorExists(sel);
@@ -1311,20 +1314,29 @@
         };
         helpers.selectorExists = function(sel, negate) {
             var self = this;
-            this.status("selectorExists", "wait", {
-                sel: sel,
-                negate: negate
-            });
             this.casper.waitFor(function selectorExistsWaitFor() {
+                self.trace("selectorExists", {
+                    sel: sel,
+                    negate: negate,
+                    step: "waitFor"
+                });
                 return this.evaluate(function selectorExistsEvaluate(sel, count) {
                     return count === $(sel).length;
                 }, sel, negate ? 0 : 1);
             });
             this.casper.then(function selectorExistsThen() {
+                self.trace("selectorExists", {
+                    sel: sel,
+                    negate: negate,
+                    step: "then"
+                });
                 this.test.assertTrue(true, (negate ? "missing" : "exists") + ": " + sel);
             });
         };
         helpers.selectorMissing = function(sel) {
+            this.trace("selectorMissing", {
+                sel: sel
+            });
             this.conjure.selectorExists(sel, true);
         };
         helpers.sendKeys = function(sel, keys) {

@@ -19,9 +19,9 @@ and displayed later if relavant (e.g. after a timeout or error).
 
 - `{string} source` Ex. 'it'
 - `{string} type`
-  - `wait` Test script is waiting for a condition to become true, ex. selector match.
   - `trace` Test script reached a step that might be useful in a stack trace.
 - `{object} meta` Ex. current test helper method `name` and `args`
+- `{number} times` Consecutive occurences
 
 **Parameters:**
 
