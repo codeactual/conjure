@@ -1244,17 +1244,33 @@
             });
         };
         Conjure.prototype.status = function(source, type, meta) {
-            console.log(this.utils.format("conjure_status:%s", JSON.stringify({
-                source: source,
-                type: type,
-                meta: meta || {}
-            })));
+            var jsonStr;
+            try {
+                jsonStr = JSON.stringify({
+                    source: source,
+                    type: type,
+                    meta: meta || {}
+                });
+            } catch (e) {
+                jsonStr = JSON.stringify({
+                    source: source,
+                    type: type,
+                    meta: {
+                        jsonStringifyErr: e.message
+                    }
+                });
+            }
+            console.log(this.utils.format("conjure_status:%s", jsonStr));
         };
         Conjure.prototype.trace = function(source, meta) {
             this.status(source, "trace", meta);
         };
         var helpers = {};
         helpers.click = function(sel, nativeClick) {
+            this.trace("click", {
+                sel: sel,
+                nativeClick: nativeClick
+            });
             this.conjure.selectorExists(sel);
             if (nativeClick) {
                 this.casper.thenClick(sel);
@@ -1265,35 +1281,64 @@
             }
         };
         helpers.then = function(cb) {
+            this.trace("then");
             var args = wrapFirstCallbackInConjureContext(this, arguments);
             this.casper.then.apply(this.casper, args);
         };
         helpers.thenOpen = function() {
             var args = wrapFirstCallbackInConjureContext(this, arguments);
+            this.trace("thenOpen", args[0]);
             this.casper.thenOpen.apply(this.casper, args);
         };
         helpers.assertSelText = function(sel, text) {
+            var self = this;
             var is = require("is");
+            this.trace("assertSelText", {
+                sel: sel,
+                text: text
+            });
             this.casper.then(function conjureHelperAssertSelText() {
+                self.trace("assertSelText", {
+                    step: "then"
+                });
                 this.test["assert" + (is.string(text) ? "Equals" : "Match")](this.evaluate(function(sel) {
                     return $(sel).text();
                 }, sel), text);
             });
         };
         helpers.assertType = function(val, expected, subject) {
+            var self = this;
+            this.trace("assertType", {
+                val: val,
+                expected: expected,
+                subject: subject
+            });
             this.conjure.then(function conjureHelperAssertType() {
+                self.trace("assertType", {
+                    step: "then"
+                });
                 this.test.assertEquals(this.utils.betterTypeOf(val), expected, this.utils.format("%s should be a %s", subject || "subject", expected));
             });
         };
         helpers.each = function(list, cb) {
             var self = this;
+            this.trace("each", {
+                list: list
+            });
             list.forEach(function(item) {
+                self.trace("each", {
+                    item: item
+                });
                 self.conjure.then(function conjureHelperEach() {
                     cb.call(this, item);
                 });
             });
         };
         helpers.openHash = function(hash, sel) {
+            this.trace("openHash", {
+                hash: hash,
+                sel: sel
+            });
             this.casper.thenEvaluate(function _openHash(hash) {
                 window.location.hash = "#" + hash;
             }, hash);
@@ -1302,22 +1347,33 @@
             }
         };
         helpers.openInitUrl = function() {
-            this.casper.thenOpen(this.url(this.get("initPath")));
+            var url = this.url(this.get("initPath"));
+            this.trace("openInitUrl", {
+                url: url
+            });
+            this.casper.thenOpen(url);
         };
         helpers.require = function(name) {
             var require = this.get("requireCasper");
             var relPathRe = /^\.\//;
             if (relPathRe.test(name)) {
-                return require(this.get("cli").options.rootdir + "/" + name.replace(relPathRe, ""));
+                var fullPath = this.get("cli").options.rootdir + "/" + name.replace(relPathRe, "");
+                this.trace("require", {
+                    name: name,
+                    fullPath: fullPath
+                });
+                return require(fullPath);
             }
             return require(name);
         };
         helpers.selectorExists = function(sel, negate) {
             var self = this;
+            this.trace("selectorExists", {
+                sel: sel,
+                negate: negate
+            });
             this.casper.waitFor(function selectorExistsWaitFor() {
                 self.trace("selectorExists", {
-                    sel: sel,
-                    negate: negate,
                     step: "waitFor"
                 });
                 return this.evaluate(function selectorExistsEvaluate(sel, count) {
@@ -1326,8 +1382,6 @@
             });
             this.casper.then(function selectorExistsThen() {
                 self.trace("selectorExists", {
-                    sel: sel,
-                    negate: negate,
                     step: "then"
                 });
                 this.test.assertTrue(true, (negate ? "missing" : "exists") + ": " + sel);
@@ -1340,8 +1394,16 @@
             this.conjure.selectorExists(sel, true);
         };
         helpers.sendKeys = function(sel, keys) {
+            var self = this;
+            this.trace("sendKeys", {
+                sel: sel,
+                keys: keys
+            });
             this.conjure.selectorExists(sel);
             this.conjure.then(function conjureHelperSendKeys() {
+                self.trace("sendKeys", {
+                    step: "then"
+                });
                 this.casper.sendKeys(sel, keys);
             });
         };

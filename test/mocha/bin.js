@@ -73,7 +73,7 @@ describe('/bin/conjure', function() {
     res.code.should.equal(1);
     res.output.should.match(/wait-status-on-timeout.js.*Auto-killed.*5000ms/);
     res.output.should.match(
-      /selectorExists.*selector-does-not-exist.*waitFor/
+      /selectorExists.*waitFor.*\n.*\n.*selector-does-not-exist/gm
     );
   });
 

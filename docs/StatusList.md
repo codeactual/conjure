@@ -4,7 +4,7 @@ _Source: [lib/cli/conjure/status-list.js](../lib/cli/conjure/status-list.js)_
 
 - [exports.create](#exportscreate)
 - [StatusList](#statuslist)
-- [StatusList.prototype.push](#statuslistprototypepushstr)
+- [StatusList.prototype.pushIfStatusFound](#statuslistprototypepushifstatusfoundstr)
 
 # exports.create()
 
@@ -34,7 +34,7 @@ _Source: [lib/cli/conjure/status-list.js](../lib/cli/conjure/status-list.js)_
 - [enumerable-prop](https://github.com/codeactual/enumerable-prop)
 - [ImpulseBin](https://github.com/codeactual/impulse-bin/blob/master/docs/ImpulseBin.md)
 
-# StatusList.prototype.push(str)
+# StatusList.prototype.pushIfStatusFound(str)
 
 > Parse a `casperjs` stdout string, store detected internal status messages.
 
@@ -44,7 +44,7 @@ _Source: [lib/cli/conjure/status-list.js](../lib/cli/conjure/status-list.js)_
 
 **Return:**
 
-`{object}` `Status` object if found. Otherwise null.
+`{boolean}` True if item pushed.
 
 **See:**
 
