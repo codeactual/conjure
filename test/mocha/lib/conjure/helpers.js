@@ -56,7 +56,7 @@ describe('helpers', function() {
     it('should trace steps', function() {
       this.conjure.click(this.sel);
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'click', {sel: this.sel, nativeClick: undefined}
+        'args', {sel: this.sel, nativeClick: undefined}
       );
     });
   });
@@ -72,9 +72,6 @@ describe('helpers', function() {
         {casper: this.conjure.casper, test: this.testApi}
       );
       this.stubs.cb.should.have.been.calledOn(this.extendResult);
-    });
-    it('should trace steps', function() {
-      this.stubs.conjure.trace.should.have.been.calledWithExactly('then');
     });
   });
 
@@ -92,7 +89,7 @@ describe('helpers', function() {
       this.stubs.cb.should.have.been.calledOn(this.extendResult);
     });
     it('should trace steps', function() {
-      this.stubs.conjure.trace.should.have.been.calledWithExactly('thenOpen', this.url);
+      this.stubs.conjure.trace.should.have.been.calledWithExactly('args', this.url);
     });
   });
 
@@ -118,10 +115,10 @@ describe('helpers', function() {
     it('should trace steps', function() {
       this.conjure.assertSelText(this.sel, this.textNeedle);
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'assertSelText', {sel: this.sel, text: this.textNeedle}
+        'args', {sel: this.sel, text: this.textNeedle}
       );
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'assertSelText', {step: 'then'}
+        'closure', {type: 'then'}
       );
     });
   });
@@ -152,10 +149,10 @@ describe('helpers', function() {
     it('should trace steps', function() {
       this.conjure.assertType(this.sel, 'string', this.subject);
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'assertType', {val: this.sel, expected: 'string', subject: this.subject}
+        'args', {val: this.sel, expected: 'string', subject: this.subject}
       );
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'assertType', {step: 'then'}
+        'closure', {type: 'then'}
       );
     });
   });
@@ -175,9 +172,15 @@ describe('helpers', function() {
     it('should trace steps', function() {
       var list = [1, 2];
       this.conjure.each(list, function() {});
-      this.stubs.conjure.trace.should.have.been.calledWithExactly('each', {list: list});
-      this.stubs.conjure.trace.should.have.been.calledWithExactly('each', {item: 1});
-      this.stubs.conjure.trace.should.have.been.calledWithExactly('each', {item: 2});
+      this.stubs.conjure.trace.should.have.been.calledWithExactly(
+        'args', {list: list}
+      );
+      this.stubs.conjure.trace.should.have.been.calledWithExactly(
+        'closure', {type: 'forEach', item: 1}
+      );
+      this.stubs.conjure.trace.should.have.been.calledWithExactly(
+        'closure', {type: 'forEach', item: 2}
+      );
     });
   });
 
@@ -199,7 +202,7 @@ describe('helpers', function() {
     it('should trace steps', function() {
       this.conjure.openHash(this.hash, this.sel);
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'openHash', {hash: this.hash, sel: this.sel}
+        'args', {hash: this.hash, sel: this.sel}
       );
     });
   });
@@ -218,7 +221,7 @@ describe('helpers', function() {
     it('should trace steps', function() {
       this.conjure.openInitUrl();
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'openInitUrl', {url: 'http://localhost:8174/'}
+        'args', {url: 'http://localhost:8174/'}
       );
     });
   });
@@ -241,7 +244,7 @@ describe('helpers', function() {
     it('should trace steps', function() {
       this.conjure.require('./' + this.path);
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'require', {name: './' + this.path, fullPath: '/path/to/proj/' + this.path}
+        'args', {name: './' + this.path, fullPath: '/path/to/proj/' + this.path}
       );
     });
   });
@@ -264,13 +267,13 @@ describe('helpers', function() {
     it('should trace steps', function() {
       this.conjure.selectorExists(this.sel);
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'selectorExists', {sel: this.sel, negate: undefined}
+        'args', {sel: this.sel, negate: undefined}
       );
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'selectorExists', {step: 'waitFor'}
+        'closure', {type: 'waitFor'}
       );
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'selectorExists', {step: 'then'}
+        'closure', {type: 'then'}
       );
     });
     it('should optionally negate expectation', function() {
@@ -307,7 +310,7 @@ describe('helpers', function() {
     });
     it('should trace steps', function() {
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'sendKeys', {sel: this.sel, keys: this.textNeedle}
+        'args', {sel: this.sel, keys: this.textNeedle}
       );
     });
   });
