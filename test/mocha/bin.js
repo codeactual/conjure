@@ -54,7 +54,7 @@ function detailedRun(file, args, cb) {
 }
 
 describe('/bin/conjure', function() {
-  var basicTestFiles = [];
+  var basicTestFiles = ['stack-trace'];
   basicTestFiles.forEach(function(file) {
     basicRun(file);
   });
