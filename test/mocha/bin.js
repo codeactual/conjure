@@ -38,7 +38,7 @@ function basicRun(file) {
 
 function detailedRun(file, args, cb) {
   args = [].concat(args);
-  args.unshift('--grep-file "' + file + '"');
+  args.unshift('--grep-file "^' + file + '\\.js"');
 
   if (cb) {
     itShouldRunCasperWith(file, function() {
@@ -54,31 +54,61 @@ function detailedRun(file, args, cb) {
 }
 
 describe('/bin/conjure', function() {
-  var basicTestFiles = ['stack-trace'];
+  var basicTestFiles = [];
   basicTestFiles.forEach(function(file) {
     basicRun(file);
   });
 
-  detailedRun('^empty-test\\.js$', [], function(res) {
+  detailedRun('empty-test', [], function(res) {
     res.output.should.match(/\/empty-test.js.*Did not call conjure.test\(\)/);
     res.code.should.equal(1);
   });
 
-  detailedRun('^context-props\\.js$', '--timeout 8000');
-  detailedRun('^bootstrap\\.js$', '--bootstrap test/fixture/custom-bootstrap.js');
-  detailedRun('^grep-case\\.js$', '--grep-case should only run this');
-  detailedRun('^grepv-case\\.js$', '--grepv-case should prevent this from running');
+  detailedRun('context-props', '--timeout 8000');
+  detailedRun('bootstrap', '--bootstrap test/fixture/custom-bootstrap.js');
+  detailedRun('grep-case', '--grep-case should only run this');
+  detailedRun('grepv-case', '--grepv-case should prevent this from running');
 
-  detailedRun('^wait-status-on-timeout\\.js$', [], function(res) {
+  detailedRun('wait-status-on-timeout', [], function(res) {
     res.code.should.equal(1);
     res.output.should.match(/wait-status-on-timeout.js.*Auto-killed.*5000ms/);
-    res.output.should.match(
-      /selectorExists.*waitFor.*\n.*\n.*selector-does-not-exist/gm
-    );
+    res.output.should.match(strSeqToRegex([
+      ['should be loaded'],
+      ['selectorExists'],
+      ['.selector-does-not-exist'],
+      ['waitFor']
+    ]));
   });
 
-  detailedRun('^flow\\.js$', [], function(res) {
+  detailedRun('flow', [], function(res) {
     res.code.should.equal(0);
     res.output.should.match(/path=bdd-flow integration,describe1,describe2,describe3,it1\n/);
   });
+
+  detailedRun('stack-trace', [], function(res) {
+    res.code.should.equal(1);
+  });
 });
+
+/**
+ * Build a regex that matches a sequence of sub-strings, with anything in between
+ * them (e.g. terminal color codes), over a sequence of lines.
+ *
+ * @param {array} lines Each item is an array with a sequence of strings.
+ * - Items represent expectations for a consecutive sequence of lines.
+ * - Use empty strings to represent lines w/ no specific content expectation.
+ * @return {regexp}
+ */
+function strSeqToRegex(lines) {
+  var reStr = '';
+  var linesLen = lines.length;
+
+  lines.forEach(function(strSeq, idx) {
+    strSeq.forEach(function(str) {
+      if (str) { reStr += str + '.*'; }
+    });
+    if (idx < linesLen - 1) { reStr += '\\n.*'; }
+  });
+
+  return new RegExp(reStr, 'gm');
+}
