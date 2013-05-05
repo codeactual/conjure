@@ -363,6 +363,7 @@ function stubRequire() {
 
 function stubConjure() {
   this.conjure = conjure.create(this.stubs.requireCasper);
+  this.conjure.injectHelpers()
   this.stubs.helper = this.stub(this.conjure.conjure);
 
   this.stubConfig = function(key, val) {
