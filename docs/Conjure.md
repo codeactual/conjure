@@ -11,6 +11,8 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 - [Conjure.prototype.isRunning](#conjureprototypeisrunning)
 - [Conjure.prototype.test](#conjureprototypetestname-cb)
 - [Conjure.prototype.run](#conjureprototyperun)
+- [Conjure.prototype.popStatus](#conjureprototypepopstatus)
+- [Conjure.prototype.pushStatus](#conjureprototypepushstatus)
 - [helpers.click](#helpersclicksel-nativeclickfalse)
 - [helpers.then](#helpersthencb)
 - [helpers.thenOpen](#helpersthenopenargs)
@@ -162,6 +164,17 @@ Silently add an initial describe() to verify initial URL/selector.
 # Conjure.prototype.run()
 
 > Run collected BBD layers.
+
+# Conjure.prototype.popStatus()
+
+> Decrement the current stack depth for trace logs.
+
+# Conjure.prototype.pushStatus()
+
+> Increment the current stack depth for trace logs and emit a status
+event with the name of the depth change source.
+
+All args match [Conjure](#conjurerequirecasper).prototype.status.
 
 # helpers.click(sel, [nativeClick=false])
 

@@ -425,8 +425,10 @@
         };
         exports.requireComponent = require;
         var Batch = require("batch");
+        var bind = require("bind");
         var clone = require("clone");
         var configurable = require("configurable.js");
+        var emitter = require("emitter");
         var extend = require("extend");
         var flowFnRegex = /^(it|describe|before|beforeEach|after|afterEach)$/;
         var defOmitContextRegex = {
@@ -445,14 +447,19 @@
                 path: [],
                 grep: /.?/,
                 grepv: null,
-                sharedContext: {}
+                sharedContext: {},
+                stats: {
+                    depth: 0
+                },
+                emit: bind(this, this.emit)
             };
             this.rootDescribes = [];
             this.batch = new Batch();
             this.seedProps = {};
         }
-        Bddflow.describeConfigKeys = [ "describeWrap", "itWrap", "omitContextRegex", "path", "grep", "grepv", "sharedContext" ];
+        Bddflow.describeConfigKeys = [ "describeWrap", "emit", "itWrap", "omitContextRegex", "path", "grep", "grepv", "sharedContext", "stats" ];
         configurable(Bddflow.prototype);
+        emitter(Bddflow.prototype);
         Bddflow.prototype.addContextProp = function(key, val) {
             this.seedProps[key] = val;
             return this;
@@ -463,6 +470,9 @@
             desc.describe(name, cb);
             this.rootDescribes.push(desc);
             return this;
+        };
+        Bddflow.prototype.currentDepth = function() {
+            return this.get("stats").depth;
         };
         Bddflow.prototype.hideContextProp = function(type, regex) {
             if (typeof regex === "string") {
@@ -544,15 +554,16 @@
                 describeWrap(name, function() {
                     var wrapContext = this || {};
                     var mergedContext = desc.extendSharedContext(wrapContext, "describe");
-                    mergedContext.describe = desc.describe.bind(desc);
-                    mergedContext.it = desc.it.bind(desc);
-                    mergedContext.before = desc.before.bind(desc);
-                    mergedContext.beforeEach = desc.beforeEach.bind(desc);
-                    mergedContext.after = desc.after.bind(desc);
-                    mergedContext.afterEach = desc.afterEach.bind(desc);
+                    mergedContext.describe = bind(desc, desc.describe);
+                    mergedContext.it = bind(desc, desc.it);
+                    mergedContext.before = bind(desc, desc.before);
+                    mergedContext.beforeEach = bind(desc, desc.beforeEach);
+                    mergedContext.after = bind(desc, desc.after);
+                    mergedContext.afterEach = bind(desc, desc.afterEach);
                     addInternalProp(mergedContext, "name", name);
                     cb.call(mergedContext);
                 });
+                desc.pushStep();
                 var batch = new Batch();
                 batch.push(function(done) {
                     function asyncCb() {
@@ -572,7 +583,7 @@
                     desc.steps = desc.steps.map(function(step) {
                         if (step instanceof DescribeCallback) {
                             var context = desc.getSharedContext("describe");
-                            return new DescribeCallback(step.name, step.cb.bind(context));
+                            return new DescribeCallback(step.name, bind(context, step.cb));
                         }
                         var itPath = path.concat(step.name);
                         var grep = desc.get("grep");
@@ -604,8 +615,10 @@
                             });
                             batch.push(function(done) {
                                 var context = desc.getSharedContext("it");
+                                var emit = desc.get("emit");
                                 function asyncCb() {
                                     desc.extendSharedContext(context, "it");
+                                    emit("itPop", step.name);
                                     done();
                                 }
                                 var itWrap = desc.get("itWrap") || defItWrap;
@@ -614,6 +627,7 @@
                                     extend(context, wrapContext);
                                     addInternalProp(context, "name", step.name, true);
                                     addInternalProp(context, "path", itPath, true);
+                                    emit("itPush", step.name);
                                     if (step.cb.length) {
                                         step.cb.call(context, asyncCb);
                                     } else {
@@ -657,7 +671,10 @@
                     }
                 });
                 batch.concurrency(1);
-                batch.end(done);
+                batch.end(function() {
+                    desc.popStep();
+                    done();
+                });
             };
             this.steps.push(new DescribeCallback(name, step));
         };
@@ -672,6 +689,20 @@
         };
         Describe.prototype.afterEach = function(cb) {
             this.hooks.afterEach = cb;
+        };
+        Describe.prototype.pushStep = function() {
+            var emit = this.get("emit");
+            var stats = this.get("stats");
+            stats.depth++;
+            this.set("stats", stats);
+            emit("describePush", this.name);
+        };
+        Describe.prototype.popStep = function() {
+            var emit = this.get("emit");
+            var stats = this.get("stats");
+            stats.depth--;
+            this.set("stats", stats);
+            emit("describePop", this.name);
         };
         function DescribeCallback(name, cb) {
             this.name = name;
@@ -1154,19 +1185,6 @@
                 requireCasper: requireCasper
             };
             requireComponent("extend")(this, helpers);
-            this.conjure = {};
-            Object.keys(helpers).forEach(function(key) {
-                var boundHelper = bind(self, self[key]);
-                self.conjure[key] = function() {
-                    self.casper.then(function() {
-                        self.pushStatus(key, "trace");
-                    });
-                    boundHelper();
-                    self.casper.then(function() {
-                        self.popStatus();
-                    });
-                };
-            });
             this.casper = null;
             this.flow = bddflow.create();
             this.utils = this.require("utils");
@@ -1212,21 +1230,37 @@
             this.flow.addContextProp("utils", this.utils);
             this.flow.set("itWrap", function conjureItWrap(name, cb) {
                 self.casper.then(function conjureItWrapThen() {
-                    self.pushStatus("it", {
-                        name: name
-                    });
                     cb.call(this);
-                });
-                self.casper.then(function conjureItPopStatusThen() {
-                    self.popStatus();
                 });
             });
             this.flow.set("describeWrap", function conjureDescribeWrap(name, cb) {
-                self.trace("describe", {
-                    name: name
-                });
                 var contextKeys = [ "casper", "utils", "colorizer", "conjure" ];
                 cb.call(Conjure.createContext(self, contextKeys));
+            });
+            this.flow.on("describePush", function conjureOnDescribePush(name) {
+                self.pushStatus("describe", "trace", {
+                    name: name
+                });
+            });
+            this.flow.on("describePop", function conjureOnDescribePop(name) {
+                self.popStatus();
+            });
+            this.flow.on("itPush", function conjureOnItPush(name) {
+                self.pushStatus("it", "trace", {
+                    name: name
+                });
+            });
+            this.flow.on("itPop", function conjureOnItPop(name) {
+                self.popStatus();
+            });
+            this.conjure = {};
+            Object.keys(helpers).forEach(function(key) {
+                var boundHelper = self[key];
+                self.conjure[key] = function() {
+                    self.pushStatus(key, "trace");
+                    boundHelper.apply(self, arguments);
+                    self.popStatus();
+                };
             });
             this.casper.start(this.url(this.get("initPath")));
             var descName = "initial URL/selector";
@@ -1276,8 +1310,8 @@
         Conjure.prototype.popStatus = function() {
             this.stackDepth--;
         };
-        Conjure.prototype.pushStatus = function(source, type) {
-            this.status(source, type);
+        Conjure.prototype.pushStatus = function(source, type, meta) {
+            this.status(source, type, meta);
             this.stackDepth++;
         };
         Conjure.prototype.trace = function(source, meta) {
@@ -1471,6 +1505,9 @@
     require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
     require.alias("component-clone/index.js", "bdd-flow/deps/clone/index.js");
     require.alias("component-type/index.js", "component-clone/deps/type/index.js");
+    require.alias("component-emitter/index.js", "bdd-flow/deps/emitter/index.js");
+    require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
+    require.alias("component-bind/index.js", "bdd-flow/deps/bind/index.js");
     require.alias("bdd-flow/lib/bdd-flow/index.js", "bdd-flow/index.js");
     require.alias("enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/lib/enumerable-prop/index.js");
     require.alias("enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/index.js");
