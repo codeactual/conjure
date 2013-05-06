@@ -87,6 +87,30 @@ describe('/bin/conjure', function() {
 
   detailedRun('stack-trace', [], function(res) {
     res.code.should.equal(1);
+    res.output.should.not.contain('describe');
+    res.output.should.match(strSeqToRegex([
+      ['it', 'name', 'should trigger error']
+    ]));
+  });
+
+  detailedRun('stack-trace', ['--full-trace'], function(res) {
+    res.code.should.equal(1);
+    res.output.should.match(strSeqToRegex([
+      ['describe', 'name', 'initial selector'],
+      ['\\|    ', 'it', 'name', 'should match'],
+      ['\\|    \\|    ', 'selectorExists'],
+      ['\\|    \\|    ', 'args', 'sel', 'body'],
+      ['\\|    \\|    ', 'closure', 'type', 'waitFor'],
+      ['\\|    \\|    ', 'closure', 'type', 'then'],
+      ['describe', 'name', 'r1'],
+      ['\\|    ', 'describe', 'name', 'd1'],
+      ['\\|    \\|    ', 'it', 'name', 'i1'],
+      ['\\|    ', 'describe', 'name', 'd2'],
+      ['\\|    \\|    ', 'describe', 'name', 'd3'],
+      ['\\|    \\|    \\|    ', 'describe', 'name', 'd4'],
+      ['\\|    \\|    \\|    \\|    ', 'it', 'name', 'i2'],
+      ['\\|    \\|    \\|    \\|    ', 'it', 'name', 'should trigger error']
+    ]));
   });
 });
 
