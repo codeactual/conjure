@@ -21,6 +21,9 @@ _Source: [lib/cli/conjure/status-list.js](../lib/cli/conjure/status-list.js)_
 **Configuration:**
 
 - `{object} impulseBin` `ImpulseBin` instance
+- `{string} rotationSource` Ex. 'describe' or 'it'
+  - Each time a status message comes from this source, reset the list.
+  - Ex. to keep a list limited to the most recent `it()`
 
 **Properties:**
 

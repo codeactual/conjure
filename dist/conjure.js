@@ -425,8 +425,10 @@
         };
         exports.requireComponent = require;
         var Batch = require("batch");
+        var bind = require("bind");
         var clone = require("clone");
         var configurable = require("configurable.js");
+        var emitter = require("emitter");
         var extend = require("extend");
         var flowFnRegex = /^(it|describe|before|beforeEach|after|afterEach)$/;
         var defOmitContextRegex = {
@@ -438,21 +440,26 @@
         };
         function Bddflow() {
             this.settings = {
-                done: noOp,
+                done: bddflowNoOp,
                 itWrap: null,
                 describeWrap: null,
                 omitContextRegex: clone(defOmitContextRegex),
                 path: [],
                 grep: /.?/,
                 grepv: null,
-                sharedContext: {}
+                sharedContext: {},
+                stats: {
+                    depth: 0
+                },
+                emit: bind(this, this.emit)
             };
             this.rootDescribes = [];
             this.batch = new Batch();
             this.seedProps = {};
         }
-        Bddflow.describeConfigKeys = [ "describeWrap", "itWrap", "omitContextRegex", "path", "grep", "grepv", "sharedContext" ];
+        Bddflow.describeConfigKeys = [ "describeWrap", "emit", "itWrap", "omitContextRegex", "path", "grep", "grepv", "sharedContext", "stats" ];
         configurable(Bddflow.prototype);
+        emitter(Bddflow.prototype);
         Bddflow.prototype.addContextProp = function(key, val) {
             this.seedProps[key] = val;
             return this;
@@ -463,6 +470,9 @@
             desc.describe(name, cb);
             this.rootDescribes.push(desc);
             return this;
+        };
+        Bddflow.prototype.currentDepth = function() {
+            return this.get("stats").depth;
         };
         Bddflow.prototype.hideContextProp = function(type, regex) {
             if (typeof regex === "string") {
@@ -476,13 +486,13 @@
             var batch = new Batch();
             batch.concurrency(1);
             this.set("sharedContext", this.seedProps);
-            this.rootDescribes.forEach(function(desc) {
-                batch.push(function(taskDone) {
+            this.rootDescribes.forEach(function bddflowEachRootDescribe(desc) {
+                batch.push(function bddflowBatchPushRootDescribe(taskDone) {
                     self.set("path", []);
-                    Bddflow.describeConfigKeys.forEach(function(key) {
+                    Bddflow.describeConfigKeys.forEach(function bddflowForEachConfigKey(key) {
                         desc.set(key, self.get(key));
                     });
-                    runSteps(desc.steps, taskDone);
+                    bddflowRunStepsInBatch(desc.steps, taskDone);
                 });
             });
             batch.end(this.get("done"));
@@ -513,9 +523,9 @@
         Describe.prototype.filterProps = function(obj, type) {
             var omitContextRegex = this.get("omitContextRegex");
             var regex = omitContextRegex.all.concat(omitContextRegex[type]);
-            return Object.keys(obj).reduce(function(memo, key) {
+            return Object.keys(obj).reduce(function bddflowReduceFilterProps(memo, key) {
                 var omit = false;
-                regex.forEach(function(re) {
+                regex.forEach(function bddflowForEachFilterPropsRegex(re) {
                     omit = omit || re.test(key);
                 });
                 if (omit) {
@@ -535,26 +545,27 @@
             var self = this;
             var step = function(done) {
                 var desc = new Describe(name);
-                Bddflow.describeConfigKeys.forEach(function(key) {
+                Bddflow.describeConfigKeys.forEach(function bddflowForEachConfigKey(key) {
                     desc.set(key, self.get(key));
                 });
                 var path = desc.get("path");
                 path.push(name);
-                var describeWrap = desc.get("describeWrap") || defDescribeWrap;
-                describeWrap(name, function() {
+                var describeWrap = desc.get("describeWrap") || bddflowDefDescribeWrap;
+                describeWrap(name, function bddflowDescribeWrap() {
                     var wrapContext = this || {};
                     var mergedContext = desc.extendSharedContext(wrapContext, "describe");
-                    mergedContext.describe = desc.describe.bind(desc);
-                    mergedContext.it = desc.it.bind(desc);
-                    mergedContext.before = desc.before.bind(desc);
-                    mergedContext.beforeEach = desc.beforeEach.bind(desc);
-                    mergedContext.after = desc.after.bind(desc);
-                    mergedContext.afterEach = desc.afterEach.bind(desc);
-                    addInternalProp(mergedContext, "name", name);
+                    mergedContext.describe = bind(desc, desc.describe);
+                    mergedContext.it = bind(desc, desc.it);
+                    mergedContext.before = bind(desc, desc.before);
+                    mergedContext.beforeEach = bind(desc, desc.beforeEach);
+                    mergedContext.after = bind(desc, desc.after);
+                    mergedContext.afterEach = bind(desc, desc.afterEach);
+                    bddflowAddInternalProp(mergedContext, "name", name);
                     cb.call(mergedContext);
                 });
+                desc.pushStep();
                 var batch = new Batch();
-                batch.push(function(done) {
+                batch.push(function bddflowBatchPushBeforeHook(done) {
                     function asyncCb() {
                         desc.extendSharedContext(context, "hook");
                         done();
@@ -568,27 +579,27 @@
                         asyncCb();
                     }
                 });
-                batch.push(function(done) {
-                    desc.steps = desc.steps.map(function(step) {
+                batch.push(function bddflowBatchPushItOrDescribe(done) {
+                    desc.steps = desc.steps.map(function bddflowMapDescribeSteps(step) {
                         if (step instanceof DescribeCallback) {
                             var context = desc.getSharedContext("describe");
-                            return new DescribeCallback(step.name, step.cb.bind(context));
+                            return new DescribeCallback(step.name, bind(context, step.cb));
                         }
                         var itPath = path.concat(step.name);
                         var grep = desc.get("grep");
                         var grepv = desc.get("grepv");
                         if (grepv) {
                             if (grepv.test(itPath.join(" "))) {
-                                return new ItCallback(step.name, batchNoOp);
+                                return new ItCallback(step.name, bddflowBatchNoOp);
                             }
                         } else if (grep) {
                             if (!grep.test(itPath.join(" "))) {
-                                return new ItCallback(step.name, batchNoOp);
+                                return new ItCallback(step.name, bddflowBatchNoOp);
                             }
                         }
-                        return new ItCallback(step.name, function(done) {
+                        return new ItCallback(step.name, function bddflowItCallback(done) {
                             var batch = new Batch();
-                            batch.push(function(done) {
+                            batch.push(function bddflowBatchPushBeforeEach(done) {
                                 function asyncCb() {
                                     desc.extendSharedContext(context, "hook");
                                     done();
@@ -602,27 +613,41 @@
                                     asyncCb();
                                 }
                             });
-                            batch.push(function(done) {
+                            batch.push(function bddflowBatchPushIt(done) {
                                 var context = desc.getSharedContext("it");
+                                var emit = desc.get("emit");
                                 function asyncCb() {
                                     desc.extendSharedContext(context, "it");
+                                    emit("itPop", step.name);
                                     done();
                                 }
-                                var itWrap = desc.get("itWrap") || defItWrap;
-                                itWrap(step.name, function() {
-                                    var wrapContext = this || {};
-                                    extend(context, wrapContext);
-                                    addInternalProp(context, "name", step.name, true);
-                                    addInternalProp(context, "path", itPath, true);
-                                    if (step.cb.length) {
-                                        step.cb.call(context, asyncCb);
-                                    } else {
+                                var itWrap = desc.get("itWrap") || bddflowDefItWrap;
+                                if (itWrap.length == 3) {
+                                    itWrap(step.name, function bddflowItWrapAsync() {
+                                        var wrapContext = this || {};
+                                        extend(context, wrapContext);
+                                        bddflowAddInternalProp(context, "name", step.name, true);
+                                        bddflowAddInternalProp(context, "path", itPath, true);
+                                        emit("itPush", step.name);
                                         step.cb.call(context);
-                                        asyncCb();
-                                    }
-                                });
+                                    }, asyncCb);
+                                } else {
+                                    itWrap(step.name, function bddflowItWrap() {
+                                        var wrapContext = this || {};
+                                        extend(context, wrapContext);
+                                        bddflowAddInternalProp(context, "name", step.name, true);
+                                        bddflowAddInternalProp(context, "path", itPath, true);
+                                        emit("itPush", step.name);
+                                        if (step.cb.length) {
+                                            step.cb.call(context, asyncCb);
+                                        } else {
+                                            step.cb.call(context);
+                                            asyncCb();
+                                        }
+                                    });
+                                }
                             });
-                            batch.push(function(done) {
+                            batch.push(function bddflowBatchPushAfterEach(done) {
                                 function asyncCb() {
                                     desc.extendSharedContext(context, "hook");
                                     done();
@@ -640,9 +665,9 @@
                             batch.end(done);
                         });
                     });
-                    runSteps(desc.steps, done);
+                    bddflowRunStepsInBatch(desc.steps, done);
                 });
-                batch.push(function(done) {
+                batch.push(function bddflowBatchPushAfter(done) {
                     function asyncCb() {
                         desc.extendSharedContext(context, "hook");
                         done();
@@ -657,7 +682,10 @@
                     }
                 });
                 batch.concurrency(1);
-                batch.end(done);
+                batch.end(function bddflowEndDescribeBatch() {
+                    desc.popStep();
+                    done();
+                });
             };
             this.steps.push(new DescribeCallback(name, step));
         };
@@ -673,32 +701,46 @@
         Describe.prototype.afterEach = function(cb) {
             this.hooks.afterEach = cb;
         };
+        Describe.prototype.pushStep = function() {
+            var emit = this.get("emit");
+            var stats = this.get("stats");
+            stats.depth++;
+            this.set("stats", stats);
+            emit("describePush", this.name);
+        };
+        Describe.prototype.popStep = function() {
+            var emit = this.get("emit");
+            var stats = this.get("stats");
+            stats.depth--;
+            this.set("stats", stats);
+            emit("describePop", this.name);
+        };
         function DescribeCallback(name, cb) {
             this.name = name;
             this.cb = cb;
         }
-        function runSteps(steps, cb) {
+        function bddflowRunStepsInBatch(steps, cb) {
             var batch = new Batch();
             batch.concurrency(1);
-            steps.forEach(function(step) {
+            steps.forEach(function bddflowForEachStep(step) {
                 batch.push(step.cb);
             });
             batch.end(cb);
         }
-        function noOp() {}
-        function batchNoOp(taskDone) {
+        function bddflowNoOp() {}
+        function bddflowBatchNoOp(taskDone) {
             taskDone();
         }
-        function defItWrap(name, cb) {
+        function bddflowDefItWrap(name, cb) {
             cb();
         }
-        function defDescribeWrap(name, cb) {
+        function bddflowDefDescribeWrap(name, cb) {
             cb();
         }
-        function delInternalProp(obj, key) {
+        function bddflowDelInternalProp(obj, key) {
             delete obj["__conjure__" + key];
         }
-        function addInternalProp(obj, key, val, writable) {
+        function bddflowAddInternalProp(obj, key, val, writable) {
             Object.defineProperty(obj, "__conjure__" + key, {
                 value: val,
                 enumerable: false,
@@ -1117,8 +1159,11 @@
         exports.extendConjure = function(ext) {
             return require("extend")(Conjure.prototype, ext);
         };
-        exports.extendHelpers = function(ext) {
-            return require("extend")(helpers, ext);
+        exports.extendAsyncHelpers = function(ext) {
+            return require("extend")(helpers.async, ext);
+        };
+        exports.extendSyncHelpers = function(ext) {
+            return require("extend")(helpers.sync, ext);
         };
         exports.requireComponent = require;
         exports.setRequire = function(stub) {
@@ -1153,15 +1198,12 @@
                 cli: {},
                 requireCasper: requireCasper
             };
-            requireComponent("extend")(this, helpers);
-            this.conjure = {};
-            Object.keys(helpers).forEach(function(key) {
-                self.conjure[key] = bind(self, self[key]);
-            });
+            this.casper = null;
             this.flow = bddflow.create();
-            this.utils = this.require("utils");
-            this.colorizer = this.require("colorizer").create("Colorizer");
+            this.utils = null;
+            this.colorizer = null;
             this.running = false;
+            this.stackDepth = 0;
         }
         configurable(Conjure.prototype);
         Conjure.createContext = function(parent, pluck, omit) {
@@ -1188,6 +1230,14 @@
             return this.running;
         };
         Conjure.prototype.test = function(name, cb) {
+            this.injectHelpers();
+            this.utils = this.require("utils");
+            this.colorizer = this.require("colorizer").create("Colorizer");
+            this.configureBddflow(name, cb);
+            this.casper.start(this.url(this.get("initPath")));
+            this.run();
+        };
+        Conjure.prototype.configureBddflow = function(name, cb) {
             var self = this;
             var cli = this.get("cli");
             if (cli.options.grep) {
@@ -1199,30 +1249,75 @@
             this.flow.addContextProp("casper", this.casper);
             this.flow.addContextProp("colorizer", this.colorizer);
             this.flow.addContextProp("utils", this.utils);
-            this.flow.set("itWrap", function conjureItWrap(name, cb) {
-                self.trace("it", {
-                    name: name
-                });
+            this.flow.set("itWrap", function conjureItWrap(name, cb, done) {
                 self.casper.then(function conjureItWrapThen() {
                     cb.call(this);
                 });
+                self.casper.then(function conjureItWrapDoneThen() {
+                    done();
+                });
             });
             this.flow.set("describeWrap", function conjureDescribeWrap(name, cb) {
-                self.trace("describe", {
-                    name: name
-                });
                 var contextKeys = [ "casper", "utils", "colorizer", "conjure" ];
                 cb.call(Conjure.createContext(self, contextKeys));
             });
-            this.casper.start(this.url(this.get("initPath")));
-            var descName = "initial URL/selector";
-            this.flow.addRootDescribe(descName, function conjureRootDescribe() {
-                this.it("should be loaded/found", function conjureInitSelectorShouldExist() {
+            this.flow.on("describePush", function conjureOnDescribePush(name) {
+                self.pushStatus("describe", "trace", {
+                    name: name
+                });
+            });
+            this.flow.on("describePop", function conjureOnDescribePop(name) {
+                self.popStatus();
+            });
+            this.flow.on("itPush", function conjureOnItPush(name) {
+                self.pushStatus("it", "trace", {
+                    name: name
+                });
+            });
+            this.flow.on("itPop", function conjureOnItPop(name) {
+                self.popStatus();
+            });
+            this.flow.addRootDescribe("initial selector", function conjureRootDescribe() {
+                this.it("should match", function conjureInitSelectorShouldExist() {
                     this.conjure.selectorExists(self.get("initSel"));
                 });
             });
             this.flow.addRootDescribe(name, cb);
-            this.run();
+            this.casper.on("step.complete", function() {
+                if (typeof this.steps[this.step] === "function" && this.steps[this.step].__conjure_helper_last_step) {
+                    self.popStatus();
+                }
+            });
+        };
+        Conjure.prototype.injectHelpers = function() {
+            var self = this;
+            var bind = requireComponent("bind");
+            var extend = requireComponent("extend");
+            this.url = bind(this, helpers.sync.url);
+            this.require = bind(this, helpers.sync.require);
+            this.conjure = {};
+            Object.keys(helpers.async).forEach(function(key) {
+                self.conjure[key] = function conjureInjectHelperWrap() {
+                    var args = arguments;
+                    self.pushStatus(key, "trace");
+                    var hasPendingStep = false;
+                    var lastStep = function(cb) {
+                        hasPendingStep = true;
+                        return tagLastStep(cb);
+                    };
+                    var context = extend({}, self, {
+                        lastStep: lastStep
+                    });
+                    var result = helpers.async[key].apply(context, args);
+                    if (!hasPendingStep) {
+                        self.popStatus();
+                    }
+                    return result;
+                };
+            });
+            Object.keys(helpers.sync).forEach(function(key) {
+                self.conjure[key] = bind(self, helpers.sync[key]);
+            });
         };
         Conjure.prototype.run = function() {
             var self = this;
@@ -1234,9 +1329,7 @@
                 initMsg += " Waiting For Selector [" + initSel + "]";
             }
             this.casper.test.info(initMsg);
-            this.casper.then(function conjureRunBddflow() {
-                self.flow.run();
-            });
+            this.flow.run();
             this.casper.run(function conjureRunCasperTests() {
                 this.test.renderResults(true);
             });
@@ -1255,15 +1348,26 @@
             console.log(this.utils.format("conjure_status:%s", JSON.stringify({
                 source: source,
                 type: type,
-                meta: meta
+                meta: meta,
+                depth: this.stackDepth
             })));
+        };
+        Conjure.prototype.popStatus = function() {
+            this.stackDepth--;
+        };
+        Conjure.prototype.pushStatus = function(source, type, meta) {
+            this.status(source, type, meta);
+            this.stackDepth++;
         };
         Conjure.prototype.trace = function(source, meta) {
             this.status(source, "trace", meta);
         };
-        var helpers = {};
-        helpers.click = function(sel, nativeClick) {
-            this.trace("click", {
+        var helpers = {
+            async: {},
+            sync: {}
+        };
+        helpers.async.click = function(sel, nativeClick) {
+            this.trace("args", {
                 sel: sel,
                 nativeClick: nativeClick
             });
@@ -1276,53 +1380,53 @@
                 }, sel);
             }
         };
-        helpers.then = function(cb) {
-            this.trace("then");
+        helpers.async.then = function(cb) {
             var args = wrapFirstCallbackInConjureContext(this, arguments);
             this.casper.then.apply(this.casper, args);
         };
-        helpers.thenOpen = function() {
+        helpers.async.thenOpen = function() {
             var args = wrapFirstCallbackInConjureContext(this, arguments);
-            this.trace("thenOpen", args[0]);
+            this.trace("args", args[0]);
             this.casper.thenOpen.apply(this.casper, args);
         };
-        helpers.assertSelText = function(sel, text) {
+        helpers.async.assertSelText = function(sel, text) {
             var self = this;
             var is = require("is");
-            this.trace("assertSelText", {
+            this.trace("args", {
                 sel: sel,
                 text: text
             });
             this.casper.then(function conjureHelperAssertSelText() {
-                self.trace("assertSelText", {
-                    step: "then"
+                self.trace("closure", {
+                    type: "then"
                 });
                 this.test["assert" + (is.string(text) ? "Equals" : "Match")](this.evaluate(function(sel) {
                     return $(sel).text();
                 }, sel), text);
             });
         };
-        helpers.assertType = function(val, expected, subject) {
+        helpers.async.assertType = function(val, expected, subject) {
             var self = this;
-            this.trace("assertType", {
+            this.trace("args", {
                 val: val,
                 expected: expected,
                 subject: subject
             });
             this.conjure.then(function conjureHelperAssertType() {
-                self.trace("assertType", {
-                    step: "then"
+                self.trace("closure", {
+                    type: "then"
                 });
                 this.test.assertEquals(this.utils.betterTypeOf(val), expected, this.utils.format("%s should be a %s", subject || "subject", expected));
             });
         };
-        helpers.each = function(list, cb) {
+        helpers.async.each = function(list, cb) {
             var self = this;
-            this.trace("each", {
+            this.trace("args", {
                 list: list
             });
             list.forEach(function(item) {
-                self.trace("each", {
+                self.trace("closure", {
+                    type: "forEach",
                     item: item
                 });
                 self.conjure.then(function conjureHelperEach() {
@@ -1330,8 +1434,8 @@
                 });
             });
         };
-        helpers.openHash = function(hash, sel) {
-            this.trace("openHash", {
+        helpers.async.openHash = function(hash, sel) {
+            this.trace("args", {
                 hash: hash,
                 sel: sel
             });
@@ -1342,19 +1446,60 @@
                 this.conjure.selectorExists(sel);
             }
         };
-        helpers.openInitUrl = function() {
+        helpers.async.openInitUrl = function() {
             var url = this.url(this.get("initPath"));
-            this.trace("openInitUrl", {
+            this.trace("args", {
                 url: url
             });
             this.casper.thenOpen(url);
         };
-        helpers.require = function(name) {
+        helpers.async.selectorExists = function(sel, negate) {
+            var self = this;
+            this.trace("args", {
+                sel: sel,
+                negate: negate
+            });
+            this.casper.waitFor(function selectorExistsWaitFor() {
+                self.trace("closure", {
+                    type: "waitFor"
+                });
+                return this.evaluate(function selectorExistsEvaluate(sel, count) {
+                    return count === $(sel).length;
+                }, sel, negate ? 0 : 1);
+            });
+            this.casper.then(this.lastStep(function selectorExistsThen() {
+                self.trace("closure", {
+                    type: "then"
+                });
+                this.test.assertTrue(true, (negate ? "missing" : "exists") + ": " + sel);
+            }));
+        };
+        helpers.async.selectorMissing = function(sel) {
+            this.trace("args", {
+                sel: sel
+            });
+            this.conjure.selectorExists(sel, true);
+        };
+        helpers.async.sendKeys = function(sel, keys) {
+            var self = this;
+            this.trace("args", {
+                sel: sel,
+                keys: keys
+            });
+            this.conjure.selectorExists(sel);
+            this.conjure.then(function conjureHelperSendKeys() {
+                self.trace("closure", {
+                    type: "then"
+                });
+                this.casper.sendKeys(sel, keys);
+            });
+        };
+        helpers.sync.require = function(name) {
             var require = this.get("requireCasper");
             var relPathRe = /^\.\//;
             if (relPathRe.test(name)) {
                 var fullPath = this.get("cli").options.rootdir + "/" + name.replace(relPathRe, "");
-                this.trace("require", {
+                this.trace("args", {
                     name: name,
                     fullPath: fullPath
                 });
@@ -1362,48 +1507,7 @@
             }
             return require(name);
         };
-        helpers.selectorExists = function(sel, negate) {
-            var self = this;
-            this.trace("selectorExists", {
-                sel: sel,
-                negate: negate
-            });
-            this.casper.waitFor(function selectorExistsWaitFor() {
-                self.trace("selectorExists", {
-                    step: "waitFor"
-                });
-                return this.evaluate(function selectorExistsEvaluate(sel, count) {
-                    return count === $(sel).length;
-                }, sel, negate ? 0 : 1);
-            });
-            this.casper.then(function selectorExistsThen() {
-                self.trace("selectorExists", {
-                    step: "then"
-                });
-                this.test.assertTrue(true, (negate ? "missing" : "exists") + ": " + sel);
-            });
-        };
-        helpers.selectorMissing = function(sel) {
-            this.trace("selectorMissing", {
-                sel: sel
-            });
-            this.conjure.selectorExists(sel, true);
-        };
-        helpers.sendKeys = function(sel, keys) {
-            var self = this;
-            this.trace("sendKeys", {
-                sel: sel,
-                keys: keys
-            });
-            this.conjure.selectorExists(sel);
-            this.conjure.then(function conjureHelperSendKeys() {
-                self.trace("sendKeys", {
-                    step: "then"
-                });
-                this.casper.sendKeys(sel, keys);
-            });
-        };
-        helpers.url = function(relUrl) {
+        helpers.sync.url = function(relUrl) {
             return this.get("baseUrl") + relUrl;
         };
         function wrapFirstCallbackInConjureContext(self, args) {
@@ -1429,6 +1533,10 @@
             }
             return args;
         }
+        function tagLastStep(cb) {
+            cb.__conjure_helper_last_step = true;
+            return cb;
+        }
     });
     require.alias("codeactual-extend/index.js", "conjure/deps/extend/index.js");
     require.alias("codeactual-is/index.js", "conjure/deps/is/index.js");
@@ -1449,6 +1557,9 @@
     require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
     require.alias("component-clone/index.js", "bdd-flow/deps/clone/index.js");
     require.alias("component-type/index.js", "component-clone/deps/type/index.js");
+    require.alias("component-emitter/index.js", "bdd-flow/deps/emitter/index.js");
+    require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
+    require.alias("component-bind/index.js", "bdd-flow/deps/bind/index.js");
     require.alias("bdd-flow/lib/bdd-flow/index.js", "bdd-flow/index.js");
     require.alias("enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/lib/enumerable-prop/index.js");
     require.alias("enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/index.js");

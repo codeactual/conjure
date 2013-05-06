@@ -44,7 +44,6 @@ if (customBootFile) {
 require(testFile).apply(null, testModuleArgs);
 
 if (!conjure.isRunning()) { // Prevent empty tests from timing out.
-  conjure.status('bootstrap.js', 'exit', {testFile: testFile, reason: 'NoTestDefined'});
   casper.warn('Did not call conjure.test()');
   casper.exit(1);
 }
