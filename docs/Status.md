@@ -25,7 +25,7 @@ and displayed later if relavant (e.g. after a timeout or error).
 
 **Parameters:**
 
-- `{string} json`
+- `{object} json` Parsed JSON message
 
 **See:**
 

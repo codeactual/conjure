@@ -1,302 +1,1579 @@
-;(function(){
-
-/**
- * Require the given path.
- *
- * @param {String} path
- * @return {Object} exports
- * @api public
- */
-
-function require(path, parent, orig) {
-  var resolved = require.resolve(path);
-
-  // lookup failed
-  if (null == resolved) {
-    orig = orig || path;
-    parent = parent || 'root';
-    var err = new Error('Failed to require "' + orig + '" from "' + parent + '"');
-    err.path = orig;
-    err.parent = parent;
-    err.require = true;
-    throw err;
-  }
-
-  var module = require.modules[resolved];
-
-  // perform real require()
-  // by invoking the module's
-  // registered function
-  if (!module.exports) {
-    module.exports = {};
-    module.client = module.component = true;
-    module.call(this, module.exports, require.relative(resolved), module);
-  }
-
-  return module.exports;
-}
-
-/**
- * Registered modules.
- */
-
-require.modules = {};
-
-/**
- * Registered aliases.
- */
-
-require.aliases = {};
-
-/**
- * Resolve `path`.
- *
- * Lookup:
- *
- *   - PATH/index.js
- *   - PATH.js
- *   - PATH
- *
- * @param {String} path
- * @return {String} path or null
- * @api private
- */
-
-require.resolve = function(path) {
-  if (path.charAt(0) === '/') path = path.slice(1);
-  var index = path + '/index.js';
-
-  var paths = [
-    path,
-    path + '.js',
-    path + '.json',
-    path + '/index.js',
-    path + '/index.json'
-  ];
-
-  for (var i = 0; i < paths.length; i++) {
-    var path = paths[i];
-    if (require.modules.hasOwnProperty(path)) return path;
-  }
-
-  if (require.aliases.hasOwnProperty(index)) {
-    return require.aliases[index];
-  }
-};
-
-/**
- * Normalize `path` relative to the current path.
- *
- * @param {String} curr
- * @param {String} path
- * @return {String}
- * @api private
- */
-
-require.normalize = function(curr, path) {
-  var segs = [];
-
-  if ('.' != path.charAt(0)) return path;
-
-  curr = curr.split('/');
-  path = path.split('/');
-
-  for (var i = 0; i < path.length; ++i) {
-    if ('..' == path[i]) {
-      curr.pop();
-    } else if ('.' != path[i] && '' != path[i]) {
-      segs.push(path[i]);
+(function() {
+    function require(path, parent, orig) {
+        var resolved = require.resolve(path);
+        if (null == resolved) {
+            orig = orig || path;
+            parent = parent || "root";
+            var err = new Error('Failed to require "' + orig + '" from "' + parent + '"');
+            err.path = orig;
+            err.parent = parent;
+            err.require = true;
+            throw err;
+        }
+        var module = require.modules[resolved];
+        if (!module.exports) {
+            module.exports = {};
+            module.client = module.component = true;
+            module.call(this, module.exports, require.relative(resolved), module);
+        }
+        return module.exports;
     }
-  }
+    require.modules = {};
+    require.aliases = {};
+    require.resolve = function(path) {
+        if (path.charAt(0) === "/") path = path.slice(1);
+        var index = path + "/index.js";
+        var paths = [ path, path + ".js", path + ".json", path + "/index.js", path + "/index.json" ];
+        for (var i = 0; i < paths.length; i++) {
+            var path = paths[i];
+            if (require.modules.hasOwnProperty(path)) return path;
+        }
+        if (require.aliases.hasOwnProperty(index)) {
+            return require.aliases[index];
+        }
+    };
+    require.normalize = function(curr, path) {
+        var segs = [];
+        if ("." != path.charAt(0)) return path;
+        curr = curr.split("/");
+        path = path.split("/");
+        for (var i = 0; i < path.length; ++i) {
+            if (".." == path[i]) {
+                curr.pop();
+            } else if ("." != path[i] && "" != path[i]) {
+                segs.push(path[i]);
+            }
+        }
+        return curr.concat(segs).join("/");
+    };
+    require.register = function(path, definition) {
+        require.modules[path] = definition;
+    };
+    require.alias = function(from, to) {
+        if (!require.modules.hasOwnProperty(from)) {
+            throw new Error('Failed to alias "' + from + '", it does not exist');
+        }
+        require.aliases[to] = from;
+    };
+    require.relative = function(parent) {
+        var p = require.normalize(parent, "..");
+        function lastIndexOf(arr, obj) {
+            var i = arr.length;
+            while (i--) {
+                if (arr[i] === obj) return i;
+            }
+            return -1;
+        }
+        function localRequire(path) {
+            var resolved = localRequire.resolve(path);
+            return require(resolved, parent, path);
+        }
+        localRequire.resolve = function(path) {
+            var c = path.charAt(0);
+            if ("/" == c) return path.slice(1);
+            if ("." == c) return require.normalize(p, path);
+            var segs = parent.split("/");
+            var i = lastIndexOf(segs, "deps") + 1;
+            if (!i) i = 0;
+            path = segs.slice(0, i + 1).join("/") + "/deps/" + path;
+            return path;
+        };
+        localRequire.exists = function(path) {
+            return require.modules.hasOwnProperty(localRequire.resolve(path));
+        };
+        return localRequire;
+    };
+    require.register("codeactual-extend/index.js", function(exports, require, module) {
+        module.exports = function extend(object) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            for (var i = 0, source; source = args[i]; i++) {
+                if (!source) continue;
+                for (var property in source) {
+                    object[property] = source[property];
+                }
+            }
+            return object;
+        };
+    });
+    require.register("manuelstofer-each/index.js", function(exports, require, module) {
+        "use strict";
+        var nativeForEach = [].forEach;
+        module.exports = function(obj, iterator, context) {
+            if (obj == null) return;
+            if (nativeForEach && obj.forEach === nativeForEach) {
+                obj.forEach(iterator, context);
+            } else if (obj.length === +obj.length) {
+                for (var i = 0, l = obj.length; i < l; i++) {
+                    if (iterator.call(context, obj[i], i, obj) === {}) return;
+                }
+            } else {
+                for (var key in obj) {
+                    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                        if (iterator.call(context, obj[key], key, obj) === {}) return;
+                    }
+                }
+            }
+        };
+    });
+    require.register("codeactual-is/index.js", function(exports, require, module) {
+        "use strict";
+        var each = require("each");
+        var types = [ "Arguments", "Function", "String", "Number", "Date", "RegExp", "Array" ];
+        each(types, function(type) {
+            var method = type === "Function" ? type : type.toLowerCase();
+            module.exports[method] = function(obj) {
+                return Object.prototype.toString.call(obj) === "[object " + type + "]";
+            };
+        });
+        if (Array.isArray) {
+            module.exports.array = Array.isArray;
+        }
+        module.exports.object = function(obj) {
+            return obj === Object(obj);
+        };
+    });
+    require.register("component-bind/index.js", function(exports, require, module) {
+        var slice = [].slice;
+        module.exports = function(obj, fn) {
+            if ("string" == typeof fn) fn = obj[fn];
+            if ("function" != typeof fn) throw new Error("bind() requires a function");
+            var args = [].slice.call(arguments, 2);
+            return function() {
+                return fn.apply(obj, args.concat(slice.call(arguments)));
+            };
+        };
+    });
+    require.register("component-type/index.js", function(exports, require, module) {
+        var toString = Object.prototype.toString;
+        module.exports = function(val) {
+            switch (toString.call(val)) {
+              case "[object Function]":
+                return "function";
 
-  return curr.concat(segs).join('/');
-};
+              case "[object Date]":
+                return "date";
 
-/**
- * Register module at `path` with callback `definition`.
- *
- * @param {String} path
- * @param {Function} definition
- * @api private
- */
+              case "[object RegExp]":
+                return "regexp";
 
-require.register = function(path, definition) {
-  require.modules[path] = definition;
-};
+              case "[object Arguments]":
+                return "arguments";
 
-/**
- * Alias a module definition.
- *
- * @param {String} from
- * @param {String} to
- * @api private
- */
+              case "[object Array]":
+                return "array";
 
-require.alias = function(from, to) {
-  if (!require.modules.hasOwnProperty(from)) {
-    throw new Error('Failed to alias "' + from + '", it does not exist');
-  }
-  require.aliases[to] = from;
-};
+              case "[object String]":
+                return "string";
+            }
+            if (val === null) return "null";
+            if (val === undefined) return "undefined";
+            if (val && val.nodeType === 1) return "element";
+            if (val === Object(val)) return "object";
+            return typeof val;
+        };
+    });
+    require.register("component-each/index.js", function(exports, require, module) {
+        var type = require("type");
+        var has = Object.prototype.hasOwnProperty;
+        module.exports = function(obj, fn) {
+            switch (type(obj)) {
+              case "array":
+                return array(obj, fn);
 
-/**
- * Return a require function relative to the `parent` path.
- *
- * @param {String} parent
- * @return {Function}
- * @api private
- */
+              case "object":
+                if ("number" == typeof obj.length) return array(obj, fn);
+                return object(obj, fn);
 
-require.relative = function(parent) {
-  var p = require.normalize(parent, '..');
+              case "string":
+                return string(obj, fn);
+            }
+        };
+        function string(obj, fn) {
+            for (var i = 0; i < obj.length; ++i) {
+                fn(obj.charAt(i), i);
+            }
+        }
+        function object(obj, fn) {
+            for (var key in obj) {
+                if (has.call(obj, key)) {
+                    fn(key, obj[key]);
+                }
+            }
+        }
+        function array(obj, fn) {
+            for (var i = 0; i < obj.length; ++i) {
+                fn(obj[i], i);
+            }
+        }
+    });
+    require.register("component-indexof/index.js", function(exports, require, module) {
+        var indexOf = [].indexOf;
+        module.exports = function(arr, obj) {
+            if (indexOf) return arr.indexOf(obj);
+            for (var i = 0; i < arr.length; ++i) {
+                if (arr[i] === obj) return i;
+            }
+            return -1;
+        };
+    });
+    require.register("component-emitter/index.js", function(exports, require, module) {
+        var index = require("indexof");
+        module.exports = Emitter;
+        function Emitter(obj) {
+            if (obj) return mixin(obj);
+        }
+        function mixin(obj) {
+            for (var key in Emitter.prototype) {
+                obj[key] = Emitter.prototype[key];
+            }
+            return obj;
+        }
+        Emitter.prototype.on = function(event, fn) {
+            this._callbacks = this._callbacks || {};
+            (this._callbacks[event] = this._callbacks[event] || []).push(fn);
+            return this;
+        };
+        Emitter.prototype.once = function(event, fn) {
+            var self = this;
+            this._callbacks = this._callbacks || {};
+            function on() {
+                self.off(event, on);
+                fn.apply(this, arguments);
+            }
+            fn._off = on;
+            this.on(event, on);
+            return this;
+        };
+        Emitter.prototype.off = Emitter.prototype.removeListener = Emitter.prototype.removeAllListeners = function(event, fn) {
+            this._callbacks = this._callbacks || {};
+            if (0 == arguments.length) {
+                this._callbacks = {};
+                return this;
+            }
+            var callbacks = this._callbacks[event];
+            if (!callbacks) return this;
+            if (1 == arguments.length) {
+                delete this._callbacks[event];
+                return this;
+            }
+            var i = index(callbacks, fn._off || fn);
+            if (~i) callbacks.splice(i, 1);
+            return this;
+        };
+        Emitter.prototype.emit = function(event) {
+            this._callbacks = this._callbacks || {};
+            var args = [].slice.call(arguments, 1), callbacks = this._callbacks[event];
+            if (callbacks) {
+                callbacks = callbacks.slice(0);
+                for (var i = 0, len = callbacks.length; i < len; ++i) {
+                    callbacks[i].apply(this, args);
+                }
+            }
+            return this;
+        };
+        Emitter.prototype.listeners = function(event) {
+            this._callbacks = this._callbacks || {};
+            return this._callbacks[event] || [];
+        };
+        Emitter.prototype.hasListeners = function(event) {
+            return !!this.listeners(event).length;
+        };
+    });
+    require.register("visionmedia-batch/index.js", function(exports, require, module) {
+        try {
+            var EventEmitter = require("events").EventEmitter;
+        } catch (err) {
+            var Emitter = require("emitter");
+        }
+        function noop() {}
+        module.exports = Batch;
+        function Batch() {
+            this.fns = [];
+            this.concurrency(Infinity);
+            for (var i = 0, len = arguments.length; i < len; ++i) {
+                this.push(arguments[i]);
+            }
+        }
+        if (EventEmitter) {
+            Batch.prototype.__proto__ = EventEmitter.prototype;
+        } else {
+            Emitter(Batch.prototype);
+        }
+        Batch.prototype.concurrency = function(n) {
+            this.n = n;
+            return this;
+        };
+        Batch.prototype.push = function(fn) {
+            this.fns.push(fn);
+            return this;
+        };
+        Batch.prototype.end = function(cb) {
+            var self = this, total = this.fns.length, pending = total, results = [], cb = cb || noop, fns = this.fns, max = this.n, index = 0, done;
+            if (!fns.length) return cb(null, results);
+            function next() {
+                var i = index++;
+                var fn = fns[i];
+                if (!fn) return;
+                var start = new Date();
+                fn(function(err, res) {
+                    if (done) return;
+                    if (err) return done = true, cb(err);
+                    var complete = total - pending + 1;
+                    var end = new Date();
+                    results[i] = res;
+                    self.emit("progress", {
+                        index: i,
+                        value: res,
+                        pending: pending,
+                        total: total,
+                        complete: complete,
+                        percent: complete / total * 100 | 0,
+                        start: start,
+                        end: end,
+                        duration: end - start
+                    });
+                    if (--pending) next(); else cb(null, results);
+                });
+            }
+            for (var i = 0; i < fns.length; i++) {
+                if (i == max) break;
+                next();
+            }
+            return this;
+        };
+    });
+    require.register("visionmedia-configurable.js/index.js", function(exports, require, module) {
+        module.exports = function(obj) {
+            obj.settings = {};
+            obj.set = function(name, val) {
+                if (1 == arguments.length) {
+                    for (var key in name) {
+                        this.set(key, name[key]);
+                    }
+                } else {
+                    this.settings[name] = val;
+                }
+                return this;
+            };
+            obj.get = function(name) {
+                return this.settings[name];
+            };
+            obj.enable = function(name) {
+                return this.set(name, true);
+            };
+            obj.disable = function(name) {
+                return this.set(name, false);
+            };
+            obj.enabled = function(name) {
+                return !!this.get(name);
+            };
+            obj.disabled = function(name) {
+                return !this.get(name);
+            };
+            return obj;
+        };
+    });
+    require.register("component-clone/index.js", function(exports, require, module) {
+        var type;
+        try {
+            type = require("type");
+        } catch (e) {
+            type = require("type-component");
+        }
+        module.exports = clone;
+        function clone(obj) {
+            switch (type(obj)) {
+              case "object":
+                var copy = {};
+                for (var key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        copy[key] = clone(obj[key]);
+                    }
+                }
+                return copy;
 
-  /**
-   * lastIndexOf helper.
-   */
+              case "array":
+                var copy = new Array(obj.length);
+                for (var i = 0, l = obj.length; i < l; i++) {
+                    copy[i] = clone(obj[i]);
+                }
+                return copy;
 
-  function lastIndexOf(arr, obj) {
-    var i = arr.length;
-    while (i--) {
-      if (arr[i] === obj) return i;
+              case "regexp":
+                var flags = "";
+                flags += obj.multiline ? "m" : "";
+                flags += obj.global ? "g" : "";
+                flags += obj.ignoreCase ? "i" : "";
+                return new RegExp(obj.source, flags);
+
+              case "date":
+                return new Date(obj.getTime());
+
+              default:
+                return obj;
+            }
+        }
+    });
+    require.register("bdd-flow/lib/bdd-flow/index.js", function(exports, require, module) {
+        "use strict";
+        exports.Bddflow = Bddflow;
+        exports.create = function() {
+            return new Bddflow();
+        };
+        exports.extend = function(ext) {
+            return extend(Bddflow.prototype, ext);
+        };
+        exports.requireComponent = require;
+        var Batch = require("batch");
+        var bind = require("bind");
+        var clone = require("clone");
+        var configurable = require("configurable.js");
+        var emitter = require("emitter");
+        var extend = require("extend");
+        var flowFnRegex = /^(it|describe|before|beforeEach|after|afterEach)$/;
+        var defOmitContextRegex = {
+            all: [ /^__conjure__/ ],
+            describe: [],
+            hook: [ flowFnRegex ],
+            it: [ flowFnRegex ],
+            rootDescribe: []
+        };
+        function Bddflow() {
+            this.settings = {
+                done: bddflowNoOp,
+                itWrap: null,
+                describeWrap: null,
+                omitContextRegex: clone(defOmitContextRegex),
+                path: [],
+                grep: /.?/,
+                grepv: null,
+                sharedContext: {},
+                stats: {
+                    depth: 0
+                },
+                emit: bind(this, this.emit)
+            };
+            this.rootDescribes = [];
+            this.batch = new Batch();
+            this.seedProps = {};
+        }
+        Bddflow.describeConfigKeys = [ "describeWrap", "emit", "itWrap", "omitContextRegex", "path", "grep", "grepv", "sharedContext", "stats" ];
+        configurable(Bddflow.prototype);
+        emitter(Bddflow.prototype);
+        Bddflow.prototype.addContextProp = function(key, val) {
+            this.seedProps[key] = val;
+            return this;
+        };
+        Bddflow.prototype.addRootDescribe = function(name, cb) {
+            var self = this;
+            var desc = new Describe(name);
+            desc.describe(name, cb);
+            this.rootDescribes.push(desc);
+            return this;
+        };
+        Bddflow.prototype.currentDepth = function() {
+            return this.get("stats").depth;
+        };
+        Bddflow.prototype.hideContextProp = function(type, regex) {
+            if (typeof regex === "string") {
+                regex = new RegExp("^" + regex + "$");
+            }
+            this.get("omitContextRegex")[type].push(regex);
+            return this;
+        };
+        Bddflow.prototype.run = function() {
+            var self = this;
+            var batch = new Batch();
+            batch.concurrency(1);
+            this.set("sharedContext", this.seedProps);
+            this.rootDescribes.forEach(function bddflowEachRootDescribe(desc) {
+                batch.push(function bddflowBatchPushRootDescribe(taskDone) {
+                    self.set("path", []);
+                    Bddflow.describeConfigKeys.forEach(function bddflowForEachConfigKey(key) {
+                        desc.set(key, self.get(key));
+                    });
+                    bddflowRunStepsInBatch(desc.steps, taskDone);
+                });
+            });
+            batch.end(this.get("done"));
+        };
+        Bddflow.defaultHookImpl = function(done) {
+            done();
+        };
+        function HookSet() {
+            this.before = Bddflow.defaultHookImpl;
+            this.beforeEach = Bddflow.defaultHookImpl;
+            this.after = Bddflow.defaultHookImpl;
+            this.afterEach = Bddflow.defaultHookImpl;
+        }
+        function ItCallback(name, cb) {
+            this.name = name;
+            this.cb = cb;
+        }
+        function Describe(name) {
+            this.name = name;
+            this.steps = [];
+            this.hooks = new HookSet();
+            this.settings = {};
+        }
+        configurable(Describe.prototype);
+        Describe.prototype.extendSharedContext = function(ext, type) {
+            return extend(this.get("sharedContext"), this.filterProps(ext, type));
+        };
+        Describe.prototype.filterProps = function(obj, type) {
+            var omitContextRegex = this.get("omitContextRegex");
+            var regex = omitContextRegex.all.concat(omitContextRegex[type]);
+            return Object.keys(obj).reduce(function bddflowReduceFilterProps(memo, key) {
+                var omit = false;
+                regex.forEach(function bddflowForEachFilterPropsRegex(re) {
+                    omit = omit || re.test(key);
+                });
+                if (omit) {
+                    return memo;
+                }
+                memo[key] = obj[key];
+                return memo;
+            }, {});
+        };
+        Describe.prototype.getSharedContext = function(type) {
+            return this.filterProps(this.get("sharedContext"), type);
+        };
+        Describe.prototype.it = function(name, cb) {
+            this.steps.push(new ItCallback(name, cb));
+        };
+        Describe.prototype.describe = function(name, cb) {
+            var self = this;
+            var step = function(done) {
+                var desc = new Describe(name);
+                Bddflow.describeConfigKeys.forEach(function bddflowForEachConfigKey(key) {
+                    desc.set(key, self.get(key));
+                });
+                var path = desc.get("path");
+                path.push(name);
+                var describeWrap = desc.get("describeWrap") || bddflowDefDescribeWrap;
+                describeWrap(name, function bddflowDescribeWrap() {
+                    var wrapContext = this || {};
+                    var mergedContext = desc.extendSharedContext(wrapContext, "describe");
+                    mergedContext.describe = bind(desc, desc.describe);
+                    mergedContext.it = bind(desc, desc.it);
+                    mergedContext.before = bind(desc, desc.before);
+                    mergedContext.beforeEach = bind(desc, desc.beforeEach);
+                    mergedContext.after = bind(desc, desc.after);
+                    mergedContext.afterEach = bind(desc, desc.afterEach);
+                    bddflowAddInternalProp(mergedContext, "name", name);
+                    cb.call(mergedContext);
+                });
+                desc.pushStep();
+                var batch = new Batch();
+                batch.push(function bddflowBatchPushBeforeHook(done) {
+                    function asyncCb() {
+                        desc.extendSharedContext(context, "hook");
+                        done();
+                    }
+                    var hook = desc.hooks.before;
+                    var context = desc.getSharedContext("hook");
+                    if (hook.length) {
+                        desc.hooks.before.call(context, asyncCb);
+                    } else {
+                        desc.hooks.before.call(context);
+                        asyncCb();
+                    }
+                });
+                batch.push(function bddflowBatchPushItOrDescribe(done) {
+                    desc.steps = desc.steps.map(function bddflowMapDescribeSteps(step) {
+                        if (step instanceof DescribeCallback) {
+                            var context = desc.getSharedContext("describe");
+                            return new DescribeCallback(step.name, bind(context, step.cb));
+                        }
+                        var itPath = path.concat(step.name);
+                        var grep = desc.get("grep");
+                        var grepv = desc.get("grepv");
+                        if (grepv) {
+                            if (grepv.test(itPath.join(" "))) {
+                                return new ItCallback(step.name, bddflowBatchNoOp);
+                            }
+                        } else if (grep) {
+                            if (!grep.test(itPath.join(" "))) {
+                                return new ItCallback(step.name, bddflowBatchNoOp);
+                            }
+                        }
+                        return new ItCallback(step.name, function bddflowItCallback(done) {
+                            var batch = new Batch();
+                            batch.push(function bddflowBatchPushBeforeEach(done) {
+                                function asyncCb() {
+                                    desc.extendSharedContext(context, "hook");
+                                    done();
+                                }
+                                var hook = desc.hooks.beforeEach;
+                                var context = desc.getSharedContext("hook");
+                                if (hook.length) {
+                                    desc.hooks.beforeEach.call(context, asyncCb);
+                                } else {
+                                    desc.hooks.beforeEach.call(context);
+                                    asyncCb();
+                                }
+                            });
+                            batch.push(function bddflowBatchPushIt(done) {
+                                var context = desc.getSharedContext("it");
+                                var emit = desc.get("emit");
+                                function asyncCb() {
+                                    desc.extendSharedContext(context, "it");
+                                    emit("itPop", step.name);
+                                    done();
+                                }
+                                var itWrap = desc.get("itWrap") || bddflowDefItWrap;
+                                if (itWrap.length == 3) {
+                                    itWrap(step.name, function bddflowItWrapAsync() {
+                                        var wrapContext = this || {};
+                                        extend(context, wrapContext);
+                                        bddflowAddInternalProp(context, "name", step.name, true);
+                                        bddflowAddInternalProp(context, "path", itPath, true);
+                                        emit("itPush", step.name);
+                                        step.cb.call(context);
+                                    }, asyncCb);
+                                } else {
+                                    itWrap(step.name, function bddflowItWrap() {
+                                        var wrapContext = this || {};
+                                        extend(context, wrapContext);
+                                        bddflowAddInternalProp(context, "name", step.name, true);
+                                        bddflowAddInternalProp(context, "path", itPath, true);
+                                        emit("itPush", step.name);
+                                        if (step.cb.length) {
+                                            step.cb.call(context, asyncCb);
+                                        } else {
+                                            step.cb.call(context);
+                                            asyncCb();
+                                        }
+                                    });
+                                }
+                            });
+                            batch.push(function bddflowBatchPushAfterEach(done) {
+                                function asyncCb() {
+                                    desc.extendSharedContext(context, "hook");
+                                    done();
+                                }
+                                var hook = desc.hooks.afterEach;
+                                var context = desc.getSharedContext("hook");
+                                if (hook.length) {
+                                    desc.hooks.afterEach.call(context, asyncCb);
+                                } else {
+                                    desc.hooks.afterEach.call(context);
+                                    asyncCb();
+                                }
+                            });
+                            batch.concurrency(1);
+                            batch.end(done);
+                        });
+                    });
+                    bddflowRunStepsInBatch(desc.steps, done);
+                });
+                batch.push(function bddflowBatchPushAfter(done) {
+                    function asyncCb() {
+                        desc.extendSharedContext(context, "hook");
+                        done();
+                    }
+                    var hook = desc.hooks.after;
+                    var context = desc.getSharedContext("hook");
+                    if (hook.length) {
+                        desc.hooks.after.call(context, asyncCb);
+                    } else {
+                        desc.hooks.after.call(context);
+                        asyncCb();
+                    }
+                });
+                batch.concurrency(1);
+                batch.end(function bddflowEndDescribeBatch() {
+                    desc.popStep();
+                    done();
+                });
+            };
+            this.steps.push(new DescribeCallback(name, step));
+        };
+        Describe.prototype.before = function(cb) {
+            this.hooks.before = cb;
+        };
+        Describe.prototype.beforeEach = function(cb) {
+            this.hooks.beforeEach = cb;
+        };
+        Describe.prototype.after = function(cb) {
+            this.hooks.after = cb;
+        };
+        Describe.prototype.afterEach = function(cb) {
+            this.hooks.afterEach = cb;
+        };
+        Describe.prototype.pushStep = function() {
+            var emit = this.get("emit");
+            var stats = this.get("stats");
+            stats.depth++;
+            this.set("stats", stats);
+            emit("describePush", this.name);
+        };
+        Describe.prototype.popStep = function() {
+            var emit = this.get("emit");
+            var stats = this.get("stats");
+            stats.depth--;
+            this.set("stats", stats);
+            emit("describePop", this.name);
+        };
+        function DescribeCallback(name, cb) {
+            this.name = name;
+            this.cb = cb;
+        }
+        function bddflowRunStepsInBatch(steps, cb) {
+            var batch = new Batch();
+            batch.concurrency(1);
+            steps.forEach(function bddflowForEachStep(step) {
+                batch.push(step.cb);
+            });
+            batch.end(cb);
+        }
+        function bddflowNoOp() {}
+        function bddflowBatchNoOp(taskDone) {
+            taskDone();
+        }
+        function bddflowDefItWrap(name, cb) {
+            cb();
+        }
+        function bddflowDefDescribeWrap(name, cb) {
+            cb();
+        }
+        function bddflowDelInternalProp(obj, key) {
+            delete obj["__conjure__" + key];
+        }
+        function bddflowAddInternalProp(obj, key, val, writable) {
+            Object.defineProperty(obj, "__conjure__" + key, {
+                value: val,
+                enumerable: false,
+                configurable: true,
+                writable: !!writable
+            });
+        }
+    });
+    require.register("component-to-function/index.js", function(exports, require, module) {
+        module.exports = toFunction;
+        function toFunction(obj) {
+            switch ({}.toString.call(obj)) {
+              case "[object Object]":
+                return objectToFunction(obj);
+
+              case "[object Function]":
+                return obj;
+
+              case "[object String]":
+                return stringToFunction(obj);
+
+              case "[object RegExp]":
+                return regexpToFunction(obj);
+
+              default:
+                return defaultToFunction(obj);
+            }
+        }
+        function defaultToFunction(val) {
+            return function(obj) {
+                return val === obj;
+            };
+        }
+        function regexpToFunction(re) {
+            return function(obj) {
+                return re.test(obj);
+            };
+        }
+        function stringToFunction(str) {
+            if (/^ *\W+/.test(str)) return new Function("_", "return _ " + str);
+            return new Function("_", "return _." + str);
+        }
+        function objectToFunction(obj) {
+            var match = {};
+            for (var key in obj) {
+                match[key] = typeof obj[key] === "string" ? defaultToFunction(obj[key]) : toFunction(obj[key]);
+            }
+            return function(val) {
+                if (typeof val !== "object") return false;
+                for (var key in match) {
+                    if (!(key in val)) return false;
+                    if (!match[key](val[key])) return false;
+                }
+                return true;
+            };
+        }
+    });
+    require.register("component-enumerable/index.js", function(exports, require, module) {
+        var toFunction = require("to-function"), proto = {};
+        module.exports = Enumerable;
+        function mixin(obj) {
+            for (var key in proto) obj[key] = proto[key];
+            obj.__iterate__ = obj.__iterate__ || defaultIterator;
+            return obj;
+        }
+        function Enumerable(obj) {
+            if (!(this instanceof Enumerable)) {
+                if (Array.isArray(obj)) return new Enumerable(obj);
+                return mixin(obj);
+            }
+            this.obj = obj;
+        }
+        function defaultIterator() {
+            var self = this;
+            return {
+                length: function() {
+                    return self.length;
+                },
+                get: function(i) {
+                    return self[i];
+                }
+            };
+        }
+        Enumerable.prototype.inspect = Enumerable.prototype.toString = function() {
+            return "[Enumerable " + JSON.stringify(this.obj) + "]";
+        };
+        Enumerable.prototype.__iterate__ = function() {
+            var obj = this.obj;
+            obj.__iterate__ = obj.__iterate__ || defaultIterator;
+            return obj.__iterate__();
+        };
+        proto.each = function(fn) {
+            var vals = this.__iterate__();
+            var len = vals.length();
+            for (var i = 0; i < len; ++i) {
+                fn(vals.get(i), i);
+            }
+            return this;
+        };
+        proto.map = function(fn) {
+            fn = toFunction(fn);
+            var vals = this.__iterate__();
+            var len = vals.length();
+            var arr = [];
+            for (var i = 0; i < len; ++i) {
+                arr.push(fn(vals.get(i), i));
+            }
+            return new Enumerable(arr);
+        };
+        proto.select = function(fn) {
+            fn = toFunction(fn);
+            var val;
+            var arr = [];
+            var vals = this.__iterate__();
+            var len = vals.length();
+            for (var i = 0; i < len; ++i) {
+                val = vals.get(i);
+                if (fn(val, i)) arr.push(val);
+            }
+            return new Enumerable(arr);
+        };
+        proto.unique = function() {
+            var val;
+            var arr = [];
+            var vals = this.__iterate__();
+            var len = vals.length();
+            for (var i = 0; i < len; ++i) {
+                val = vals.get(i);
+                if (~arr.indexOf(val)) continue;
+                arr.push(val);
+            }
+            return new Enumerable(arr);
+        };
+        proto.reject = function(fn) {
+            var val;
+            var arr = [];
+            var vals = this.__iterate__();
+            var len = vals.length();
+            if ("string" == typeof fn) fn = toFunction(fn);
+            if (fn) {
+                for (var i = 0; i < len; ++i) {
+                    val = vals.get(i);
+                    if (!fn(val, i)) arr.push(val);
+                }
+            } else {
+                for (var i = 0; i < len; ++i) {
+                    val = vals.get(i);
+                    if (val != fn) arr.push(val);
+                }
+            }
+            return new Enumerable(arr);
+        };
+        proto.compact = function() {
+            return this.reject(null);
+        };
+        proto.find = function(fn) {
+            fn = toFunction(fn);
+            var val;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            for (var i = 0; i < len; ++i) {
+                val = vals.get(i);
+                if (fn(val, i)) return val;
+            }
+        };
+        proto.findLast = function(fn) {
+            fn = toFunction(fn);
+            var ret;
+            var val;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            for (var i = 0; i < len; ++i) {
+                val = vals.get(i);
+                if (fn(val, i)) ret = val;
+            }
+            return ret;
+        };
+        proto.all = proto.every = function(fn) {
+            fn = toFunction(fn);
+            var val;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            for (var i = 0; i < len; ++i) {
+                val = vals.get(i);
+                if (!fn(val, i)) return false;
+            }
+            return true;
+        };
+        proto.none = function(fn) {
+            fn = toFunction(fn);
+            var val;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            for (var i = 0; i < len; ++i) {
+                val = vals.get(i);
+                if (fn(val, i)) return false;
+            }
+            return true;
+        };
+        proto.any = function(fn) {
+            fn = toFunction(fn);
+            var val;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            for (var i = 0; i < len; ++i) {
+                val = vals.get(i);
+                if (fn(val, i)) return true;
+            }
+            return false;
+        };
+        proto.count = function(fn) {
+            var val;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            var n = 0;
+            for (var i = 0; i < len; ++i) {
+                val = vals.get(i);
+                if (fn(val, i)) ++n;
+            }
+            return n;
+        };
+        proto.indexOf = function(obj) {
+            var val;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            for (var i = 0; i < len; ++i) {
+                val = vals.get(i);
+                if (val === obj) return i;
+            }
+            return -1;
+        };
+        proto.has = function(obj) {
+            return !!~this.indexOf(obj);
+        };
+        proto.grep = function(re) {
+            var val;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            var arr = [];
+            for (var i = 0; i < len; ++i) {
+                val = vals.get(i);
+                if (re.test(val)) arr.push(val);
+            }
+            return new Enumerable(arr);
+        };
+        proto.reduce = function(fn, init) {
+            var val;
+            var i = 0;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            val = null == init ? vals.get(i++) : init;
+            for (;i < len; ++i) {
+                val = fn(val, vals.get(i), i);
+            }
+            return val;
+        };
+        proto.max = function(fn) {
+            var val;
+            var n = 0;
+            var max = 0;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            if (fn) {
+                fn = toFunction(fn);
+                for (var i = 0; i < len; ++i) {
+                    n = fn(vals.get(i), i);
+                    max = n > max ? n : max;
+                }
+            } else {
+                for (var i = 0; i < len; ++i) {
+                    n = vals.get(i);
+                    max = n > max ? n : max;
+                }
+            }
+            return max;
+        };
+        proto.sum = function(fn) {
+            var ret;
+            var n = 0;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            if (fn) {
+                fn = toFunction(fn);
+                for (var i = 0; i < len; ++i) {
+                    n += fn(vals.get(i), i);
+                }
+            } else {
+                for (var i = 0; i < len; ++i) {
+                    n += vals.get(i);
+                }
+            }
+            return n;
+        };
+        proto.avg = proto.mean = function(fn) {
+            var ret;
+            var n = 0;
+            var vals = this.__iterate__();
+            var len = vals.length();
+            if (fn) {
+                fn = toFunction(fn);
+                for (var i = 0; i < len; ++i) {
+                    n += fn(vals.get(i), i);
+                }
+            } else {
+                for (var i = 0; i < len; ++i) {
+                    n += vals.get(i);
+                }
+            }
+            return n / len;
+        };
+        proto.first = function(n) {
+            if ("function" == typeof n) return this.find(n);
+            var vals = this.__iterate__();
+            if (n) {
+                var len = Math.min(n, vals.length());
+                var arr = new Array(len);
+                for (var i = 0; i < len; ++i) {
+                    arr[i] = vals.get(i);
+                }
+                return arr;
+            }
+            return vals.get(0);
+        };
+        proto.last = function(n) {
+            if ("function" == typeof n) return this.findLast(n);
+            var vals = this.__iterate__();
+            var len = vals.length();
+            if (n) {
+                var i = Math.max(0, len - n);
+                var arr = [];
+                for (;i < len; ++i) {
+                    arr.push(vals.get(i));
+                }
+                return arr;
+            }
+            return vals.get(len - 1);
+        };
+        proto.inGroupsOf = function(n) {
+            var arr = [];
+            var group = [];
+            var vals = this.__iterate__();
+            var len = vals.length();
+            for (var i = 0; i < len; ++i) {
+                group.push(vals.get(i));
+                if ((i + 1) % n == 0) {
+                    arr.push(group);
+                    group = [];
+                }
+            }
+            if (group.length) arr.push(group);
+            return new Enumerable(arr);
+        };
+        proto.at = function(i) {
+            return this.__iterate__().get(i);
+        };
+        proto.toJSON = proto.array = function() {
+            var arr = [];
+            var vals = this.__iterate__();
+            var len = vals.length();
+            for (var i = 0; i < len; ++i) {
+                arr.push(vals.get(i));
+            }
+            return arr;
+        };
+        proto.value = function() {
+            return this.obj;
+        };
+        mixin(Enumerable.prototype);
+    });
+    require.register("enumerable-prop/lib/enumerable-prop/index.js", function(exports, require, module) {
+        "use strict";
+        module.exports = enumerableProp;
+        var enumerable = require("enumerable");
+        var defaultConfig = {
+            prop: "list"
+        };
+        function enumerableProp(instance, config) {
+            config = config || {};
+            Object.keys(defaultConfig).forEach(function(key) {
+                config[key] = config[key] || defaultConfig[key];
+            });
+            instance[config.prop] = [];
+            instance.__iterate__ = createIterator(instance, config.prop);
+            instance.push = createPusher(instance, config.prop);
+            if (!instance.constructor.prototype.count) {
+                enumerable(instance.constructor.prototype);
+            }
+        }
+        function createIterator(instance, prop) {
+            return function() {
+                return {
+                    length: function() {
+                        return instance[prop].length;
+                    },
+                    get: function(i) {
+                        return instance[prop][i];
+                    }
+                };
+            };
+        }
+        function createPusher(instance, prop) {
+            if (instance.constructor.prototype.push) {
+                return instance.constructor.prototype.push;
+            }
+            return function(item) {
+                return instance[prop].push(item);
+            };
+        }
+    });
+    require.register("conjure/lib/conjure/index.js", function(exports, require, module) {
+        "use strict";
+        exports.Conjure = Conjure;
+        exports.create = function(requireCasper) {
+            return new Conjure(requireCasper);
+        };
+        exports.extendConjure = function(ext) {
+            return require("extend")(Conjure.prototype, ext);
+        };
+        exports.extendAsyncHelpers = function(ext) {
+            return require("extend")(helpers.async, ext);
+        };
+        exports.extendSyncHelpers = function(ext) {
+            return require("extend")(helpers.sync, ext);
+        };
+        exports.requireComponent = require;
+        exports.setRequire = function(stub) {
+            require = stub;
+        };
+        var requireComponent = require;
+        var bddflow = require("bdd-flow");
+        var configurable = require("configurable.js");
+        function Conjure(requireCasper) {
+            var self = this;
+            var bind = requireComponent("bind");
+            this.settings = {
+                baseUrl: "http://localhost:8174",
+                initPath: "/",
+                initSel: "body",
+                casperConfig: {
+                    exitOnError: true,
+                    logLevel: "debug",
+                    pageSettings: {
+                        loadImages: false,
+                        loadPlugins: false,
+                        XSSAuditingEnabled: true,
+                        verbose: true,
+                        onError: function(self, m) {
+                            self.die("CasperJS onError: " + m, 1);
+                        },
+                        onLoadError: function(self, m) {
+                            self.die("CasperJS onLoadError: " + m, 1);
+                        }
+                    }
+                },
+                cli: {},
+                requireCasper: requireCasper
+            };
+            this.casper = null;
+            this.flow = bddflow.create();
+            this.utils = null;
+            this.colorizer = null;
+            this.running = false;
+            this.stackDepth = 0;
+        }
+        configurable(Conjure.prototype);
+        Conjure.createContext = function(parent, pluck, omit) {
+            var bind = require("bind");
+            var each = require("each");
+            var is = require("is");
+            pluck = [].concat(pluck || []);
+            omit = [].concat(omit || []);
+            var context = {};
+            var keys = pluck.length ? pluck : Object.keys(parent);
+            each(keys, function(key) {
+                if (-1 !== omit.indexOf(key)) {
+                    return;
+                }
+                if (is.Function(parent[key])) {
+                    context[key] = bind(parent, parent[key]);
+                } else {
+                    context[key] = parent[key];
+                }
+            });
+            return context;
+        };
+        Conjure.prototype.isRunning = function() {
+            return this.running;
+        };
+        Conjure.prototype.test = function(name, cb) {
+            this.injectHelpers();
+            this.utils = this.require("utils");
+            this.colorizer = this.require("colorizer").create("Colorizer");
+            this.configureBddflow(name, cb);
+            this.casper.start(this.url(this.get("initPath")));
+            this.run();
+        };
+        Conjure.prototype.configureBddflow = function(name, cb) {
+            var self = this;
+            var cli = this.get("cli");
+            if (cli.options.grep) {
+                this.flow.set("grep", new RegExp(cli.args.join(" ")));
+            } else if (cli.options.grepv) {
+                this.flow.set("grepv", new RegExp(cli.args.join(" ")));
+            }
+            this.casper = this.require("casper").create(this.get("casperConfig"));
+            this.flow.addContextProp("casper", this.casper);
+            this.flow.addContextProp("colorizer", this.colorizer);
+            this.flow.addContextProp("utils", this.utils);
+            this.flow.set("itWrap", function conjureItWrap(name, cb, done) {
+                self.casper.then(function conjureItWrapThen() {
+                    cb.call(this);
+                });
+                self.casper.then(function conjureItWrapDoneThen() {
+                    done();
+                });
+            });
+            this.flow.set("describeWrap", function conjureDescribeWrap(name, cb) {
+                var contextKeys = [ "casper", "utils", "colorizer", "conjure" ];
+                cb.call(Conjure.createContext(self, contextKeys));
+            });
+            this.flow.on("describePush", function conjureOnDescribePush(name) {
+                self.pushStatus("describe", "trace", {
+                    name: name
+                });
+            });
+            this.flow.on("describePop", function conjureOnDescribePop(name) {
+                self.popStatus();
+            });
+            this.flow.on("itPush", function conjureOnItPush(name) {
+                self.pushStatus("it", "trace", {
+                    name: name
+                });
+            });
+            this.flow.on("itPop", function conjureOnItPop(name) {
+                self.popStatus();
+            });
+            this.flow.addRootDescribe("initial selector", function conjureRootDescribe() {
+                this.it("should match", function conjureInitSelectorShouldExist() {
+                    this.conjure.selectorExists(self.get("initSel"));
+                });
+            });
+            this.flow.addRootDescribe(name, cb);
+            this.casper.on("step.complete", function() {
+                if (typeof this.steps[this.step] === "function" && this.steps[this.step].__conjure_helper_last_step) {
+                    self.popStatus();
+                }
+            });
+        };
+        Conjure.prototype.injectHelpers = function() {
+            var self = this;
+            var bind = requireComponent("bind");
+            var extend = requireComponent("extend");
+            this.url = bind(this, helpers.sync.url);
+            this.require = bind(this, helpers.sync.require);
+            this.conjure = {};
+            Object.keys(helpers.async).forEach(function(key) {
+                self.conjure[key] = function conjureInjectHelperWrap() {
+                    var args = arguments;
+                    self.pushStatus(key, "trace");
+                    var hasPendingStep = false;
+                    var lastStep = function(cb) {
+                        hasPendingStep = true;
+                        return tagLastStep(cb);
+                    };
+                    var context = extend({}, self, {
+                        lastStep: lastStep
+                    });
+                    var result = helpers.async[key].apply(context, args);
+                    if (!hasPendingStep) {
+                        self.popStatus();
+                    }
+                    return result;
+                };
+            });
+            Object.keys(helpers.sync).forEach(function(key) {
+                self.conjure[key] = bind(self, helpers.sync[key]);
+            });
+        };
+        Conjure.prototype.run = function() {
+            var self = this;
+            this.running = true;
+            var initSel = this.get("initSel");
+            var initPath = this.get("initPath");
+            var initMsg = "Opening [" + initPath + "]";
+            if (initSel) {
+                initMsg += " Waiting For Selector [" + initSel + "]";
+            }
+            this.casper.test.info(initMsg);
+            this.flow.run();
+            this.casper.run(function conjureRunCasperTests() {
+                this.test.renderResults(true);
+            });
+        };
+        Conjure.prototype.status = function(source, type, meta) {
+            meta = meta || {};
+            Object.keys(meta).forEach(function(key) {
+                try {
+                    JSON.stringify(meta[key]);
+                } catch (e) {
+                    meta[key] = {
+                        conjureJsonStringifyErr: e.message
+                    };
+                }
+            });
+            console.log(this.utils.format("conjure_status:%s", JSON.stringify({
+                source: source,
+                type: type,
+                meta: meta,
+                depth: this.stackDepth
+            })));
+        };
+        Conjure.prototype.popStatus = function() {
+            this.stackDepth--;
+        };
+        Conjure.prototype.pushStatus = function(source, type, meta) {
+            this.status(source, type, meta);
+            this.stackDepth++;
+        };
+        Conjure.prototype.trace = function(source, meta) {
+            this.status(source, "trace", meta);
+        };
+        var helpers = {
+            async: {},
+            sync: {}
+        };
+        helpers.async.click = function(sel, nativeClick) {
+            this.trace("args", {
+                sel: sel,
+                nativeClick: nativeClick
+            });
+            this.conjure.selectorExists(sel);
+            if (nativeClick) {
+                this.casper.thenClick(sel);
+            } else {
+                this.casper.thenEvaluate(function(sel) {
+                    $(sel).click();
+                }, sel);
+            }
+        };
+        helpers.async.then = function(cb) {
+            var args = wrapFirstCallbackInConjureContext(this, arguments);
+            this.casper.then.apply(this.casper, args);
+        };
+        helpers.async.thenOpen = function() {
+            var args = wrapFirstCallbackInConjureContext(this, arguments);
+            this.trace("args", args[0]);
+            this.casper.thenOpen.apply(this.casper, args);
+        };
+        helpers.async.assertSelText = function(sel, text) {
+            var self = this;
+            var is = require("is");
+            this.trace("args", {
+                sel: sel,
+                text: text
+            });
+            this.casper.then(function conjureHelperAssertSelText() {
+                self.trace("closure", {
+                    type: "then"
+                });
+                this.test["assert" + (is.string(text) ? "Equals" : "Match")](this.evaluate(function(sel) {
+                    return $(sel).text();
+                }, sel), text);
+            });
+        };
+        helpers.async.assertType = function(val, expected, subject) {
+            var self = this;
+            this.trace("args", {
+                val: val,
+                expected: expected,
+                subject: subject
+            });
+            this.conjure.then(function conjureHelperAssertType() {
+                self.trace("closure", {
+                    type: "then"
+                });
+                this.test.assertEquals(this.utils.betterTypeOf(val), expected, this.utils.format("%s should be a %s", subject || "subject", expected));
+            });
+        };
+        helpers.async.each = function(list, cb) {
+            var self = this;
+            this.trace("args", {
+                list: list
+            });
+            list.forEach(function(item) {
+                self.trace("closure", {
+                    type: "forEach",
+                    item: item
+                });
+                self.conjure.then(function conjureHelperEach() {
+                    cb.call(this, item);
+                });
+            });
+        };
+        helpers.async.openHash = function(hash, sel) {
+            this.trace("args", {
+                hash: hash,
+                sel: sel
+            });
+            this.casper.thenEvaluate(function _openHash(hash) {
+                window.location.hash = "#" + hash;
+            }, hash);
+            if (sel) {
+                this.conjure.selectorExists(sel);
+            }
+        };
+        helpers.async.openInitUrl = function() {
+            var url = this.url(this.get("initPath"));
+            this.trace("args", {
+                url: url
+            });
+            this.casper.thenOpen(url);
+        };
+        helpers.async.selectorExists = function(sel, negate) {
+            var self = this;
+            this.trace("args", {
+                sel: sel,
+                negate: negate
+            });
+            this.casper.waitFor(function selectorExistsWaitFor() {
+                self.trace("closure", {
+                    type: "waitFor"
+                });
+                return this.evaluate(function selectorExistsEvaluate(sel, count) {
+                    return count === $(sel).length;
+                }, sel, negate ? 0 : 1);
+            });
+            this.casper.then(this.lastStep(function selectorExistsThen() {
+                self.trace("closure", {
+                    type: "then"
+                });
+                this.test.assertTrue(true, (negate ? "missing" : "exists") + ": " + sel);
+            }));
+        };
+        helpers.async.selectorMissing = function(sel) {
+            this.trace("args", {
+                sel: sel
+            });
+            this.conjure.selectorExists(sel, true);
+        };
+        helpers.async.sendKeys = function(sel, keys) {
+            var self = this;
+            this.trace("args", {
+                sel: sel,
+                keys: keys
+            });
+            this.conjure.selectorExists(sel);
+            this.conjure.then(function conjureHelperSendKeys() {
+                self.trace("closure", {
+                    type: "then"
+                });
+                this.casper.sendKeys(sel, keys);
+            });
+        };
+        helpers.sync.require = function(name) {
+            var require = this.get("requireCasper");
+            var relPathRe = /^\.\//;
+            if (relPathRe.test(name)) {
+                var fullPath = this.get("cli").options.rootdir + "/" + name.replace(relPathRe, "");
+                this.trace("args", {
+                    name: name,
+                    fullPath: fullPath
+                });
+                return require(fullPath);
+            }
+            return require(name);
+        };
+        helpers.sync.url = function(relUrl) {
+            return this.get("baseUrl") + relUrl;
+        };
+        function wrapFirstCallbackInConjureContext(self, args) {
+            var extend = require("extend");
+            var contextKeys = [ "utils", "colorizer", "conjure" ];
+            var context = Conjure.createContext(self, contextKeys);
+            args = [].slice.call(args);
+            var cb;
+            var cbIdx;
+            args.forEach(function(val, idx) {
+                if (typeof val === "function") {
+                    cb = val;
+                    cbIdx = idx;
+                }
+            });
+            if (cb) {
+                args[cbIdx] = function conjureHelperThenOpen() {
+                    cb.call(extend(context, {
+                        casper: self.casper,
+                        test: this.test
+                    }));
+                };
+            }
+            return args;
+        }
+        function tagLastStep(cb) {
+            cb.__conjure_helper_last_step = true;
+            return cb;
+        }
+    });
+    require.alias("codeactual-extend/index.js", "conjure/deps/extend/index.js");
+    require.alias("codeactual-is/index.js", "conjure/deps/is/index.js");
+    require.alias("manuelstofer-each/index.js", "codeactual-is/deps/each/index.js");
+    require.alias("component-bind/index.js", "conjure/deps/bind/index.js");
+    require.alias("component-each/index.js", "conjure/deps/each/index.js");
+    require.alias("component-type/index.js", "component-each/deps/type/index.js");
+    require.alias("visionmedia-batch/index.js", "conjure/deps/batch/index.js");
+    require.alias("component-emitter/index.js", "visionmedia-batch/deps/emitter/index.js");
+    require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
+    require.alias("visionmedia-configurable.js/index.js", "conjure/deps/configurable.js/index.js");
+    require.alias("bdd-flow/lib/bdd-flow/index.js", "conjure/deps/bdd-flow/lib/bdd-flow/index.js");
+    require.alias("bdd-flow/lib/bdd-flow/index.js", "conjure/deps/bdd-flow/index.js");
+    require.alias("visionmedia-configurable.js/index.js", "bdd-flow/deps/configurable.js/index.js");
+    require.alias("codeactual-extend/index.js", "bdd-flow/deps/extend/index.js");
+    require.alias("visionmedia-batch/index.js", "bdd-flow/deps/batch/index.js");
+    require.alias("component-emitter/index.js", "visionmedia-batch/deps/emitter/index.js");
+    require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
+    require.alias("component-clone/index.js", "bdd-flow/deps/clone/index.js");
+    require.alias("component-type/index.js", "component-clone/deps/type/index.js");
+    require.alias("component-emitter/index.js", "bdd-flow/deps/emitter/index.js");
+    require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
+    require.alias("component-bind/index.js", "bdd-flow/deps/bind/index.js");
+    require.alias("bdd-flow/lib/bdd-flow/index.js", "bdd-flow/index.js");
+    require.alias("enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/lib/enumerable-prop/index.js");
+    require.alias("enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/index.js");
+    require.alias("component-enumerable/index.js", "enumerable-prop/deps/enumerable/index.js");
+    require.alias("component-to-function/index.js", "component-enumerable/deps/to-function/index.js");
+    require.alias("enumerable-prop/lib/enumerable-prop/index.js", "enumerable-prop/index.js");
+    require.alias("conjure/lib/conjure/index.js", "conjure/index.js");
+    if (typeof exports == "object") {
+        module.exports = require("conjure");
+    } else if (typeof define == "function" && define.amd) {
+        define(function() {
+            return require("conjure");
+        });
+    } else {
+        window["conjure"] = require("conjure");
     }
-    return -1;
-  }
-
-  /**
-   * The relative require() itself.
-   */
-
-  function localRequire(path) {
-    var resolved = localRequire.resolve(path);
-    return require(resolved, parent, path);
-  }
-
-  /**
-   * Resolve relative to the parent.
-   */
-
-  localRequire.resolve = function(path) {
-    var c = path.charAt(0);
-    if ('/' == c) return path.slice(1);
-    if ('.' == c) return require.normalize(p, path);
-
-    // resolve deps by returning
-    // the dep in the nearest "deps"
-    // directory
-    var segs = parent.split('/');
-    var i = lastIndexOf(segs, 'deps') + 1;
-    if (!i) i = 0;
-    path = segs.slice(0, i + 1).join('/') + '/deps/' + path;
-    return path;
-  };
-
-  /**
-   * Check if module is defined at `path`.
-   */
-
-  localRequire.exists = function(path) {
-    return require.modules.hasOwnProperty(localRequire.resolve(path));
-  };
-
-  return localRequire;
-};
-require.register("codeactual-extend/index.js", Function("exports, require, module",
-"\nmodule.exports = function extend (object) {\n    // Takes an unlimited number of extenders.\n    var args = Array.prototype.slice.call(arguments, 1);\n\n    // For each extender, copy their properties on our object.\n    for (var i = 0, source; source = args[i]; i++) {\n        if (!source) continue;\n        for (var property in source) {\n            object[property] = source[property];\n        }\n    }\n\n    return object;\n};//@ sourceURL=codeactual-extend/index.js"
-));
-require.register("manuelstofer-each/index.js", Function("exports, require, module",
-"\"use strict\";\n\nvar nativeForEach = [].forEach;\n\n// Underscore's each function\nmodule.exports = function (obj, iterator, context) {\n    if (obj == null) return;\n    if (nativeForEach && obj.forEach === nativeForEach) {\n        obj.forEach(iterator, context);\n    } else if (obj.length === +obj.length) {\n        for (var i = 0, l = obj.length; i < l; i++) {\n            if (iterator.call(context, obj[i], i, obj) === {}) return;\n        }\n    } else {\n        for (var key in obj) {\n            if (Object.prototype.hasOwnProperty.call(obj, key)) {\n                if (iterator.call(context, obj[key], key, obj) === {}) return;\n            }\n        }\n    }\n};\n//@ sourceURL=manuelstofer-each/index.js"
-));
-require.register("codeactual-is/index.js", Function("exports, require, module",
-"/*jshint node:true*/\n\"use strict\";\n\nvar each = require('each');\nvar types = ['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp', 'Array'];\n\neach(types, function (type) {\n  var method = type === 'Function' ? type : type.toLowerCase();\n  module.exports[method] = function (obj) {\n    return Object.prototype.toString.call(obj) === '[object ' + type + ']';\n  };\n});\n\nif (Array.isArray) {\n  module.exports.array = Array.isArray;\n}\n\nmodule.exports.object = function (obj) {\n  return obj === Object(obj);\n};\n\n//@ sourceURL=codeactual-is/index.js"
-));
-require.register("component-bind/index.js", Function("exports, require, module",
-"\n/**\n * Slice reference.\n */\n\nvar slice = [].slice;\n\n/**\n * Bind `obj` to `fn`.\n *\n * @param {Object} obj\n * @param {Function|String} fn or string\n * @return {Function}\n * @api public\n */\n\nmodule.exports = function(obj, fn){\n  if ('string' == typeof fn) fn = obj[fn];\n  if ('function' != typeof fn) throw new Error('bind() requires a function');\n  var args = [].slice.call(arguments, 2);\n  return function(){\n    return fn.apply(obj, args.concat(slice.call(arguments)));\n  }\n};\n//@ sourceURL=component-bind/index.js"
-));
-require.register("component-type/index.js", Function("exports, require, module",
-"\n/**\n * toString ref.\n */\n\nvar toString = Object.prototype.toString;\n\n/**\n * Return the type of `val`.\n *\n * @param {Mixed} val\n * @return {String}\n * @api public\n */\n\nmodule.exports = function(val){\n  switch (toString.call(val)) {\n    case '[object Function]': return 'function';\n    case '[object Date]': return 'date';\n    case '[object RegExp]': return 'regexp';\n    case '[object Arguments]': return 'arguments';\n    case '[object Array]': return 'array';\n    case '[object String]': return 'string';\n  }\n\n  if (val === null) return 'null';\n  if (val === undefined) return 'undefined';\n  if (val && val.nodeType === 1) return 'element';\n  if (val === Object(val)) return 'object';\n\n  return typeof val;\n};\n//@ sourceURL=component-type/index.js"
-));
-require.register("component-each/index.js", Function("exports, require, module",
-"\n/**\n * Module dependencies.\n */\n\nvar type = require('type');\n\n/**\n * HOP reference.\n */\n\nvar has = Object.prototype.hasOwnProperty;\n\n/**\n * Iterate the given `obj` and invoke `fn(val, i)`.\n *\n * @param {String|Array|Object} obj\n * @param {Function} fn\n * @api public\n */\n\nmodule.exports = function(obj, fn){\n  switch (type(obj)) {\n    case 'array':\n      return array(obj, fn);\n    case 'object':\n      if ('number' == typeof obj.length) return array(obj, fn);\n      return object(obj, fn);\n    case 'string':\n      return string(obj, fn);\n  }\n};\n\n/**\n * Iterate string chars.\n *\n * @param {String} obj\n * @param {Function} fn\n * @api private\n */\n\nfunction string(obj, fn) {\n  for (var i = 0; i < obj.length; ++i) {\n    fn(obj.charAt(i), i);\n  }\n}\n\n/**\n * Iterate object keys.\n *\n * @param {Object} obj\n * @param {Function} fn\n * @api private\n */\n\nfunction object(obj, fn) {\n  for (var key in obj) {\n    if (has.call(obj, key)) {\n      fn(key, obj[key]);\n    }\n  }\n}\n\n/**\n * Iterate array-ish.\n *\n * @param {Array|Object} obj\n * @param {Function} fn\n * @api private\n */\n\nfunction array(obj, fn) {\n  for (var i = 0; i < obj.length; ++i) {\n    fn(obj[i], i);\n  }\n}//@ sourceURL=component-each/index.js"
-));
-require.register("component-indexof/index.js", Function("exports, require, module",
-"\nvar indexOf = [].indexOf;\n\nmodule.exports = function(arr, obj){\n  if (indexOf) return arr.indexOf(obj);\n  for (var i = 0; i < arr.length; ++i) {\n    if (arr[i] === obj) return i;\n  }\n  return -1;\n};//@ sourceURL=component-indexof/index.js"
-));
-require.register("component-emitter/index.js", Function("exports, require, module",
-"\n/**\n * Module dependencies.\n */\n\nvar index = require('indexof');\n\n/**\n * Expose `Emitter`.\n */\n\nmodule.exports = Emitter;\n\n/**\n * Initialize a new `Emitter`.\n *\n * @api public\n */\n\nfunction Emitter(obj) {\n  if (obj) return mixin(obj);\n};\n\n/**\n * Mixin the emitter properties.\n *\n * @param {Object} obj\n * @return {Object}\n * @api private\n */\n\nfunction mixin(obj) {\n  for (var key in Emitter.prototype) {\n    obj[key] = Emitter.prototype[key];\n  }\n  return obj;\n}\n\n/**\n * Listen on the given `event` with `fn`.\n *\n * @param {String} event\n * @param {Function} fn\n * @return {Emitter}\n * @api public\n */\n\nEmitter.prototype.on = function(event, fn){\n  this._callbacks = this._callbacks || {};\n  (this._callbacks[event] = this._callbacks[event] || [])\n    .push(fn);\n  return this;\n};\n\n/**\n * Adds an `event` listener that will be invoked a single\n * time then automatically removed.\n *\n * @param {String} event\n * @param {Function} fn\n * @return {Emitter}\n * @api public\n */\n\nEmitter.prototype.once = function(event, fn){\n  var self = this;\n  this._callbacks = this._callbacks || {};\n\n  function on() {\n    self.off(event, on);\n    fn.apply(this, arguments);\n  }\n\n  fn._off = on;\n  this.on(event, on);\n  return this;\n};\n\n/**\n * Remove the given callback for `event` or all\n * registered callbacks.\n *\n * @param {String} event\n * @param {Function} fn\n * @return {Emitter}\n * @api public\n */\n\nEmitter.prototype.off =\nEmitter.prototype.removeListener =\nEmitter.prototype.removeAllListeners = function(event, fn){\n  this._callbacks = this._callbacks || {};\n\n  // all\n  if (0 == arguments.length) {\n    this._callbacks = {};\n    return this;\n  }\n\n  // specific event\n  var callbacks = this._callbacks[event];\n  if (!callbacks) return this;\n\n  // remove all handlers\n  if (1 == arguments.length) {\n    delete this._callbacks[event];\n    return this;\n  }\n\n  // remove specific handler\n  var i = index(callbacks, fn._off || fn);\n  if (~i) callbacks.splice(i, 1);\n  return this;\n};\n\n/**\n * Emit `event` with the given args.\n *\n * @param {String} event\n * @param {Mixed} ...\n * @return {Emitter}\n */\n\nEmitter.prototype.emit = function(event){\n  this._callbacks = this._callbacks || {};\n  var args = [].slice.call(arguments, 1)\n    , callbacks = this._callbacks[event];\n\n  if (callbacks) {\n    callbacks = callbacks.slice(0);\n    for (var i = 0, len = callbacks.length; i < len; ++i) {\n      callbacks[i].apply(this, args);\n    }\n  }\n\n  return this;\n};\n\n/**\n * Return array of callbacks for `event`.\n *\n * @param {String} event\n * @return {Array}\n * @api public\n */\n\nEmitter.prototype.listeners = function(event){\n  this._callbacks = this._callbacks || {};\n  return this._callbacks[event] || [];\n};\n\n/**\n * Check if this emitter has `event` handlers.\n *\n * @param {String} event\n * @return {Boolean}\n * @api public\n */\n\nEmitter.prototype.hasListeners = function(event){\n  return !! this.listeners(event).length;\n};\n//@ sourceURL=component-emitter/index.js"
-));
-require.register("visionmedia-batch/index.js", Function("exports, require, module",
-"\n/**\n * Module dependencies.\n */\n\ntry {\n  var EventEmitter = require('events').EventEmitter;\n} catch (err) {\n  var Emitter = require('emitter');\n}\n\n/**\n * Noop.\n */\n\nfunction noop(){}\n\n/**\n * Expose `Batch`.\n */\n\nmodule.exports = Batch;\n\n/**\n * Create a new Batch.\n */\n\nfunction Batch() {\n  this.fns = [];\n  this.concurrency(Infinity);\n  for (var i = 0, len = arguments.length; i < len; ++i) {\n    this.push(arguments[i]);\n  }\n}\n\n/**\n * Inherit from `EventEmitter.prototype`.\n */\n\nif (EventEmitter) {\n  Batch.prototype.__proto__ = EventEmitter.prototype;\n} else {\n  Emitter(Batch.prototype);\n}\n\n/**\n * Set concurrency to `n`.\n *\n * @param {Number} n\n * @return {Batch}\n * @api public\n */\n\nBatch.prototype.concurrency = function(n){\n  this.n = n;\n  return this;\n};\n\n/**\n * Queue a function.\n *\n * @param {Function} fn\n * @return {Batch}\n * @api public\n */\n\nBatch.prototype.push = function(fn){\n  this.fns.push(fn);\n  return this;\n};\n\n/**\n * Execute all queued functions in parallel,\n * executing `cb(err, results)`.\n *\n * @param {Function} cb\n * @return {Batch}\n * @api public\n */\n\nBatch.prototype.end = function(cb){\n  var self = this\n    , total = this.fns.length\n    , pending = total\n    , results = []\n    , cb = cb || noop\n    , fns = this.fns\n    , max = this.n\n    , index = 0\n    , done;\n\n  // empty\n  if (!fns.length) return cb(null, results);\n\n  // process\n  function next() {\n    var i = index++;\n    var fn = fns[i];\n    if (!fn) return;\n    var start = new Date;\n    fn(function(err, res){\n      if (done) return;\n      if (err) return done = true, cb(err);\n      var complete = total - pending + 1;\n      var end = new Date;\n\n      results[i] = res;\n\n      self.emit('progress', {\n        index: i,\n        value: res,\n        pending: pending,\n        total: total,\n        complete: complete,\n        percent: complete / total * 100 | 0,\n        start: start,\n        end: end,\n        duration: end - start\n      });\n\n      if (--pending) next()\n      else cb(null, results);\n    });\n  }\n\n  // concurrency\n  for (var i = 0; i < fns.length; i++) {\n    if (i == max) break;\n    next();\n  }\n\n  return this;\n};\n//@ sourceURL=visionmedia-batch/index.js"
-));
-require.register("visionmedia-configurable.js/index.js", Function("exports, require, module",
-"\n/**\n * Make `obj` configurable.\n *\n * @param {Object} obj\n * @return {Object} the `obj`\n * @api public\n */\n\nmodule.exports = function(obj){\n\n  /**\n   * Mixin settings.\n   */\n\n  obj.settings = {};\n\n  /**\n   * Set config `name` to `val`, or\n   * multiple with an object.\n   *\n   * @param {String|Object} name\n   * @param {Mixed} val\n   * @return {Object} self\n   * @api public\n   */\n\n  obj.set = function(name, val){\n    if (1 == arguments.length) {\n      for (var key in name) {\n        this.set(key, name[key]);\n      }\n    } else {\n      this.settings[name] = val;\n    }\n\n    return this;\n  };\n\n  /**\n   * Get setting `name`.\n   *\n   * @param {String} name\n   * @return {Mixed}\n   * @api public\n   */\n\n  obj.get = function(name){\n    return this.settings[name];\n  };\n\n  /**\n   * Enable `name`.\n   *\n   * @param {String} name\n   * @return {Object} self\n   * @api public\n   */\n\n  obj.enable = function(name){\n    return this.set(name, true);\n  };\n\n  /**\n   * Disable `name`.\n   *\n   * @param {String} name\n   * @return {Object} self\n   * @api public\n   */\n\n  obj.disable = function(name){\n    return this.set(name, false);\n  };\n\n  /**\n   * Check if `name` is enabled.\n   *\n   * @param {String} name\n   * @return {Boolean}\n   * @api public\n   */\n\n  obj.enabled = function(name){\n    return !! this.get(name);\n  };\n\n  /**\n   * Check if `name` is disabled.\n   *\n   * @param {String} name\n   * @return {Boolean}\n   * @api public\n   */\n\n  obj.disabled = function(name){\n    return ! this.get(name);\n  };\n\n  return obj;\n};//@ sourceURL=visionmedia-configurable.js/index.js"
-));
-require.register("component-clone/index.js", Function("exports, require, module",
-"\n/**\n * Module dependencies.\n */\n\nvar type;\n\ntry {\n  type = require('type');\n} catch(e){\n  type = require('type-component');\n}\n\n/**\n * Module exports.\n */\n\nmodule.exports = clone;\n\n/**\n * Clones objects.\n *\n * @param {Mixed} any object\n * @api public\n */\n\nfunction clone(obj){\n  switch (type(obj)) {\n    case 'object':\n      var copy = {};\n      for (var key in obj) {\n        if (obj.hasOwnProperty(key)) {\n          copy[key] = clone(obj[key]);\n        }\n      }\n      return copy;\n\n    case 'array':\n      var copy = new Array(obj.length);\n      for (var i = 0, l = obj.length; i < l; i++) {\n        copy[i] = clone(obj[i]);\n      }\n      return copy;\n\n    case 'regexp':\n      // from millermedeiros/amd-utils - MIT\n      var flags = '';\n      flags += obj.multiline ? 'm' : '';\n      flags += obj.global ? 'g' : '';\n      flags += obj.ignoreCase ? 'i' : '';\n      return new RegExp(obj.source, flags);\n\n    case 'date':\n      return new Date(obj.getTime());\n\n    default: // string, number, boolean, …\n      return obj;\n  }\n}\n//@ sourceURL=component-clone/index.js"
-));
-require.register("bdd-flow/lib/bdd-flow/index.js", Function("exports, require, module",
-"/**\n * Build and run BDD flows with before/after hooks, describe, it\n *\n * Licensed under MIT.\n * Copyright (c) 2013 David Smith <https://github.com/codeactual/>\n */\n\n/*jshint node:true*/\n'use strict';\n\n/**\n * Bddflow constructor.\n */\nexports.Bddflow = Bddflow;\n\n/**\n * Create a new Bddflow.\n *\n * @return {object}\n */\nexports.create = function() { return new Bddflow(); };\n\n/**\n * Extend Bddflow.prototype.\n *\n * @param {object} ext\n * @return {object} Merge result.\n */\nexports.extend = function(ext) { return extend(Bddflow.prototype, ext); };\n\n/**\n * Let tests load component-land modules.\n *\n * @api private\n */\nexports.requireComponent = require;\n\nvar Batch = require('batch');\nvar bind = require('bind');\nvar clone = require('clone');\nvar configurable = require('configurable.js');\nvar emitter = require('emitter');\nvar extend = require('extend');\n\n// Match properties that should not be 'inherited' by it(), hooks, etc.\nvar flowFnRegex = /^(it|describe|before|beforeEach|after|afterEach)$/;\nvar defOmitContextRegex = {\n  all: [/^__conjure__/],\n  describe: [],\n  hook: [flowFnRegex],\n  it: [flowFnRegex],\n  rootDescribe: []\n};\n\n/**\n * Bddflow constructor.\n *\n * Usage:\n *\n *     var flow = require('bdd-flow').create();\n *     flow.addRootDescribe('subject', function() {\n *       this.it('should do X', function() {\n *         // ...\n *       });\n *     })\n *     .addContextProp('someKey', someVal)\n *     .set('done', function() {\n *       console.log('Run finished.');\n *     })\n *     .run();\n *\n * Configuration:\n *\n * - `{function} done` Callback fired after run finishes\n * - `{function} itWrap` `it()` wrapper from which context can be 'inherited'\n *   - Receives: (`name`, `cb`)\n *   - Or for auto-detected async, receives: (`name`, `cb`, `done`)\n * - `{function} describeWrap` `describe()` wrapper from which context can be 'inherited'\n *   - Receives: (`name`, `cb`)\n * - `{object} omitContextRegex` Property name patterns\n *   - Ex. used to omit properties from propagating between `it()` handlers\n *   - Indexed by type: `all`, `describe`, `hook`, `it`, `rootDescribe`\n *   - Values are arrays of `RegExp`.\n * - `{array} path` Names of ancestor describe levels to the currently executing `it()`\n * - `{regexp} grep` Filter `it()` execution by \"current path + `it()` name\"\n * - `{regexp} grepv` Omit `it()` execution by \"current path + `it()` name\"\n * - `{object} sharedContext` hook/describe/it context that is 'inherited'\n * - `{object} stats`\n *   - `{number} depth` Current stack depth during test run\n *\n * Properties:\n *\n * - `{array} rootDescribe` Top-level `Describe` objects\n * - `{object} batch` `Batch` instance used to run collected test steps\n * - `{object} seedProps` Merged into initial hook/describe/it context\n *\n * Inherits:\n *\n * - `emitter` component\n *\n * Emits events:\n *\n * - `describePush` About to start running its collected steps\n *   - `{string} name`\n * - `describePop` Finished its collected steps, including nested `describe()`\n *   - `{string} name`\n * - `itPush` About to start running its callback\n *   - `{string} name`\n * - `itPop` Its callback finished\n *   - `{string} name`\n *\n * @see emitter https://github.com/component/emitter\n */\nfunction Bddflow() {\n  this.settings = {\n    done: bddflowNoOp,\n\n    // Propagate to each new Describe instance:\n    itWrap: null,\n    describeWrap: null,\n    omitContextRegex: clone(defOmitContextRegex),\n    path: [],\n    grep: /.?/,\n    grepv: null,\n    sharedContext: {},\n    stats: {depth: 0},\n    emit: bind(this, this.emit)\n  };\n  this.rootDescribes = [];\n  this.batch = new Batch();\n  this.seedProps = {};\n}\n\n// Bddflow configs propagated to each new `Describe`.\nBddflow.describeConfigKeys = [\n  'describeWrap', 'emit', 'itWrap', 'omitContextRegex', 'path', 'grep', 'grepv',\n  'sharedContext', 'stats'\n];\n\nconfigurable(Bddflow.prototype);\nemitter(Bddflow.prototype);\n\n/**\n * Add a property to the initial hook/describe/it shared context.\n *\n * @param {string} key\n * @param {mixed} val\n * @return {object} this\n */\nBddflow.prototype.addContextProp = function(key, val) {\n  this.seedProps[key] = val;\n  return this;\n};\n\n/**\n * Add a top-level `describe()`.\n *\n * @param {string} name\n * @param {function} cb\n * @return {object} this\n */\nBddflow.prototype.addRootDescribe = function(name, cb) {\n  var self = this;\n  var desc = new Describe(name);\n  desc.describe(name, cb);\n  this.rootDescribes.push(desc);\n  return this;\n};\n\n/**\n * Get the current stack depth.\n *\n * @return {number}\n * - `0` = every root `describe()`\n * - Each deeper `describe()` is 1 more than its parent `describe()`.\n * - Each `it()` is 1 more than its parent `describe()`.\n */\nBddflow.prototype.currentDepth = function() {\n  return this.get('stats').depth;\n};\n\n/**\n * Prevent a type of flow function from 'inheriting' specific context properties\n * from enclosing/subsequently-executed flow functions.\n *\n * @param {string} type 'it', 'hook'\n * @param {regexp} regex\n * @return {object} this\n */\nBddflow.prototype.hideContextProp = function(type, regex) {\n  if (typeof regex === 'string') {\n    regex = new RegExp('^' + regex + '$');\n  }\n  this.get('omitContextRegex')[type].push(regex);\n  return this;\n};\n\n/**\n * Run collected `describe()` steps.\n */\nBddflow.prototype.run = function() {\n  var self = this;\n\n  var batch = new Batch();\n  batch.concurrency(1);\n  this.set('sharedContext', this.seedProps);\n  this.rootDescribes.forEach(function bddflowEachRootDescribe(desc) {\n    batch.push(function bddflowBatchPushRootDescribe(taskDone) {\n      self.set('path', []);\n      Bddflow.describeConfigKeys.forEach(function bddflowForEachConfigKey(key) {\n        desc.set(key, self.get(key));\n      });\n      bddflowRunStepsInBatch(desc.steps, taskDone);\n    });\n  });\n  batch.end(this.get('done'));\n};\n\n// Auto-terminating callback for use with `Batch#push`.\nBddflow.defaultHookImpl = function(done) { done(); };\n\n/**\n * HookSet constructor.\n *\n * Container for a `before()`, `beforeEach()`, etc. method set.\n *\n * @api private\n */\nfunction HookSet() {\n  this.before = Bddflow.defaultHookImpl;\n  this.beforeEach = Bddflow.defaultHookImpl;\n  this.after = Bddflow.defaultHookImpl;\n  this.afterEach = Bddflow.defaultHookImpl;\n}\n\n/**\n * ItCallback constructor.\n *\n * @param {string} name Subject expectation.\n * @param {string} name Test subject.\n * @api private\n */\nfunction ItCallback(name, cb) {\n  this.name = name;\n  this.cb = cb;\n}\n\n/**\n * Describe constructor.\n *\n * Stores its properties, internal hooks, and nested steps (describe/it).\n *\n * @param {string} name Subject expected to exhibit some behavior.\n * @api private\n */\nfunction Describe(name) {\n  this.name = name;\n  this.steps = [];\n  this.hooks = new HookSet();\n  this.settings = {};\n}\n\nconfigurable(Describe.prototype);\n\n/**\n * Add properties to the context shared by hooks/describe/it.\n *\n * Properties will be filtered based on `type`.\n *\n * @param {object} ext\n * @param {string} type 'describe', 'hook', 'it', 'rootDescribe'\n * @api private\n */\nDescribe.prototype.extendSharedContext = function(ext, type) {\n  return extend(this.get('sharedContext'), this.filterProps(ext, type));\n};\n\n/**\n * Use regex stored in `omitContextRegex` to filter properties (from the\n * context shared by hooks/describe/it) based on name.\n *\n * @param {object} obj\n * @param {string} type 'describe', 'hook', 'it', 'rootDescribe'\n * @return {object} Filtered `obj`\n * @api private\n */\nDescribe.prototype.filterProps = function(obj, type) {\n  var omitContextRegex = this.get('omitContextRegex');\n  var regex = omitContextRegex.all.concat(omitContextRegex[type]);\n  return Object.keys(obj).reduce(function bddflowReduceFilterProps(memo, key) {\n    var omit = false;\n    regex.forEach(function bddflowForEachFilterPropsRegex(re) {\n      omit = omit || re.test(key);\n    });\n    if (omit) {\n      return memo;\n    }\n    memo[key] = obj[key];\n    return memo;\n  }, {});\n};\n\n/**\n * Filter 'this' into an object with properties that can be 'inherited'\n * between hook/describe/it.\n *\n * Static used in other classes via `call()`. Exposed for test access.\n *\n * @param {string} type 'describe', 'hook', 'it', 'rootDescribe'\n * @return {object}\n * @api private\n */\nDescribe.prototype.getSharedContext = function(type) {\n  return this.filterProps(this.get('sharedContext'), type);\n};\n\n/**\n * Add an `it()` step.\n *\n * @param {string} name\n * @param {function} cb `Batch#push` compatible\n * @see Batch https://github.com/visionmedia/batch#api\n */\nDescribe.prototype.it = function(name, cb) {\n  this.steps.push(new ItCallback(name, cb));\n};\n\n/**\n * Add a `describe()` step.\n *\n * @param {string} name\n * @param {function} cb `Batch#push` compatible\n * @see Batch https://github.com/visionmedia/batch#api\n */\nDescribe.prototype.describe = function(name, cb) {\n  var self = this;\n\n  // This function is executed inside bddflowRunStepsInBatch().\n  var step = function(done) {\n    var desc = new Describe(name); // Collect nested steps.\n    Bddflow.describeConfigKeys.forEach(function bddflowForEachConfigKey(key) {\n      desc.set(key, self.get(key));\n    });\n    var path = desc.get('path');\n    path.push(name);\n\n    var describeWrap = desc.get('describeWrap') || bddflowDefDescribeWrap;\n    describeWrap(name, function bddflowDescribeWrap() {\n      var wrapContext = this || {};\n      var mergedContext = desc.extendSharedContext(wrapContext, 'describe');\n      mergedContext.describe = bind(desc, desc.describe);\n      mergedContext.it = bind(desc, desc.it);\n      mergedContext.before = bind(desc, desc.before);\n      mergedContext.beforeEach = bind(desc, desc.beforeEach);\n      mergedContext.after = bind(desc, desc.after);\n      mergedContext.afterEach = bind(desc, desc.afterEach);\n      bddflowAddInternalProp(mergedContext, 'name', name);\n      cb.call(mergedContext);\n    });\n\n    desc.pushStep();\n\n    var batch = new Batch();\n\n    batch.push(function bddflowBatchPushBeforeHook(done) {\n      function asyncCb() {\n        desc.extendSharedContext(context, 'hook'); // Apply changes.\n        done();\n      }\n      var hook = desc.hooks.before;\n      var context = desc.getSharedContext('hook');\n      if (hook.length) { // Expects callback arg.\n        desc.hooks.before.call(context, asyncCb);\n      } else {\n        desc.hooks.before.call(context);\n        asyncCb();\n      }\n    });\n\n    batch.push(function bddflowBatchPushItOrDescribe(done) { // Wrap hooks around each internal describe()/it()\n      desc.steps = desc.steps.map(function bddflowMapDescribeSteps(step) {\n        // Don't wrap nested `describe()` in a hook set.\n        if (step instanceof DescribeCallback) {\n          var context = desc.getSharedContext('describe');\n          return new DescribeCallback(step.name, bind(context, step.cb));\n        }\n\n        var itPath = path.concat(step.name);\n        var grep = desc.get('grep');\n        var grepv = desc.get('grepv');\n        if (grepv) {\n          if (grepv.test(itPath.join(' '))) {\n            return new ItCallback(step.name, bddflowBatchNoOp);\n          }\n        } else if (grep) {\n          if (!grep.test(itPath.join(' '))) {\n            return new ItCallback(step.name, bddflowBatchNoOp);\n          }\n        }\n\n        return new ItCallback(step.name, function bddflowItCallback(done) { // instanceof ItCallback\n          var batch = new Batch();\n          batch.push(function bddflowBatchPushBeforeEach(done) {\n            function asyncCb() {\n              desc.extendSharedContext(context, 'hook'); // Apply changes.\n              done();\n            }\n            var hook = desc.hooks.beforeEach;\n            var context = desc.getSharedContext('hook');\n            if (hook.length) { // Expects callback arg.\n              desc.hooks.beforeEach.call(context, asyncCb);\n            } else {\n              desc.hooks.beforeEach.call(context);\n              asyncCb();\n            }\n          });\n          batch.push(function bddflowBatchPushIt(done) {\n            var context = desc.getSharedContext('it');\n            var emit = desc.get('emit');\n\n            function asyncCb() {\n              desc.extendSharedContext(context, 'it'); // Apply changes.\n              emit('itPop', step.name);\n              done();\n            }\n\n            var itWrap = desc.get('itWrap') || bddflowDefItWrap;\n            if (itWrap.length == 3) { // it() wrapper will trigger next step\n              itWrap(step.name, function bddflowItWrapAsync() {\n                var wrapContext = this || {};\n                extend(context, wrapContext);\n                bddflowAddInternalProp(context, 'name', step.name, true);\n                bddflowAddInternalProp(context, 'path', itPath, true);\n                emit('itPush', step.name);\n                step.cb.call(context);\n              }, asyncCb);\n            } else {\n              itWrap(step.name, function bddflowItWrap() {\n                var wrapContext = this || {};\n                extend(context, wrapContext);\n                bddflowAddInternalProp(context, 'name', step.name, true);\n                bddflowAddInternalProp(context, 'path', itPath, true);\n                emit('itPush', step.name);\n                if (step.cb.length) { // Expects callback arg.\n                  step.cb.call(context, asyncCb);\n                } else {\n                  step.cb.call(context);\n                  asyncCb();\n                }\n              });\n            }\n          });\n          batch.push(function bddflowBatchPushAfterEach(done) {\n            function asyncCb() {\n              desc.extendSharedContext(context, 'hook'); // Apply changes.\n              done();\n            }\n            var hook = desc.hooks.afterEach;\n            var context = desc.getSharedContext('hook');\n            if (hook.length) { // Expects callback arg.\n              desc.hooks.afterEach.call(context, asyncCb);\n            } else {\n              desc.hooks.afterEach.call(context);\n              asyncCb();\n            }\n          });\n          batch.concurrency(1);\n          batch.end(done);\n        });\n      });\n\n      bddflowRunStepsInBatch(desc.steps, done);\n    });\n\n    batch.push(function bddflowBatchPushAfter(done) {\n      function asyncCb() {\n        desc.extendSharedContext(context, 'hook'); // Apply changes.\n        done();\n      }\n      var hook = desc.hooks.after;\n      var context = desc.getSharedContext('hook');\n      if (hook.length) { // Expects callback arg.\n        desc.hooks.after.call(context, asyncCb);\n      } else {\n        desc.hooks.after.call(context);\n        asyncCb();\n      }\n    });\n\n    batch.concurrency(1);\n    batch.end(function bddflowEndDescribeBatch() {\n      desc.popStep();\n      done();\n    });\n  };\n  this.steps.push(new DescribeCallback(name, step));\n};\n\n/**\n * Run a custom hook before the first `it()` in the current `describe()`.\n *\n * @param {function} cb\n * - Async-mode is optional and auto-detected.\n *   - Ex. `function(done) { ... done(); }`\n */\nDescribe.prototype.before = function(cb) { this.hooks.before = cb; };\n\n/**\n * Run a custom hook after to the last `it()` in the current `describe()`.\n *\n * @param {function} cb\n * - Async-mode is optional and auto-detected.\n *   - Ex. `function(done) { ... done(); }`\n */\nDescribe.prototype.beforeEach = function(cb) { this.hooks.beforeEach = cb; };\n\n/**\n * Override the default no-op after() hook.\n *\n * @param {function} cb\n * - Async-mode is optional and auto-detected.\n *   - Ex. `function(done) { ... done(); }`\n */\nDescribe.prototype.after = function(cb) { this.hooks.after = cb; };\n\n/**\n * Run a custom hook after each `it()` in the current `describe()`.\n *\n * @param {function} cb\n * - Async-mode is optional and auto-detected.\n *   - Ex. `function(done) { ... done(); }`\n */\nDescribe.prototype.afterEach = function(cb) { this.hooks.afterEach = cb; };\n\n/**\n * Update stack depth stats.\n *\n * - Depth is increased by 1 before a `describe()` executes its collected steps.\n * - Ex. all hooks and `it()` cases share the same (post-increment) depth.\n *\n * @api private\n */\nDescribe.prototype.pushStep = function() {\n  var emit = this.get('emit');\n  var stats = this.get('stats');\n  stats.depth++;\n  this.set('stats', stats);\n  emit('describePush', this.name);\n};\n\n/**\n * Update stack depth stats.\n *\n * - Depth is decreased by 1 after a `describe()` executes its collected steps.\n *\n * @api private\n */\nDescribe.prototype.popStep = function() {\n  var emit = this.get('emit');\n  var stats = this.get('stats');\n  stats.depth--;\n  this.set('stats', stats);\n  emit('describePop', this.name);\n};\n\n/**\n * DescribeCallback constructor.\n *\n * @param {string} name Test subject.\n * @param {function} cb\n * @api private\n */\nfunction DescribeCallback(name, cb) {\n  this.name = name;\n  this.cb = cb;\n}\n\n/**\n * Execute an array of functions w/ Batch.\n *\n * @param {array} steps\n * @param {function} cb Called at completion.\n * @param {number} [concurrency=1]\n * @api private\n */\nfunction bddflowRunStepsInBatch(steps, cb) {\n  var batch = new Batch();\n  batch.concurrency(1);\n  steps.forEach(function bddflowForEachStep(step) { batch.push(step.cb); });\n  batch.end(cb);\n}\n\nfunction bddflowNoOp() {}\nfunction bddflowBatchNoOp(taskDone) { taskDone(); }\n\n// Default wrappers that inject no new context properties.\nfunction bddflowDefItWrap(name, cb) { cb(); }\nfunction bddflowDefDescribeWrap(name, cb) { cb(); }\n\nfunction bddflowDelInternalProp(obj, key) {\n  delete obj['__conjure__' + key];\n}\n\nfunction bddflowAddInternalProp(obj, key, val, writable) {\n  Object.defineProperty(\n    obj, '__conjure__' + key,\n    {value: val, enumerable: false, configurable: true, writable: !!writable}\n  );\n}\n//@ sourceURL=bdd-flow/lib/bdd-flow/index.js"
-));
-require.register("component-to-function/index.js", Function("exports, require, module",
-"\n/**\n * Expose `toFunction()`.\n */\n\nmodule.exports = toFunction;\n\n/**\n * Convert `obj` to a `Function`.\n *\n * @param {Mixed} obj\n * @return {Function}\n * @api private\n */\n\nfunction toFunction(obj) {\n  switch ({}.toString.call(obj)) {\n    case '[object Object]':\n      return objectToFunction(obj);\n    case '[object Function]':\n      return obj;\n    case '[object String]':\n      return stringToFunction(obj);\n    case '[object RegExp]':\n      return regexpToFunction(obj);\n    default:\n      return defaultToFunction(obj);\n  }\n}\n\n/**\n * Default to strict equality.\n *\n * @param {Mixed} val\n * @return {Function}\n * @api private\n */\n\nfunction defaultToFunction(val) {\n  return function(obj){\n    return val === obj;\n  }\n}\n\n/**\n * Convert `re` to a function.\n *\n * @param {RegExp} re\n * @return {Function}\n * @api private\n */\n\nfunction regexpToFunction(re) {\n  return function(obj){\n    return re.test(obj);\n  }\n}\n\n/**\n * Convert property `str` to a function.\n *\n * @param {String} str\n * @return {Function}\n * @api private\n */\n\nfunction stringToFunction(str) {\n  // immediate such as \"> 20\"\n  if (/^ *\\W+/.test(str)) return new Function('_', 'return _ ' + str);\n\n  // properties such as \"name.first\" or \"age > 18\"\n  return new Function('_', 'return _.' + str);\n}\n\n/**\n * Convert `object` to a function.\n *\n * @param {Object} object\n * @return {Function}\n * @api private\n */\n\nfunction objectToFunction(obj) {\n  var match = {}\n  for (var key in obj) {\n    match[key] = typeof obj[key] === 'string'\n      ? defaultToFunction(obj[key])\n      : toFunction(obj[key])\n  }\n  return function(val){\n    if (typeof val !== 'object') return false;\n    for (var key in match) {\n      if (!(key in val)) return false;\n      if (!match[key](val[key])) return false;\n    }\n    return true;\n  }\n}\n//@ sourceURL=component-to-function/index.js"
-));
-require.register("component-enumerable/index.js", Function("exports, require, module",
-"\n/**\n * Module dependencies.\n */\n\nvar toFunction = require('to-function')\n  , proto = {};\n\n/**\n * Expose `Enumerable`.\n */\n\nmodule.exports = Enumerable;\n\n/**\n * Mixin to `obj`.\n *\n *    var Enumerable = require('enumerable');\n *    Enumerable(Something.prototype);\n *\n * @param {Object} obj\n * @return {Object} obj\n */\n\nfunction mixin(obj){\n  for (var key in proto) obj[key] = proto[key];\n  obj.__iterate__ = obj.__iterate__ || defaultIterator;\n  return obj;\n}\n\n/**\n * Initialize a new `Enumerable` with the given `obj`.\n *\n * @param {Object} obj\n * @api private\n */\n\nfunction Enumerable(obj) {\n  if (!(this instanceof Enumerable)) {\n    if (Array.isArray(obj)) return new Enumerable(obj);\n    return mixin(obj);\n  }\n  this.obj = obj;\n}\n\n/*!\n * Default iterator utilizing `.length` and subscripts.\n */\n\nfunction defaultIterator() {\n  var self = this;\n  return {\n    length: function(){ return self.length },\n    get: function(i){ return self[i] }\n  }\n}\n\n/**\n * Return a string representation of this enumerable.\n *\n *    [Enumerable [1,2,3]]\n *\n * @return {String}\n * @api public\n */\n\nEnumerable.prototype.inspect =\nEnumerable.prototype.toString = function(){\n  return '[Enumerable ' + JSON.stringify(this.obj) + ']';\n};\n\n/**\n * Iterate enumerable.\n *\n * @return {Object}\n * @api private\n */\n\nEnumerable.prototype.__iterate__ = function(){\n  var obj = this.obj;\n  obj.__iterate__ = obj.__iterate__ || defaultIterator;\n  return obj.__iterate__();\n};\n\n/**\n * Iterate each value and invoke `fn(val, i)`.\n *\n *    users.each(function(val, i){\n *\n *    })\n *\n * @param {Function} fn\n * @return {Object} self\n * @api public\n */\n\nproto.each = function(fn){\n  var vals = this.__iterate__();\n  var len = vals.length();\n  for (var i = 0; i < len; ++i) {\n    fn(vals.get(i), i);\n  }\n  return this;\n};\n\n/**\n * Map each return value from `fn(val, i)`.\n *\n * Passing a callback function:\n *\n *    users.map(function(user){\n *      return user.name.first\n *    })\n *\n * Passing a property string:\n *\n *    users.map('name.first')\n *\n * @param {Function} fn\n * @return {Enumerable}\n * @api public\n */\n\nproto.map = function(fn){\n  fn = toFunction(fn);\n  var vals = this.__iterate__();\n  var len = vals.length();\n  var arr = [];\n  for (var i = 0; i < len; ++i) {\n    arr.push(fn(vals.get(i), i));\n  }\n  return new Enumerable(arr);\n};\n\n/**\n * Select all values that return a truthy value of `fn(val, i)`.\n *\n *    users.select(function(user){\n *      return user.age > 20\n *    })\n *\n *  With a property:\n *\n *    items.select('complete')\n *\n * @param {Function|String} fn\n * @return {Enumerable}\n * @api public\n */\n\nproto.select = function(fn){\n  fn = toFunction(fn);\n  var val;\n  var arr = [];\n  var vals = this.__iterate__();\n  var len = vals.length();\n  for (var i = 0; i < len; ++i) {\n    val = vals.get(i);\n    if (fn(val, i)) arr.push(val);\n  }\n  return new Enumerable(arr);\n};\n\n/**\n * Select all unique values.\n *\n *    nums.unique()\n *\n * @return {Enumerable}\n * @api public\n */\n\nproto.unique = function(){\n  var val;\n  var arr = [];\n  var vals = this.__iterate__();\n  var len = vals.length();\n  for (var i = 0; i < len; ++i) {\n    val = vals.get(i);\n    if (~arr.indexOf(val)) continue;\n    arr.push(val);\n  }\n  return new Enumerable(arr);\n};\n\n/**\n * Reject all values that return a truthy value of `fn(val, i)`.\n *\n * Rejecting using a callback:\n *\n *    users.reject(function(user){\n *      return user.age < 20\n *    })\n *\n * Rejecting with a property:\n *\n *    items.reject('complete')\n *\n * Rejecting values via `==`:\n *\n *    data.reject(null)\n *    users.reject(tobi)\n *\n * @param {Function|String|Mixed} fn\n * @return {Enumerable}\n * @api public\n */\n\nproto.reject = function(fn){\n  var val;\n  var arr = [];\n  var vals = this.__iterate__();\n  var len = vals.length();\n\n  if ('string' == typeof fn) fn = toFunction(fn);\n\n  if (fn) {\n    for (var i = 0; i < len; ++i) {\n      val = vals.get(i);\n      if (!fn(val, i)) arr.push(val);\n    }\n  } else {\n    for (var i = 0; i < len; ++i) {\n      val = vals.get(i);\n      if (val != fn) arr.push(val);\n    }\n  }\n\n  return new Enumerable(arr);\n};\n\n/**\n * Reject `null` and `undefined`.\n *\n *    [1, null, 5, undefined].compact()\n *    // => [1,5]\n *\n * @return {Enumerable}\n * @api public\n */\n\n\nproto.compact = function(){\n  return this.reject(null);\n};\n\n/**\n * Return the first value when `fn(val, i)` is truthy,\n * otherwise return `undefined`.\n *\n *    users.find(function(user){\n *      return user.role == 'admin'\n *    })\n *\n * With a property string:\n *\n *    users.find('age > 20')\n *\n * @param {Function|String} fn\n * @return {Mixed}\n * @api public\n */\n\nproto.find = function(fn){\n  fn = toFunction(fn);\n  var val;\n  var vals = this.__iterate__();\n  var len = vals.length();\n  for (var i = 0; i < len; ++i) {\n    val = vals.get(i);\n    if (fn(val, i)) return val;\n  }\n};\n\n/**\n * Return the last value when `fn(val, i)` is truthy,\n * otherwise return `undefined`.\n *\n *    users.findLast(function(user){\n *      return user.role == 'admin'\n *    })\n *\n * @param {Function} fn\n * @return {Mixed}\n * @api public\n */\n\nproto.findLast = function(fn){\n  fn = toFunction(fn);\n  var ret;\n  var val;\n  var vals = this.__iterate__();\n  var len = vals.length();\n  for (var i = 0; i < len; ++i) {\n    val = vals.get(i);\n    if (fn(val, i)) ret = val;\n  }\n  return ret;\n};\n\n/**\n * Assert that all invocations of `fn(val, i)` are truthy.\n *\n * For example ensuring that all pets are ferrets:\n *\n *    pets.all(function(pet){\n *      return pet.species == 'ferret'\n *    })\n *\n *    users.all('admin')\n *\n * @param {Function|String} fn\n * @return {Boolean}\n * @api public\n */\n\nproto.all =\nproto.every = function(fn){\n  fn = toFunction(fn);\n  var val;\n  var vals = this.__iterate__();\n  var len = vals.length();\n  for (var i = 0; i < len; ++i) {\n    val = vals.get(i);\n    if (!fn(val, i)) return false;\n  }\n  return true;\n};\n\n/**\n * Assert that none of the invocations of `fn(val, i)` are truthy.\n *\n * For example ensuring that no pets are admins:\n *\n *    pets.none(function(p){ return p.admin })\n *    pets.none('admin')\n *\n * @param {Function|String} fn\n * @return {Boolean}\n * @api public\n */\n\nproto.none = function(fn){\n  fn = toFunction(fn);\n  var val;\n  var vals = this.__iterate__();\n  var len = vals.length();\n  for (var i = 0; i < len; ++i) {\n    val = vals.get(i);\n    if (fn(val, i)) return false;\n  }\n  return true;\n};\n\n/**\n * Assert that at least one invocation of `fn(val, i)` is truthy.\n *\n * For example checking to see if any pets are ferrets:\n *\n *    pets.any(function(pet){\n *      return pet.species == 'ferret'\n *    })\n *\n * @param {Function} fn\n * @return {Boolean}\n * @api public\n */\n\nproto.any = function(fn){\n  fn = toFunction(fn);\n  var val;\n  var vals = this.__iterate__();\n  var len = vals.length();\n  for (var i = 0; i < len; ++i) {\n    val = vals.get(i);\n    if (fn(val, i)) return true;\n  }\n  return false;\n};\n\n/**\n * Count the number of times `fn(val, i)` returns true.\n *\n *    var n = pets.count(function(pet){\n *      return pet.species == 'ferret'\n *    })\n *\n * @param {Function} fn\n * @return {Number}\n * @api public\n */\n\nproto.count = function(fn){\n  var val;\n  var vals = this.__iterate__();\n  var len = vals.length();\n  var n = 0;\n  for (var i = 0; i < len; ++i) {\n    val = vals.get(i);\n    if (fn(val, i)) ++n;\n  }\n  return n;\n};\n\n/**\n * Determine the indexof `obj` or return `-1`.\n *\n * @param {Mixed} obj\n * @return {Number}\n * @api public\n */\n\nproto.indexOf = function(obj){\n  var val;\n  var vals = this.__iterate__();\n  var len = vals.length();\n  for (var i = 0; i < len; ++i) {\n    val = vals.get(i);\n    if (val === obj) return i;\n  }\n  return -1;\n};\n\n/**\n * Check if `obj` is present in this enumerable.\n *\n * @param {Mixed} obj\n * @return {Boolean}\n * @api public\n */\n\nproto.has = function(obj){\n  return !! ~this.indexOf(obj);\n};\n\n/**\n * Grep values using the given `re`.\n *\n *    users.map('name').grep(/^tobi/i)\n *\n * @param {RegExp} re\n * @return {Enumerable}\n * @api public\n */\n\nproto.grep = function(re){\n  var val;\n  var vals = this.__iterate__();\n  var len = vals.length();\n  var arr = [];\n  for (var i = 0; i < len; ++i) {\n    val = vals.get(i);\n    if (re.test(val)) arr.push(val);\n  }\n  return new Enumerable(arr);\n};\n\n/**\n * Reduce with `fn(accumulator, val, i)` using\n * optional `init` value defaulting to the first\n * enumerable value.\n *\n * @param {Function} fn\n * @param {Mixed} [val]\n * @return {Mixed}\n * @api public\n */\n\nproto.reduce = function(fn, init){\n  var val;\n  var i = 0;\n  var vals = this.__iterate__();\n  var len = vals.length();\n\n  val = null == init\n    ? vals.get(i++)\n    : init;\n\n  for (; i < len; ++i) {\n    val = fn(val, vals.get(i), i);\n  }\n\n  return val;\n};\n\n/**\n * Determine the max value.\n *\n * With a callback function:\n *\n *    pets.max(function(pet){\n *      return pet.age\n *    })\n *\n * With property strings:\n *\n *    pets.max('age')\n *\n * With immediate values:\n *\n *    nums.max()\n *\n * @param {Function|String} fn\n * @return {Number}\n * @api public\n */\n\nproto.max = function(fn){\n  var val;\n  var n = 0;\n  var max = 0;\n  var vals = this.__iterate__();\n  var len = vals.length();\n\n  if (fn) {\n    fn = toFunction(fn);\n    for (var i = 0; i < len; ++i) {\n      n = fn(vals.get(i), i);\n      max = n > max ? n : max;\n    }\n  } else {\n    for (var i = 0; i < len; ++i) {\n      n = vals.get(i);\n      max = n > max ? n : max;\n    }\n  }\n\n  return max;\n};\n\n/**\n * Determine the sum.\n *\n * With a callback function:\n *\n *    pets.sum(function(pet){\n *      return pet.age\n *    })\n *\n * With property strings:\n *\n *    pets.sum('age')\n *\n * With immediate values:\n *\n *    nums.sum()\n *\n * @param {Function|String} fn\n * @return {Number}\n * @api public\n */\n\nproto.sum = function(fn){\n  var ret;\n  var n = 0;\n  var vals = this.__iterate__();\n  var len = vals.length();\n\n  if (fn) {\n    fn = toFunction(fn);\n    for (var i = 0; i < len; ++i) {\n      n += fn(vals.get(i), i);\n    }\n  } else {\n    for (var i = 0; i < len; ++i) {\n      n += vals.get(i);\n    }\n  }\n\n  return n;\n};\n\n/**\n * Determine the average value.\n *\n * With a callback function:\n *\n *    pets.avg(function(pet){\n *      return pet.age\n *    })\n *\n * With property strings:\n *\n *    pets.avg('age')\n *\n * With immediate values:\n *\n *    nums.avg()\n *\n * @param {Function|String} fn\n * @return {Number}\n * @api public\n */\n\nproto.avg =\nproto.mean = function(fn){\n  var ret;\n  var n = 0;\n  var vals = this.__iterate__();\n  var len = vals.length();\n\n  if (fn) {\n    fn = toFunction(fn);\n    for (var i = 0; i < len; ++i) {\n      n += fn(vals.get(i), i);\n    }\n  } else {\n    for (var i = 0; i < len; ++i) {\n      n += vals.get(i);\n    }\n  }\n\n  return n / len;\n};\n\n/**\n * Return the first value, or first `n` values.\n *\n * @param {Number|Function} [n]\n * @return {Array|Mixed}\n * @api public\n */\n\nproto.first = function(n){\n  if ('function' == typeof n) return this.find(n);\n  var vals = this.__iterate__();\n\n  if (n) {\n    var len = Math.min(n, vals.length());\n    var arr = new Array(len);\n    for (var i = 0; i < len; ++i) {\n      arr[i] = vals.get(i);\n    }\n    return arr;\n  }\n\n  return vals.get(0);\n};\n\n/**\n * Return the last value, or last `n` values.\n *\n * @param {Number|Function} [n]\n * @return {Array|Mixed}\n * @api public\n */\n\nproto.last = function(n){\n  if ('function' == typeof n) return this.findLast(n);\n  var vals = this.__iterate__();\n  var len = vals.length();\n\n  if (n) {\n    var i = Math.max(0, len - n);\n    var arr = [];\n    for (; i < len; ++i) {\n      arr.push(vals.get(i));\n    }\n    return arr;\n  }\n\n  return vals.get(len - 1);\n};\n\n/**\n * Return values in groups of `n`.\n *\n * @param {Number} n\n * @return {Enumerable}\n * @api public\n */\n\nproto.inGroupsOf = function(n){\n  var arr = [];\n  var group = [];\n  var vals = this.__iterate__();\n  var len = vals.length();\n\n  for (var i = 0; i < len; ++i) {\n    group.push(vals.get(i));\n    if ((i + 1) % n == 0) {\n      arr.push(group);\n      group = [];\n    }\n  }\n\n  if (group.length) arr.push(group);\n\n  return new Enumerable(arr);\n};\n\n/**\n * Return the value at the given index.\n *\n * @param {Number} i\n * @return {Mixed}\n * @api public\n */\n\nproto.at = function(i){\n  return this.__iterate__().get(i);\n};\n\n/**\n * Return a regular `Array`.\n *\n * @return {Array}\n * @api public\n */\n\nproto.toJSON =\nproto.array = function(){\n  var arr = [];\n  var vals = this.__iterate__();\n  var len = vals.length();\n  for (var i = 0; i < len; ++i) {\n    arr.push(vals.get(i));\n  }\n  return arr;\n};\n\n/**\n * Return the enumerable value.\n *\n * @return {Mixed}\n * @api public\n */\n\nproto.value = function(){\n  return this.obj;\n};\n\n/**\n * Mixin enumerable.\n */\n\nmixin(Enumerable.prototype);\n//@ sourceURL=component-enumerable/index.js"
-));
-require.register("enumerable-prop/lib/enumerable-prop/index.js", Function("exports, require, module",
-"/**\n * Augment a class with the enumerable component and array storage\n *\n * Licensed under MIT.\n * Copyright (c) 2013 David Smith <https://github.com/codeactual/>\n */\n\n/*jshint node:true*/\n'use strict';\n\n/**\n * Reference to enumerableProp.\n */\nmodule.exports = enumerableProp;\n\nvar enumerable = require('enumerable');\n\nvar defaultConfig = {\n  prop: 'list'\n};\n\n/**\n * Augment an object during construction.\n *\n * Usage:\n *\n *     var enumerableProp = require('enumerable-prop');\n *\n *     function Klass() {\n *       // Add `this.list`\n *       enumerableProp(this);\n *\n *       // Or `this.messages` instead\n *       enumerableProp(this, {prop: 'messages'});\n *     }\n *\n * Methods added to object:\n *\n * - `undefined#__iterate__` with `enumerable` interfaces `get()` and `length()` implemented\n * - `Number#push(item)`\n *   - Optional feature. Will reuse an implementation found on the prototype.\n *\n * @param {object} instance\n * @param {object} config Override these defaults:\n * - `{string} [prop='list'] Name of new array property\n */\nfunction enumerableProp(instance, config) {\n  config = config || {};\n  Object.keys(defaultConfig).forEach(function(key) {\n    config[key] = config[key] || defaultConfig[key];\n  });\n\n  instance[config.prop] = [];\n  instance.__iterate__ = createIterator(instance, config.prop);\n  instance.push = createPusher(instance, config.prop);\n\n  if (!instance.constructor.prototype.count) {\n    enumerable(instance.constructor.prototype);\n  }\n}\n\n/**\n * Create an iterator for the `enumerable` component mixin.\n *\n * @param {object} instance\n * @param {string} prop Storage property's name\n * @return {function} Compliant `__iterate__` that returns an object implementing:\n * - `{function} length`\n * - `{function} get`\n * @api private\n * @see enumerable https://github.com/component/enumerable\n */\nfunction createIterator(instance, prop) {\n  return function() {\n    return {\n      length: function() { return instance[prop].length; },\n      get: function(i) { return instance[prop][i]; }\n    };\n  };\n}\n\n/**\n * Create a basic `push()` method.\n *\n * Optional feature. Will reuse an implementation found on the prototype.\n *\n * @param {object} instance\n * @param {string} prop Storage property's name\n * @return {function} Accepts one argument, the new value. Returns new length.\n * @api private\n */\nfunction createPusher(instance, prop) {\n  if (instance.constructor.prototype.push) { return instance.constructor.prototype.push; }\n  return function(item) {\n    return instance[prop].push(item);\n  };\n}\n//@ sourceURL=enumerable-prop/lib/enumerable-prop/index.js"
-));
-require.register("conjure/lib/conjure/index.js", Function("exports, require, module",
-"/**\n * Parallel CasperJS runner, BDD flow, module-based tests, API helpers\n *\n * Licensed under MIT.\n * Copyright (c) 2013 David Smith <https://github.com/codeactual/>\n */\n\n/*jshint node:true*/\n/*global window:false, $:false, require:true*/\n'use strict';\n\n/**\n * Reference to Conjure.\n */\nexports.Conjure = Conjure;\n\n/**\n * Create a new Conjure.\n *\n * @param {object} requireCasper Casper-land `require()`\n * @return {object}\n */\nexports.create = function(requireCasper) { return new Conjure(requireCasper); };\n\n/**\n * Extend Conjure.prototype.\n *\n * @param {object} ext\n * @return {object} Merge result.\n */\nexports.extendConjure = function(ext) { return require('extend')(Conjure.prototype, ext); };\n\n/**\n * Extend the object that includes functions like `selectorExists()`.\n *\n * @param {object} ext\n * @return {object} Merge result.\n */\nexports.extendAsyncHelpers = function(ext) { return require('extend')(helpers.async, ext); };\n\n/**\n * Extend the object that includes functions like `url()`.\n *\n * @param {object} ext\n * @return {object} Merge result.\n */\nexports.extendSyncHelpers = function(ext) { return require('extend')(helpers.sync, ext); };\n\n/**\n * Let tests load component-land modules.\n *\n * @type {function}\n * @api private\n */\nexports.requireComponent = require;\n\n/**\n * Let tests stub the component-land `require()`.\n *\n * @type {function}\n * @api private\n */\nexports.setRequire = function(stub) { require = stub; };\n\nvar requireComponent = require;\nvar bddflow = require('bdd-flow');\nvar configurable = require('configurable.js');\n\n/**\n * Add BDD globals and init configuration.\n *\n * Usage:\n *\n *     var conjure = require('conjure').create();\n *     conjure.set('exitOnError', false);\n *\n * Configuration:\n *\n * - `{string} baseUrl` Of target test server. `[http://localhost:8174]`\n * - `{string} initPath` Wait for this relative path to load before starting tests. `[/]`\n * - `{string} initSel` Wait for this selector (on `initPath`) before starting tests. `[body]`\n * - `{object} casperConfig` Native CasperJS `create()` settings.\n *\n * Default `casperConfig`:\n *\n *     {\n *       exitOnError: true,\n *       logLevel: 'debug',\n *       pageSettings: {\n *         loadImages: false,\n *         loadPlugins: false,\n *         XSSAuditingEnabled: true,\n *         verbose: true,\n *         onError: function(self, m) { self.die('CasperJS onError: ' + m, 1); },\n *         onLoadError: function(self, m) { self.die('CasperJS onLoadError: ' + m, 1); }\n *       }\n *     }\n *\n * To modify `casperConfig`:\n *\n * - `get() + set()` from a test script.\n * - Or apply globally using a `--bootstrap` module.\n *\n * Properties:\n *\n * - `{object} conjure` All `helpers` functions bound to `this`.\n * - `{object} console` `LongCon` instance\n * - `{object} flow` `Bddflow` instance\n * - `{object} utils` Native CasperJS `utils` module\n * - `{object} colorizer` Native CasperJS `colorizer` module\n * - `{boolean} running` True after Conjure.prototype.run executes\n *\n * @param {function} requireCasper CasperJS-env require()\n * @see Bddflow https://github.com/codeactual/bdd-flow/blob/master/docs/Bddflow.md\n */\nfunction Conjure(requireCasper) {\n  var self = this;\n  var bind = requireComponent('bind');\n\n  this.settings = {\n    // Advertised.\n    baseUrl: 'http://localhost:8174',\n    initPath: '/',\n    initSel: 'body',\n    casperConfig: {\n      exitOnError: true,\n      logLevel: 'debug',\n      pageSettings: {\n        loadImages: false,\n        loadPlugins: false,\n        XSSAuditingEnabled: true,\n        verbose: true,\n        onError: function(self, m) { self.die('CasperJS onError: ' + m, 1); },\n        onLoadError: function(self, m) { self.die('CasperJS onLoadError: ' + m, 1); }\n      }\n    },\n\n    // Internal.\n    cli: {}, // Native CasperJS CLI interface\n    requireCasper: requireCasper // CasperJS-env require()\n  };\n\n  this.casper = null;\n  this.flow = bddflow.create();\n  this.utils = null;\n  this.colorizer = null;\n  this.running = false;\n  this.stackDepth = 0;\n}\n\nconfigurable(Conjure.prototype);\n\n/**\n * Build a context object that includes:\n *\n * - All enumerable keys from the parent.\n * - Where functions are bound to the parent.\n *\n * @param {object} parent\n * @param {string|array} pluck Key(s) from parent to pluck.\n * @param {string|array} omit Key(s) from parent to omit.\n * @return {object}\n */\nConjure.createContext = function(parent, pluck, omit) {\n  var bind = require('bind');\n  var each = require('each');\n  var is = require('is');\n\n  pluck = [].concat(pluck || []);\n  omit = [].concat(omit || []);\n  var context = {};\n  var keys = pluck.length ? pluck : Object.keys(parent);\n  each(keys, function(key) {\n    if (-1 !== omit.indexOf(key)) { return; }\n    if (is.Function(parent[key])) {\n      context[key] = bind(parent, parent[key]);\n    } else {\n      context[key] = parent[key];\n    }\n  });\n  return context;\n};\n\n/**\n * Check if `run()` has been called.\n *\n * @return {boolean}\n */\nConjure.prototype.isRunning = function() {\n  return this.running;\n};\n\n/**\n * Run the suite/root `describe()`.\n *\n * Perform last-minute init based on collected configuration.\n * Silently add an initial describe() to verify initial URL/selector.\n *\n * @param {string} name\n * @param {function} cb\n */\nConjure.prototype.test = function(name, cb) {\n  this.injectHelpers();\n  this.utils = this.require('utils');\n  this.colorizer = this.require('colorizer').create('Colorizer');\n  this.configureBddflow(name, cb);\n  this.casper.start(this.url(this.get('initPath')));\n  this.run();\n};\n\n/**\n * Configure the `Bddflow` instance.\n *\n * Moved from Conjure.prototype.test to make the sequence stubbable.\n *\n * @param {string} name\n * @param {function} cb\n * @see Bddflow https://github.com/codeactual/bdd-flow/blob/master/docs/Bddflow.md\n * @api private\n */\nConjure.prototype.configureBddflow = function(name, cb) {\n  var self = this;\n\n  // Convert `--grep[v] foo bar baz` to `/foo bar baz/`\n  var cli = this.get('cli');\n  if (cli.options.grep) {\n    this.flow.set('grep', new RegExp(cli.args.join(' ')));\n  } else if (cli.options.grepv) {\n    this.flow.set('grepv', new RegExp(cli.args.join(' ')));\n  }\n\n  // Inject these CasperJS modules for convenience\n  this.casper = this.require('casper').create(this.get('casperConfig'));\n  this.flow.addContextProp('casper', this.casper);\n  this.flow.addContextProp('colorizer', this.colorizer);\n  this.flow.addContextProp('utils', this.utils);\n\n  // Inject context properties into describe/it callbacks\n  this.flow.set('itWrap', function conjureItWrap(name, cb, done) {\n    self.casper.then(function conjureItWrapThen() {\n      cb.call(this);\n    });\n    self.casper.then(function conjureItWrapDoneThen() {\n      done();\n    });\n  });\n  this.flow.set('describeWrap', function conjureDescribeWrap(name, cb) {\n    var contextKeys = ['casper', 'utils', 'colorizer', 'conjure'];\n    cb.call(Conjure.createContext(self, contextKeys));\n  });\n\n  // Trace describe/it steps\n  this.flow.on('describePush', function conjureOnDescribePush(name) {\n    self.pushStatus('describe', 'trace', {name: name});\n  });\n  this.flow.on('describePop', function conjureOnDescribePop(name) {\n    self.popStatus();\n  });\n  this.flow.on('itPush', function conjureOnItPush(name) {\n    self.pushStatus('it', 'trace', {name: name});\n  });\n  this.flow.on('itPop', function conjureOnItPop(name) {\n    self.popStatus();\n  });\n\n  // Automatic/mandatory assertion of an initial selector (to support common case).\n  this.flow.addRootDescribe('initial selector', function conjureRootDescribe() {\n    this.it('should match', function conjureInitSelectorShouldExist() {\n      this.conjure.selectorExists(self.get('initSel'));\n    });\n  });\n  this.flow.addRootDescribe(name, cb); // User-supplied root describe.\n\n  // See Conjure.prototype.injectHelpers\n  this.casper.on('step.complete', function() {\n    if (typeof this.steps[this.step] === 'function' && this.steps[this.step].__conjure_helper_last_step) {\n      self.popStatus();\n    }\n  });\n};\n\n/**\n * Inject helpers as Conjure properties, bound to this Conjure instance.\n *\n * Moved from Conjure.prototype.test to make the sequence stubbable.\n *\n * @api private\n */\nConjure.prototype.injectHelpers = function() {\n  var self = this;\n  var bind = requireComponent('bind');\n  var extend = requireComponent('extend');\n\n  this.url = bind(this, helpers.sync.url);\n  this.require = bind(this, helpers.sync.require);\n\n  this.conjure = {}; // The same `this.conjure` present in test contexts.\n  Object.keys(helpers.async).forEach(function(key) {\n    self.conjure[key] = function conjureInjectHelperWrap() {\n      var args = arguments;\n\n      self.pushStatus(key, 'trace');\n\n      // Combined with an `step.complete` event observer, detect the completion\n      // of async helpers which may produce one or more async steps via CasperJS\n      // methods like `then()`. This is an alternative approach to using a 2nd\n      // `then()` per helper invocation because of the significant run time cost.\n      var hasPendingStep = false;\n      var lastStep = function(cb) { // Make `this.lastStep` available\n        hasPendingStep = true;\n        return tagLastStep(cb);\n      };\n      var context = extend({}, self, {lastStep: lastStep});\n\n      var result = helpers.async[key].apply(context, args);\n\n      if (!hasPendingStep) { self.popStatus(); }\n\n      return result;\n    };\n  });\n  Object.keys(helpers.sync).forEach(function(key) {\n    self.conjure[key] = bind(self, helpers.sync[key]);\n  });\n};\n\n/**\n * Run collected BBD layers.\n */\nConjure.prototype.run = function() {\n  var self = this;\n\n  this.running = true;\n\n  var initSel = this.get('initSel');\n  var initPath = this.get('initPath');\n\n  var initMsg = 'Opening [' + initPath + ']';\n  if (initSel) {\n    initMsg += ' Waiting For Selector [' + initSel + ']';\n  }\n  this.casper.test.info(initMsg);\n\n  this.flow.run();\n  this.casper.run(function conjureRunCasperTests() {\n    this.test.renderResults(true);\n  });\n};\n\n/**\n * Send internal message to `conjure`.\n *\n * @param {string} source Ex. method name\n * @param {string} type `Status` type\n * @param {object} meta Key/value pairs\n * @see [Status][Status.md]\n * @api private\n */\nConjure.prototype.status = function(source, type, meta) {\n  meta = meta || {};\n\n  Object.keys(meta).forEach(function(key) { // Salvage parsable keys, note the rest\n    try {\n      JSON.stringify(meta[key]);\n    } catch (e) {\n      meta[key] = {conjureJsonStringifyErr: e.message};\n    }\n  });\n\n  console.log(this.utils.format(\n    'conjure_status:%s',\n    JSON.stringify({source: source, type: type, meta: meta, depth: this.stackDepth})\n  ));\n};\n\n/**\n * Decrement the current stack depth for trace logs.\n */\nConjure.prototype.popStatus = function() {\n  this.stackDepth--;\n};\n\n/**\n * Increment the current stack depth for trace logs and emit a status\n * event with the name of the depth change source.\n *\n * All args match Conjure.prototype.status.\n */\nConjure.prototype.pushStatus = function(source, type, meta) {\n  this.status(source, type, meta);\n  this.stackDepth++;\n};\n\n/**\n * Send internal trace message to `conjure`.\n *\n * @param {string} source Ex. method name\n * @param {object} meta Key/value pairs\n * @see [Status][Status.md]\n * @api private\n */\nConjure.prototype.trace = function(source, meta) {\n  this.status(source, 'trace', meta);\n};\n\n/**\n * Methods mixed in to each `it()/then()` context.\n */\nvar helpers = {async: {}, sync: {}};\n\n/**\n * click() alternative that uses jQuery selectors and first waits for a match.\n *\n * @param {string} sel\n * @param {boolean} [nativeClick=false] Use `thenClick()` instead of jQuery's `click()`\n */\nhelpers.async.click = function(sel, nativeClick) {\n  this.trace('args', {sel: sel, nativeClick: nativeClick});\n  this.conjure.selectorExists(sel);\n  if (nativeClick) {\n    this.casper.thenClick(sel);\n  } else {\n    this.casper.thenEvaluate(function(sel) {\n      $(sel).click();\n    }, sel);\n  }\n};\n\n/**\n * `then()` alternative that with access to the same API as `it()`.\n *\n * @param {function} cb\n */\nhelpers.async.then = function(cb) {\n  var args = wrapFirstCallbackInConjureContext(this, arguments);\n  this.casper.then.apply(this.casper, args);\n};\n\n/**\n * `thenOpen()` alternative that with access to the same API as `it()`.\n *\n * @param {mixed} args* Original `thenOpen()` arguments\n * @see thenOpen http://casperjs.org/api.html#casper.thenOpen\n */\nhelpers.async.thenOpen = function() {\n  var args = wrapFirstCallbackInConjureContext(this, arguments);\n  this.trace('args', args[0]);\n  this.casper.thenOpen.apply(this.casper, args);\n};\n\n/**\n * `assertTextExists()` alternative that uses jQuery selectors.\n *\n * @param {string} sel\n * @param {string|regexp} text\n */\nhelpers.async.assertSelText = function(sel, text) {\n  var self = this;\n  var is = require('is');\n\n  this.trace('args', {sel: sel, text: text});\n\n  this.casper.then(function conjureHelperAssertSelText() {\n    self.trace('closure', {type: 'then'});\n    this.test['assert' + (is.string(text) ? 'Equals' : 'Match')](\n      this.evaluate(function(sel) { return $(sel).text(); }, sel),\n      text\n    );\n  });\n};\n\n/**\n * `assertType()` alternative that reveals the actual type on mismatch.\n *\n * @param {mixed} val\n * @param {string} expected Ex. 'number'\n * @param {string} subject Ex. 'user ID'\n */\nhelpers.async.assertType = function(val, expected, subject) {\n  var self = this;\n\n  this.trace('args', {val: val, expected: expected, subject: subject});\n\n  this.conjure.then(function conjureHelperAssertType() {\n    self.trace('closure', {type: 'then'});\n    this.test.assertEquals(\n      this.utils.betterTypeOf(val),\n      expected,\n      this.utils.format('%s should be a %s', subject || 'subject', expected)\n    );\n  });\n};\n\n/**\n * `casper.each()` alternative executes the callback inside the custom `then()`.\n * Callback receives the context of the enclosing `then()`.\n *\n * @param {array} list\n * @param {function} cb Receives (listItem).\n */\nhelpers.async.each = function(list, cb) {\n  var self = this;\n\n  this.trace('args', {list: list});\n\n  list.forEach(function(item) {\n    self.trace('closure', {type: 'forEach', item: item});\n    self.conjure.then(function conjureHelperEach() {\n      cb.call(this, item);\n    });\n  });\n};\n\n/**\n * Append a fragment ID to the current URL.\n *\n * @param {string} hash Without leading '#'.\n * @param {string} [sel] Optional selector to wait for after navigation.\n */\nhelpers.async.openHash = function(hash, sel) {\n  this.trace('args', {hash: hash, sel: sel});\n\n  this.casper.thenEvaluate(function _openHash(hash) {\n    window.location.hash = '#' + hash;\n  }, hash);\n  if (sel) {\n    this.conjure.selectorExists(sel);\n  }\n};\n\n/**\n * Re-open the initial URL.\n */\nhelpers.async.openInitUrl = function() {\n  var url = this.url(this.get('initPath'));\n  this.trace('args', {url: url});\n  this.casper.thenOpen(url);\n};\n\n/**\n * Alternative to `waitForSelector()` to use jQuery selector support,\n * ex. ':first' syntax.\n *\n * @param {string} sel\n * @param {boolean} [negate] Use true if selector is not expected to match.\n */\nhelpers.async.selectorExists = function(sel, negate) {\n  var self = this;\n\n  this.trace('args', {sel: sel, negate: negate});\n\n  this.casper.waitFor(function selectorExistsWaitFor() {\n    self.trace('closure', {type: 'waitFor'});\n    return this.evaluate(function selectorExistsEvaluate(sel, count) {\n      return count === $(sel).length;\n    }, sel, negate ? 0 : 1);\n  });\n  this.casper.then(this.lastStep(function selectorExistsThen() {\n    self.trace('closure', {type: 'then'});\n    this.test.assertTrue(true, (negate ? 'missing' : 'exists') + ': ' + sel);\n  }));\n};\n\n/**\n * Negated `selectorExists()`.\n *\n * @param {string} sel\n */\nhelpers.async.selectorMissing = function(sel) {\n  this.trace('args', {sel: sel});\n  this.conjure.selectorExists(sel, true);\n};\n\n/**\n * `sendKeys()` alternative that first waits for a selector to exist.\n *\n * @param {string} sel\n * @param {string} keys\n */\nhelpers.async.sendKeys = function(sel, keys) {\n  var self = this;\n\n  this.trace('args', {sel: sel, keys: keys});\n\n  this.conjure.selectorExists(sel);\n  this.conjure.then(function conjureHelperSendKeys() {\n    self.trace('closure', {type: 'then'});\n    this.casper.sendKeys(sel, keys);\n  });\n};\n\n/**\n * `require()` a CasperJS module or any file relative to `--rootdir`.\n *\n * @param {string} name Ex. 'casper' or './relative/path/module.js'\n *   For local file: prefix with leading './'\n *     If rootdir is '/path/to/proj', './foo' will lead to `require('/path/to/proj/foo.js')`.\n * @return {mixed} Loaded module.\n */\nhelpers.sync.require = function(name) {\n  var require = this.get('requireCasper');\n  var relPathRe = /^\\.\\//;\n  if (relPathRe.test(name)) {\n    var fullPath = this.get('cli').options.rootdir + '/' + name.replace(relPathRe, '');\n    this.trace('args', {name: name, fullPath: fullPath});\n    return require(fullPath);\n  }\n  return require(name); // Ex. 'casper' itself\n};\n\n/**\n * Convert a relative URL into a full.\n *\n * @param {string} relUrl Includes leading slash.\n * @return {string}\n */\nhelpers.sync.url = function(relUrl) {\n  return this.get('baseUrl') + relUrl;\n};\n\n/**\n * Support helpers.then, helpers.thenOpen, etc. by wrapping their callback\n * argument to customize its context.\n *\n * @param {object} self Ex. `this` inside helpers.then\n * @param {object} args Ex `arguments` inside helpers.then\n * @api private\n */\nfunction wrapFirstCallbackInConjureContext(self, args) {\n  var extend = require('extend');\n  var contextKeys = ['utils', 'colorizer', 'conjure'];\n  var context = Conjure.createContext(self, contextKeys);\n\n  args = [].slice.call(args);\n\n  var cb;\n  var cbIdx;\n  args.forEach(function(val, idx) {\n    if (typeof val === 'function') { cb = val; cbIdx = idx; }\n  });\n\n  if (cb) {\n    args[cbIdx] = function conjureHelperThenOpen() {\n      cb.call(extend(context, {casper: self.casper, test: this.test}));\n    };\n  }\n\n  return args;\n}\n\n/**\n * Tag a callback later passed to a helper's last CasperJS step-producing method,\n * ex. `then()`. Use the tag to later track its completion.\n *\n * @param {function} cb\n * @return {function}\n * @api private\n */\nfunction tagLastStep(cb) {\n  cb.__conjure_helper_last_step = true;\n  return cb;\n}\n//@ sourceURL=conjure/lib/conjure/index.js"
-));
-require.alias("codeactual-extend/index.js", "conjure/deps/extend/index.js");
-
-require.alias("codeactual-is/index.js", "conjure/deps/is/index.js");
-require.alias("manuelstofer-each/index.js", "codeactual-is/deps/each/index.js");
-
-require.alias("component-bind/index.js", "conjure/deps/bind/index.js");
-
-require.alias("component-each/index.js", "conjure/deps/each/index.js");
-require.alias("component-type/index.js", "component-each/deps/type/index.js");
-
-require.alias("visionmedia-batch/index.js", "conjure/deps/batch/index.js");
-require.alias("component-emitter/index.js", "visionmedia-batch/deps/emitter/index.js");
-require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
-
-require.alias("visionmedia-configurable.js/index.js", "conjure/deps/configurable.js/index.js");
-
-require.alias("bdd-flow/lib/bdd-flow/index.js", "conjure/deps/bdd-flow/lib/bdd-flow/index.js");
-require.alias("bdd-flow/lib/bdd-flow/index.js", "conjure/deps/bdd-flow/index.js");
-require.alias("visionmedia-configurable.js/index.js", "bdd-flow/deps/configurable.js/index.js");
-
-require.alias("codeactual-extend/index.js", "bdd-flow/deps/extend/index.js");
-
-require.alias("visionmedia-batch/index.js", "bdd-flow/deps/batch/index.js");
-require.alias("component-emitter/index.js", "visionmedia-batch/deps/emitter/index.js");
-require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
-
-require.alias("component-clone/index.js", "bdd-flow/deps/clone/index.js");
-require.alias("component-type/index.js", "component-clone/deps/type/index.js");
-
-require.alias("component-emitter/index.js", "bdd-flow/deps/emitter/index.js");
-require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
-
-require.alias("component-bind/index.js", "bdd-flow/deps/bind/index.js");
-
-require.alias("bdd-flow/lib/bdd-flow/index.js", "bdd-flow/index.js");
-
-require.alias("enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/lib/enumerable-prop/index.js");
-require.alias("enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/index.js");
-require.alias("component-enumerable/index.js", "enumerable-prop/deps/enumerable/index.js");
-require.alias("component-to-function/index.js", "component-enumerable/deps/to-function/index.js");
-
-require.alias("enumerable-prop/lib/enumerable-prop/index.js", "enumerable-prop/index.js");
-
-require.alias("conjure/lib/conjure/index.js", "conjure/index.js");
-
-if (typeof exports == "object") {
-  module.exports = require("conjure");
-} else if (typeof define == "function" && define.amd) {
-  define(function(){ return require("conjure"); });
-} else {
-  window["conjure"] = require("conjure");
-}})();
+})();
