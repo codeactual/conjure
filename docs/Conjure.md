@@ -5,7 +5,8 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 - [exports.Conjure](#exportsconjure)
 - [exports.create](#exportscreaterequirecasper)
 - [exports.extendConjure](#exportsextendconjureext)
-- [exports.extendHelpers](#exportsextendhelpersext)
+- [exports.extendAsyncHelpers](#exportsextendasynchelpersext)
+- [exports.extendSyncHelpers](#exportsextendsynchelpersext)
 - [Conjure](#conjurerequirecasper)
 - [Conjure.createContext](#conjurecreatecontextparent-pluck-omit)
 - [Conjure.prototype.isRunning](#conjureprototypeisrunning)
@@ -13,19 +14,19 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 - [Conjure.prototype.run](#conjureprototyperun)
 - [Conjure.prototype.popStatus](#conjureprototypepopstatus)
 - [Conjure.prototype.pushStatus](#conjureprototypepushstatus)
-- [helpers.click](#helpersclicksel-nativeclickfalse)
-- [helpers.then](#helpersthencb)
-- [helpers.thenOpen](#helpersthenopenargs)
-- [helpers.assertSelText](#helpersassertseltextsel-text)
-- [helpers.assertType](#helpersasserttypeval-expected-subject)
-- [helpers.each](#helperseachlist-cb)
-- [helpers.openHash](#helpersopenhashhash-sel)
-- [helpers.openInitUrl](#helpersopeniniturl)
-- [helpers.require](#helpersrequirename)
-- [helpers.selectorExists](#helpersselectorexistssel-negate)
-- [helpers.selectorMissing](#helpersselectormissingsel)
-- [helpers.sendKeys](#helperssendkeyssel-keys)
-- [helpers.url](#helpersurlrelurl)
+- [helpers.async.click](#helpersasyncclicksel-nativeclickfalse)
+- [helpers.async.then](#helpersasyncthencb)
+- [helpers.async.thenOpen](#helpersasyncthenopenargs)
+- [helpers.async.assertSelText](#helpersasyncassertseltextsel-text)
+- [helpers.async.assertType](#helpersasyncasserttypeval-expected-subject)
+- [helpers.async.each](#helpersasynceachlist-cb)
+- [helpers.async.openHash](#helpersasyncopenhashhash-sel)
+- [helpers.async.openInitUrl](#helpersasyncopeniniturl)
+- [helpers.async.selectorExists](#helpersasyncselectorexistssel-negate)
+- [helpers.async.selectorMissing](#helpersasyncselectormissingsel)
+- [helpers.async.sendKeys](#helpersasyncsendkeyssel-keys)
+- [helpers.sync.require](#helperssyncrequirename)
+- [helpers.sync.url](#helperssyncurlrelurl)
 
 # exports.Conjure()
 
@@ -55,9 +56,21 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 
 `{object}` Merge result.
 
-# exports.extendHelpers(ext)
+# exports.extendAsyncHelpers(ext)
 
-> Extend the object that includes functions like helper.selectorExists.
+> Extend the object that includes functions like `selectorExists()`.
+
+**Parameters:**
+
+- `{object} ext`
+
+**Return:**
+
+`{object}` Merge result.
+
+# exports.extendSyncHelpers(ext)
+
+> Extend the object that includes functions like `url()`.
 
 **Parameters:**
 
@@ -158,7 +171,7 @@ Silently add an initial describe() to verify initial URL/selector.
 
 **Parameters:**
 
-- `{string} name` Suite/root-`describe()` name
+- `{string} name`
 - `{function} cb`
 
 # Conjure.prototype.run()
@@ -176,7 +189,7 @@ event with the name of the depth change source.
 
 All args match [Conjure](#conjurerequirecasper).prototype.status.
 
-# helpers.click(sel, [nativeClick=false])
+# helpers.async.click(sel, [nativeClick=false])
 
 > click() alternative that uses jQuery selectors and first waits for a match.
 
@@ -185,7 +198,7 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 - `{string} sel`
 - `{boolean} [nativeClick=false]` Use `thenClick()` instead of jQuery's `click()`
 
-# helpers.then(cb)
+# helpers.async.then(cb)
 
 > `then()` alternative that with access to the same API as `it()`.
 
@@ -193,7 +206,7 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 
 - `{function} cb`
 
-# helpers.thenOpen(args*)
+# helpers.async.thenOpen(args*)
 
 > `thenOpen()` alternative that with access to the same API as `it()`.
 
@@ -205,7 +218,7 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 
 - [thenOpen](http://casperjs.org/api.html#casper.thenOpen)
 
-# helpers.assertSelText(sel, text)
+# helpers.async.assertSelText(sel, text)
 
 > `assertTextExists()` alternative that uses jQuery selectors.
 
@@ -214,7 +227,7 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 - `{string} sel`
 - `{string | regexp} text`
 
-# helpers.assertType(val, expected, subject)
+# helpers.async.assertType(val, expected, subject)
 
 > `assertType()` alternative that reveals the actual type on mismatch.
 
@@ -224,7 +237,7 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 - `{string} expected` Ex. 'number'
 - `{string} subject` Ex. 'user ID'
 
-# helpers.each(list, cb)
+# helpers.async.each(list, cb)
 
 > `casper.each()` alternative executes the callback inside the custom `then()`.
 Callback receives the context of the enclosing `then()`.
@@ -234,7 +247,7 @@ Callback receives the context of the enclosing `then()`.
 - `{array} list`
 - `{function} cb` Receives (listItem).
 
-# helpers.openHash(hash, [sel])
+# helpers.async.openHash(hash, [sel])
 
 > Append a fragment ID to the current URL.
 
@@ -243,11 +256,38 @@ Callback receives the context of the enclosing `then()`.
 - `{string} hash` Without leading '#'.
 - `{string} [sel]` Optional selector to wait for after navigation.
 
-# helpers.openInitUrl()
+# helpers.async.openInitUrl()
 
 > Re-open the initial URL.
 
-# helpers.require(name)
+# helpers.async.selectorExists(sel, [negate])
+
+> Alternative to `waitForSelector()` to use jQuery selector support,
+ex. ':first' syntax.
+
+**Parameters:**
+
+- `{string} sel`
+- `{boolean} [negate]` Use true if selector is not expected to match.
+
+# helpers.async.selectorMissing(sel)
+
+> Negated `selectorExists()`.
+
+**Parameters:**
+
+- `{string} sel`
+
+# helpers.async.sendKeys(sel, keys)
+
+> `sendKeys()` alternative that first waits for a selector to exist.
+
+**Parameters:**
+
+- `{string} sel`
+- `{string} keys`
+
+# helpers.sync.require(name)
 
 > `require()` a CasperJS module or any file relative to `--rootdir`.
 
@@ -262,34 +302,7 @@ If rootdir is '/path/to/proj', './foo' will lead to `require('/path/to/proj/foo.
 
 `{mixed}` Loaded module.
 
-# helpers.selectorExists(sel, [negate])
-
-> Alternative to `waitForSelector()` to use jQuery selector support,
-ex. ':first' syntax.
-
-**Parameters:**
-
-- `{string} sel`
-- `{boolean} [negate]` Use true if selector is not expected to match.
-
-# helpers.selectorMissing(sel)
-
-> Negated `selectorExists()`.
-
-**Parameters:**
-
-- `{string} sel`
-
-# helpers.sendKeys(sel, keys)
-
-> `sendKeys()` alternative that first waits for a selector to exist.
-
-**Parameters:**
-
-- `{string} sel`
-- `{string} keys`
-
-# helpers.url(relUrl)
+# helpers.sync.url(relUrl)
 
 > Convert a relative URL into a full.
 

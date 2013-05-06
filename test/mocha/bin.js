@@ -64,7 +64,7 @@ describe('/bin/conjure', function() {
     res.code.should.equal(1);
   });
 
-  detailedRun('context-props', '--timeout 30000');
+  detailedRun('context-props', '--timeout 20000');
   detailedRun('bootstrap', '--bootstrap test/fixture/custom-bootstrap.js');
   detailedRun('grep-case', '--grep-case should only run this');
   detailedRun('grepv-case', '--grepv-case should prevent this from running');
