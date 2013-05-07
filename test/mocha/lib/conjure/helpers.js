@@ -9,6 +9,7 @@ chai.use(require('sinon-chai'));
 var conjure = require('../../../..');
 var Conjure = conjure.Conjure;
 var requireComponent = conjure.requireComponent;
+var extend = requireComponent('extend');
 
 require('sinon-doublist')(sinon, 'mocha');
 
@@ -22,13 +23,13 @@ describe('helpers', function() {
   beforeEach(function() {
     this.stubs = {};
     addStubTargets.call(this);
+    stubUtilsApi.call(this);
+    stubTestApi.call(this);
     stubRequire.call(this);
     stubConjure.call(this);
     stubWindow.call(this);
     stubJQuery.call(this);
     addFixtures.call(this);
-    stubUtilsApi.call(this);
-    stubTestApi.call(this);
     stubCasperApi.call(this);
     stubThenMethods.call(this);
     stubMisc.call(this);
@@ -91,7 +92,7 @@ describe('helpers', function() {
     it('should trace steps', function() {
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
         'args', {url: this.url}
-      );
+);
     });
   });
 
@@ -146,15 +147,6 @@ describe('helpers', function() {
       this.conjure.conjure.assertType(this.sel, 'string', this.subject);
       this.stubs.utils.format.should.have.been.calledWithExactly(
         '%s should be a %s', this.subject, 'string'
-      );
-    });
-    it('should trace steps', function() {
-      this.conjure.conjure.assertType(this.sel, 'string', this.subject);
-      this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'args', {val: this.sel, expected: 'string', subject: this.subject}
-      );
-      this.stubs.conjure.trace.should.have.been.calledWithExactly(
-        'closure', {type: 'then'}
       );
     });
   });
@@ -348,12 +340,33 @@ function addStubTargets() {
   this.format = {iAmA: 'utils.format() return value'};
 }
 
+function stubUtilsApi() {
+  this.stubs.utils = this.stubMany(
+    this.utilsApi,
+    [
+      'betterTypeOf', 'format'
+    ]
+  );
+  this.stubs.utils.betterTypeOf.returns(this.betterTypeOf);
+  this.stubs.utils.format.returns(this.format);
+}
+
+function stubTestApi() {
+  this.stubs.test = this.stubMany(
+    this.testApi,
+    [
+      'assertEquals', 'assertMatch', 'assertTrue'
+    ]
+  );
+}
+
 function stubRequire() {
   // Stubbing CasperJS-land require(), ex. for colorizer module
   this.stubs.requiredComponentCreate = this.stubMany(
     this.requiredComponent, 'create'
   ).create;
   this.stubs.requireCasper = this.stub();
+  this.stubs.requireCasper.withArgs('utils').returns(this.stubs.utils);
   this.stubs.requireCasper.returns(this.requiredComponent);
 
   this.stubs.extend = this.stub();
@@ -368,6 +381,7 @@ function stubRequire() {
 
 function stubConjure() {
   this.conjure = conjure.create(this.stubs.requireCasper);
+  this.conjure.test = this.stubs.test; // Ex. for asertType()
   this.conjure.injectHelpers()
   this.stubs.helper = this.stub(this.conjure.conjure);
 
@@ -417,26 +431,6 @@ function addFixtures() {
   this.strList = ['one', 'two', 'three'];
   this.relUrl = '/admin/settings';
   this.url = 'http://localhost' + this.relUrl;
-}
-
-function stubUtilsApi() {
-  this.stubs.utils = this.stubMany(
-    this.utilsApi,
-    [
-      'betterTypeOf', 'format'
-    ]
-  );
-  this.stubs.utils.betterTypeOf.returns(this.betterTypeOf);
-  this.stubs.utils.format.returns(this.format);
-}
-
-function stubTestApi() {
-  this.stubs.test = this.stubMany(
-    this.testApi,
-    [
-      'assertEquals', 'assertMatch', 'assertTrue'
-    ]
-  );
 }
 
 function stubCasperApi() {

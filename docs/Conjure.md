@@ -18,13 +18,13 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 - [helpers.async.then](#helpersasyncthencb)
 - [helpers.async.thenOpen](#helpersasyncthenopenargs)
 - [helpers.async.assertSelText](#helpersasyncassertseltextsel-text)
-- [helpers.async.assertType](#helpersasyncasserttypeval-expected-subject)
 - [helpers.async.each](#helpersasynceachlist-cb)
 - [helpers.async.openHash](#helpersasyncopenhashhash-sel)
 - [helpers.async.openInitUrl](#helpersasyncopeniniturl)
 - [helpers.async.selectorExists](#helpersasyncselectorexistssel-negate)
 - [helpers.async.selectorMissing](#helpersasyncselectormissingsel)
 - [helpers.async.sendKeys](#helpersasyncsendkeyssel-keys)
+- [helpers.sync.assertType](#helperssyncasserttypeval-expected-subject)
 - [helpers.sync.require](#helperssyncrequirename)
 - [helpers.sync.url](#helperssyncurlrelurl)
 
@@ -227,16 +227,6 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 - `{string} sel`
 - `{string | regexp} text`
 
-# helpers.async.assertType(val, expected, subject)
-
-> `assertType()` alternative that reveals the actual type on mismatch.
-
-**Parameters:**
-
-- `{mixed} val`
-- `{string} expected` Ex. 'number'
-- `{string} subject` Ex. 'user ID'
-
 # helpers.async.each(list, cb)
 
 > `casper.each()` alternative executes the callback inside the custom `then()`.
@@ -286,6 +276,16 @@ ex. ':first' syntax.
 
 - `{string} sel`
 - `{string} keys`
+
+# helpers.sync.assertType(val, expected, subject)
+
+> `assertType()` alternative that reveals the actual type on mismatch.
+
+**Parameters:**
+
+- `{mixed} val`
+- `{string} expected` Ex. 'number'
+- `{string} subject` Ex. 'user ID'
 
 # helpers.sync.require(name)
 

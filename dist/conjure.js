@@ -1199,6 +1199,7 @@
                 requireCasper: requireCasper
             };
             this.casper = null;
+            this.conjure = {};
             this.flow = bddflow.create();
             this.running = false;
             this.stackDepth = 0;
@@ -1292,7 +1293,6 @@
         Conjure.prototype.injectHelpers = function() {
             var self = this;
             var bind = requireComponent("bind");
-            this.conjure = {};
             Object.keys(helpers.async).forEach(bind(this, this.bindAsyncHelper));
             Object.keys(helpers.sync).forEach(function(key) {
                 self.conjure[key] = bind(self, helpers.sync[key]);
@@ -1388,18 +1388,21 @@
             this.casper.then.apply(this.casper, args);
         };
         helpers.async.thenOpen = function() {
+            var self = this;
             var args = conjureWrapFirstCallbackInConjureContext(this, arguments, true);
             this.trace("args", {
                 url: args[0]
             });
-            this.casper.thenOpen.apply(this.casper, args);
+            this.casper.then(this.lastStep(function conjureThenOpenThen() {
+                self.casper.thenOpen.apply(self.casper, args);
+            }));
         };
         helpers.async.assertSelText = function(sel, text) {
             var self = this;
             var is = require("is");
             this.trace("args", {
                 sel: sel,
-                text: text
+                text: text.toString()
             });
             this.casper.then(this.lastStep(function conjureHelperAssertSelText() {
                 self.trace("closure", {
@@ -1408,20 +1411,6 @@
                 this.test["assert" + (is.string(text) ? "Equals" : "Match")](this.evaluate(function conjureHelperAssertSelTextEval(sel) {
                     return $(sel).text();
                 }, sel), text);
-            }));
-        };
-        helpers.async.assertType = function(val, expected, subject) {
-            var self = this;
-            this.trace("args", {
-                val: val,
-                expected: expected,
-                subject: subject
-            });
-            this.conjure.then(this.lastStep(function conjureHelperAssertType() {
-                self.trace("closure", {
-                    type: "then"
-                });
-                this.test.assertEquals(this.utils.betterTypeOf(val), expected, this.utils.format("%s should be a %s", subject || "subject", expected));
             }));
         };
         helpers.async.each = function(list, cb) {
@@ -1508,6 +1497,15 @@
                 this.casper.sendKeys(sel, keys);
             }));
         };
+        helpers.sync.assertType = function(val, expected, subject) {
+            var self = this;
+            this.trace("args", {
+                val: val,
+                expected: expected,
+                subject: subject
+            });
+            this.test.assertEquals(this.utils.betterTypeOf(val), expected, this.utils.format("%s should be a %s", subject || "subject", expected));
+        };
         helpers.sync.require = function(name) {
             var require = this.get("requireCasper");
             var relPathRe = /^\.\//;
@@ -1545,7 +1543,7 @@
                     }));
                 };
                 if (last) {
-                    cb = self.lastStep(cb);
+                    args[cbIdx] = self.lastStep(args[cbIdx]);
                 }
             }
             return args;

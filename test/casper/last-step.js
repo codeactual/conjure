@@ -10,8 +10,32 @@ module.exports = function(conjure) {
         this.conjure.click('body');
       });
     });
+
+    this.describe('then', function() {
+      this.it('should tag last step' , function() {
+        this.conjure.then(function() {
+          this.test.assertEquals(1, 1);
+        });
+      });
+    });
+
+    this.describe('thenOpen', function() {
+      this.it('should tag last step' , function() {
+        this.conjure.thenOpen('/', function() {
+        });
+      });
+    });
+
+    this.describe('assertSelText', function() {
+      this.it('should tag last step' , function() {
+        this.conjure.assertSelText('body', /.?/);
+      });
+    });
+
     this.describe('next test', function() {
       this.it('should trigger error' , function() { var a; a.b = 'foo'; });
     });
   });
 };
+
+function conjureLastStepTestNoOp() {}
