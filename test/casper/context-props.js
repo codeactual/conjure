@@ -26,7 +26,9 @@ module.exports = function(conjure) {
   conjure.test('context properties', function() {
     this.describe('in then', function() {
       this.it('should pluck expected' , function() {
+        this.test.assertEquals(1, 1); // Verify `this.test.*` exists
         this.conjure.then(function() {
+          this.test.assertEquals(1, 1); // Verify `this.test.*` exists
           this.thenContext = this;
           assertCommonProps(this, 'then');
           refuteCommonProps(this, 'then');
