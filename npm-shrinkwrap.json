@@ -2114,48 +2114,6 @@
                 }
               }
             },
-            "grunt-contrib-uglify": {
-              "version": "0.2.0",
-              "from": "grunt-contrib-uglify@~0.2.0",
-              "dependencies": {
-                "uglify-js": {
-                  "version": "2.2.5",
-                  "from": "uglify-js@~2.2.1",
-                  "dependencies": {
-                    "source-map": {
-                      "version": "0.1.22",
-                      "from": "source-map@~0.1.7",
-                      "dependencies": {
-                        "amdefine": {
-                          "version": "0.0.4",
-                          "from": "amdefine@>=0.0.4"
-                        }
-                      }
-                    },
-                    "optimist": {
-                      "version": "0.3.7",
-                      "from": "optimist@~0.3.5",
-                      "dependencies": {
-                        "wordwrap": {
-                          "version": "0.0.2",
-                          "from": "wordwrap@~0.0.2"
-                        }
-                      }
-                    }
-                  }
-                },
-                "grunt-lib-contrib": {
-                  "version": "0.6.1",
-                  "from": "grunt-lib-contrib@~0.6.0",
-                  "dependencies": {
-                    "zlib-browserify": {
-                      "version": "0.0.1",
-                      "from": "zlib-browserify@0.0.1"
-                    }
-                  }
-                }
-              }
-            },
             "grunt": {
               "version": "0.4.1",
               "from": "grunt@~0.4.1",
@@ -2276,6 +2234,48 @@
                           "from": "underscore.string@~2.3.1"
                         }
                       }
+                    }
+                  }
+                }
+              }
+            },
+            "grunt-contrib-uglify": {
+              "version": "0.2.0",
+              "from": "grunt-contrib-uglify@~0.2.0",
+              "dependencies": {
+                "uglify-js": {
+                  "version": "2.2.5",
+                  "from": "uglify-js@~2.2.1",
+                  "dependencies": {
+                    "source-map": {
+                      "version": "0.1.22",
+                      "from": "source-map@~0.1.7",
+                      "dependencies": {
+                        "amdefine": {
+                          "version": "0.0.4",
+                          "from": "amdefine@>=0.0.4"
+                        }
+                      }
+                    },
+                    "optimist": {
+                      "version": "0.3.7",
+                      "from": "optimist@~0.3.5",
+                      "dependencies": {
+                        "wordwrap": {
+                          "version": "0.0.2",
+                          "from": "wordwrap@~0.0.2"
+                        }
+                      }
+                    }
+                  }
+                },
+                "grunt-lib-contrib": {
+                  "version": "0.6.1",
+                  "from": "grunt-lib-contrib@~0.6.0",
+                  "dependencies": {
+                    "zlib-browserify": {
+                      "version": "0.0.1",
+                      "from": "zlib-browserify@0.0.1"
                     }
                   }
                 }
@@ -2490,11 +2490,6 @@
         }
       }
     },
-    "chai": {
-      "version": "1.5.0",
-      "from": "chai@1.5.0",
-      "resolved": "https://registry.npmjs.org/chai/-/chai-1.5.0.tgz"
-    },
     "grunt-shell": {
       "version": "0.2.1",
       "from": "grunt-shell@0.2.1",
@@ -2509,6 +2504,11 @@
       "version": "2.3.1",
       "from": "sinon-chai@2.3.1",
       "resolved": "https://registry.npmjs.org/sinon-chai/-/sinon-chai-2.3.1.tgz"
+    },
+    "chai": {
+      "version": "1.5.0",
+      "from": "chai@1.5.0",
+      "resolved": "https://registry.npmjs.org/chai/-/chai-1.5.0.tgz"
     },
     "mocha": {
       "version": "1.9.0",

@@ -392,6 +392,9 @@ function stubConjure() {
   this.stubs.conjure = {
     get: this.stub(this.conjure, 'get')
   };
+
+  this.stubs.conjure.get.withArgs('test').returns(this.stubs.test);
+
   this.stubConfig('cli', this.cliApi);
   this.stubConfig('requireCasper', this.stubs.requireCasper);
 

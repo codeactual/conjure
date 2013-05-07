@@ -1252,6 +1252,7 @@
             this.flow.addContextProp("utils", this.utils);
             this.flow.set("itWrap", function conjureItWrap(name, cb, done) {
                 self.casper.then(function conjureItWrapThen() {
+                    self.set("test", this.test);
                     cb.call(this);
                 });
                 self.casper.then(function conjureItWrapDoneThen() {
@@ -1276,6 +1277,7 @@
                 });
             });
             this.flow.on("itPop", function conjureOnItPop(name) {
+                self.set("test", null);
                 self.popStatus();
             });
             this.flow.addRootDescribe("initial selector", function conjureRootDescribe() {
@@ -1474,8 +1476,7 @@
             var thenWrap = lastStep ? this.lastStep : conjureReturnFirstArg;
             this.casper.then(thenWrap(function selectorExistsThen() {
                 self.trace("closure", {
-                    type: "then",
-                    last: lastStep
+                    type: "then"
                 });
                 this.test.assertTrue(true, (negate ? "missing" : "exists") + ": " + sel);
             }));
@@ -1508,7 +1509,7 @@
                 expected: expected,
                 subject: subject
             });
-            this.test.assertEquals(this.utils.betterTypeOf(val), expected, this.utils.format("%s should be a %s", subject || "subject", expected));
+            this.get("test").assertEquals(this.utils.betterTypeOf(val), expected, this.utils.format("%s should be a %s", subject || "subject", expected));
         };
         helpers.sync.require = function(name) {
             var require = this.get("requireCasper");
@@ -1541,9 +1542,10 @@
             });
             if (cb) {
                 args[cbIdx] = function conjureHelperThenOpen() {
+                    var test = this.test.assertEquals ? this.test : self.get("test");
                     cb.call(extend(context, {
                         casper: self.casper,
-                        test: this.test
+                        test: test
                     }));
                 };
                 if (last) {

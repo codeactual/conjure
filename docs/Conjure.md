@@ -15,14 +15,14 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 - [Conjure.prototype.popStatus](#conjureprototypepopstatus)
 - [Conjure.prototype.pushStatus](#conjureprototypepushstatus)
 - [helpers.async.click](#helpersasyncclicksel-nativeclickfalse)
-- [helpers.async.then](#helpersasyncthencb)
+- [helpers.async.then](#helpersasyncthencb-laststeptrue)
 - [helpers.async.thenOpen](#helpersasyncthenopenargs)
 - [helpers.async.assertSelText](#helpersasyncassertseltextsel-text)
 - [helpers.async.each](#helpersasynceachlist-cb)
 - [helpers.async.openHash](#helpersasyncopenhashhash-sel)
 - [helpers.async.openInitUrl](#helpersasyncopeniniturl)
-- [helpers.async.selectorExists](#helpersasyncselectorexistssel-negate)
-- [helpers.async.selectorMissing](#helpersasyncselectormissingsel)
+- [helpers.async.selectorExists](#helpersasyncselectorexistssel-negate-laststeptrue)
+- [helpers.async.selectorMissing](#helpersasyncselectormissingsel-laststeptrue)
 - [helpers.async.sendKeys](#helpersasyncsendkeyssel-keys)
 - [helpers.sync.assertType](#helperssyncasserttypeval-expected-subject)
 - [helpers.sync.require](#helperssyncrequirename)
@@ -96,6 +96,7 @@ conjure.set('exitOnError', false);
 - `{string} baseUrl` Of target test server. `[http://localhost:8174]`
 - `{string} initPath` Wait for this relative path to load before starting tests. `[/]`
 - `{string} initSel` Wait for this selector (on `initPath`) before starting tests. `[body]`
+- `{object} test` CasperJS test API of the current `it()`
 - `{object} casperConfig` Native CasperJS `create()` settings.
 
 **Default `casperConfig`:**
@@ -198,13 +199,16 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 - `{string} sel`
 - `{boolean} [nativeClick=false]` Use `thenClick()` instead of jQuery's `click()`
 
-# helpers.async.then(cb)
+# helpers.async.then(cb, [lastStep=true])
 
 > `then()` alternative that with access to the same API as `it()`.
 
 **Parameters:**
 
 - `{function} cb`
+- `{boolean} [lastStep=true]` Use false to prevent stack trace pop.
+
+  - Ex. Use false in all-but-last-call if a helpers needs to call it multiple time
 
 # helpers.async.thenOpen(args*)
 
@@ -250,7 +254,7 @@ Callback receives the context of the enclosing `then()`.
 
 > Re-open the initial URL.
 
-# helpers.async.selectorExists(sel, [negate])
+# helpers.async.selectorExists(sel, [negate], [lastStep=true])
 
 > Alternative to `waitForSelector()` to use jQuery selector support,
 ex. ':first' syntax.
@@ -259,14 +263,20 @@ ex. ':first' syntax.
 
 - `{string} sel`
 - `{boolean} [negate]` Use true if selector is not expected to match.
+- `{boolean} [lastStep=true]` Use false to prevent stack trace pop.
 
-# helpers.async.selectorMissing(sel)
+  - Ex. Use false in all-but-last-call if a helpers needs to call it multiple time
+
+# helpers.async.selectorMissing(sel, [lastStep=true])
 
 > Negated `selectorExists()`.
 
 **Parameters:**
 
 - `{string} sel`
+- `{boolean} [lastStep=true]` Use false to prevent stack trace pop.
+
+  - Ex. Use false in all-but-last-call if a helpers needs to call it multiple time
 
 # helpers.async.sendKeys(sel, keys)
 
