@@ -51,7 +51,7 @@ describe('helpers', function() {
     });
     it('should optionally use native CasperJS click', function() {
       this.conjure.conjure.click(this.sel, true);
-      this.stubs.casper.thenClick.should.be.calledWithExactly(this.sel);
+      this.stubs.casper.thenClick.should.be.calledWithExactly(this.sel, sinon.match.func);
     });
     it('should trace steps', function() {
       this.conjure.conjure.click(this.sel);
@@ -89,7 +89,9 @@ describe('helpers', function() {
       this.stubs.cb.should.have.been.calledOn(this.extendResult);
     });
     it('should trace steps', function() {
-      this.stubs.conjure.trace.should.have.been.calledWithExactly('args', this.url);
+      this.stubs.conjure.trace.should.have.been.calledWithExactly(
+        'args', {url: this.url}
+      );
     });
   });
 

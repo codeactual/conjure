@@ -206,79 +206,6 @@
             }
         }
     });
-    require.register("component-indexof/index.js", function(exports, require, module) {
-        var indexOf = [].indexOf;
-        module.exports = function(arr, obj) {
-            if (indexOf) return arr.indexOf(obj);
-            for (var i = 0; i < arr.length; ++i) {
-                if (arr[i] === obj) return i;
-            }
-            return -1;
-        };
-    });
-    require.register("component-emitter/index.js", function(exports, require, module) {
-        var index = require("indexof");
-        module.exports = Emitter;
-        function Emitter(obj) {
-            if (obj) return mixin(obj);
-        }
-        function mixin(obj) {
-            for (var key in Emitter.prototype) {
-                obj[key] = Emitter.prototype[key];
-            }
-            return obj;
-        }
-        Emitter.prototype.on = function(event, fn) {
-            this._callbacks = this._callbacks || {};
-            (this._callbacks[event] = this._callbacks[event] || []).push(fn);
-            return this;
-        };
-        Emitter.prototype.once = function(event, fn) {
-            var self = this;
-            this._callbacks = this._callbacks || {};
-            function on() {
-                self.off(event, on);
-                fn.apply(this, arguments);
-            }
-            fn._off = on;
-            this.on(event, on);
-            return this;
-        };
-        Emitter.prototype.off = Emitter.prototype.removeListener = Emitter.prototype.removeAllListeners = function(event, fn) {
-            this._callbacks = this._callbacks || {};
-            if (0 == arguments.length) {
-                this._callbacks = {};
-                return this;
-            }
-            var callbacks = this._callbacks[event];
-            if (!callbacks) return this;
-            if (1 == arguments.length) {
-                delete this._callbacks[event];
-                return this;
-            }
-            var i = index(callbacks, fn._off || fn);
-            if (~i) callbacks.splice(i, 1);
-            return this;
-        };
-        Emitter.prototype.emit = function(event) {
-            this._callbacks = this._callbacks || {};
-            var args = [].slice.call(arguments, 1), callbacks = this._callbacks[event];
-            if (callbacks) {
-                callbacks = callbacks.slice(0);
-                for (var i = 0, len = callbacks.length; i < len; ++i) {
-                    callbacks[i].apply(this, args);
-                }
-            }
-            return this;
-        };
-        Emitter.prototype.listeners = function(event) {
-            this._callbacks = this._callbacks || {};
-            return this._callbacks[event] || [];
-        };
-        Emitter.prototype.hasListeners = function(event) {
-            return !!this.listeners(event).length;
-        };
-    });
     require.register("visionmedia-batch/index.js", function(exports, require, module) {
         try {
             var EventEmitter = require("events").EventEmitter;
@@ -413,6 +340,79 @@
                 return obj;
             }
         }
+    });
+    require.register("component-indexof/index.js", function(exports, require, module) {
+        var indexOf = [].indexOf;
+        module.exports = function(arr, obj) {
+            if (indexOf) return arr.indexOf(obj);
+            for (var i = 0; i < arr.length; ++i) {
+                if (arr[i] === obj) return i;
+            }
+            return -1;
+        };
+    });
+    require.register("component-emitter/index.js", function(exports, require, module) {
+        var index = require("indexof");
+        module.exports = Emitter;
+        function Emitter(obj) {
+            if (obj) return mixin(obj);
+        }
+        function mixin(obj) {
+            for (var key in Emitter.prototype) {
+                obj[key] = Emitter.prototype[key];
+            }
+            return obj;
+        }
+        Emitter.prototype.on = function(event, fn) {
+            this._callbacks = this._callbacks || {};
+            (this._callbacks[event] = this._callbacks[event] || []).push(fn);
+            return this;
+        };
+        Emitter.prototype.once = function(event, fn) {
+            var self = this;
+            this._callbacks = this._callbacks || {};
+            function on() {
+                self.off(event, on);
+                fn.apply(this, arguments);
+            }
+            fn._off = on;
+            this.on(event, on);
+            return this;
+        };
+        Emitter.prototype.off = Emitter.prototype.removeListener = Emitter.prototype.removeAllListeners = function(event, fn) {
+            this._callbacks = this._callbacks || {};
+            if (0 == arguments.length) {
+                this._callbacks = {};
+                return this;
+            }
+            var callbacks = this._callbacks[event];
+            if (!callbacks) return this;
+            if (1 == arguments.length) {
+                delete this._callbacks[event];
+                return this;
+            }
+            var i = index(callbacks, fn._off || fn);
+            if (~i) callbacks.splice(i, 1);
+            return this;
+        };
+        Emitter.prototype.emit = function(event) {
+            this._callbacks = this._callbacks || {};
+            var args = [].slice.call(arguments, 1), callbacks = this._callbacks[event];
+            if (callbacks) {
+                callbacks = callbacks.slice(0);
+                for (var i = 0, len = callbacks.length; i < len; ++i) {
+                    callbacks[i].apply(this, args);
+                }
+            }
+            return this;
+        };
+        Emitter.prototype.listeners = function(event) {
+            this._callbacks = this._callbacks || {};
+            return this._callbacks[event] || [];
+        };
+        Emitter.prototype.hasListeners = function(event) {
+            return !!this.listeners(event).length;
+        };
     });
     require.register("bdd-flow/lib/bdd-flow/index.js", function(exports, require, module) {
         "use strict";
@@ -1336,9 +1336,6 @@
         };
         Conjure.prototype.status = function(source, type, meta) {
             meta = meta || {};
-            if (meta && typeof meta !== "object") {
-                console.log("invalid meta type", typeof meta, "=", meta);
-            }
             Object.keys(meta).forEach(function conjureForEachStatusMetaKey(key) {
                 try {
                     JSON.stringify(meta[key]);
@@ -1383,12 +1380,12 @@
                 }), sel);
             }
         };
-        helpers.async.then = function(cb) {
-            var args = conjureWrapFirstCallbackInConjureContext(this, arguments);
+        helpers.async.then = function() {
+            var args = conjureWrapFirstCallbackInConjureContext(this, arguments, true);
             this.casper.then.apply(this.casper, args);
         };
         helpers.async.thenOpen = function() {
-            var args = conjureWrapFirstCallbackInConjureContext(this, arguments);
+            var args = conjureWrapFirstCallbackInConjureContext(this, arguments, true);
             this.trace("args", {
                 url: args[0]
             });
@@ -1405,9 +1402,9 @@
                 self.trace("closure", {
                     type: "then"
                 });
-                this.test["assert" + (is.string(text) ? "Equals" : "Match")](this.evaluate(function conjureHelperAssertSelTextEval(sel) {
+                this.test["assert" + (is.string(text) ? "Equals" : "Match")](this.evaluate(self.lastStep(function conjureHelperAssertSelTextEval(sel) {
                     return $(sel).text();
-                }, sel), text);
+                }), sel), text);
             });
         };
         helpers.async.assertType = function(val, expected, subject) {
@@ -1417,26 +1414,31 @@
                 expected: expected,
                 subject: subject
             });
-            this.conjure.then(function conjureHelperAssertType() {
+            this.conjure.then(this.lastStep(function conjureHelperAssertType() {
                 self.trace("closure", {
                     type: "then"
                 });
                 this.test.assertEquals(this.utils.betterTypeOf(val), expected, this.utils.format("%s should be a %s", subject || "subject", expected));
-            });
+            }));
         };
         helpers.async.each = function(list, cb) {
             var self = this;
+            var length = list.length;
             this.trace("args", {
                 list: list
             });
-            list.forEach(function conjureHelperEachIter(item) {
+            list.forEach(function conjureHelperEachIter(item, idx) {
                 self.trace("closure", {
                     type: "forEach",
                     item: item
                 });
-                self.conjure.then(function conjureHelperEachThen() {
+                var cbWrap = function conjureHelperEachThen() {
                     cb.call(this, item);
-                });
+                };
+                if (idx === length - 1) {
+                    cbWrap = self.lastStep(cbWrap);
+                }
+                self.conjure.then(cbWrap);
             });
         };
         helpers.async.openHash = function(hash, sel) {
@@ -1444,9 +1446,13 @@
                 hash: hash,
                 sel: sel
             });
-            this.casper.thenEvaluate(function _openHash(hash) {
+            var cb = function conjureOpenHashThenEval(hash) {
                 window.location.hash = "#" + hash;
-            }, hash);
+            };
+            if (!sel) {
+                cb = this.lastStep(cb);
+            }
+            this.casper.thenEvaluate(cb, hash);
             if (sel) {
                 this.conjure.selectorExists(sel);
             }
@@ -1492,12 +1498,12 @@
                 keys: keys
             });
             this.conjure.selectorExists(sel);
-            this.conjure.then(function conjureHelperSendKeys() {
+            this.conjure.then(this.lastStep(function conjureHelperSendKeys() {
                 self.trace("closure", {
                     type: "then"
                 });
                 this.casper.sendKeys(sel, keys);
-            });
+            }));
         };
         helpers.sync.require = function(name) {
             var require = this.get("requireCasper");
@@ -1515,7 +1521,7 @@
         helpers.sync.url = function(relUrl) {
             return this.get("baseUrl") + relUrl;
         };
-        function conjureWrapFirstCallbackInConjureContext(self, args) {
+        function conjureWrapFirstCallbackInConjureContext(self, args, last) {
             var extend = require("extend");
             var contextKeys = [ "utils", "colorizer", "conjure" ];
             var context = Conjure.createContext(self, contextKeys);
@@ -1535,6 +1541,9 @@
                         test: this.test
                     }));
                 };
+                if (last) {
+                    cb = self.lastStep(cb);
+                }
             }
             return args;
         }
