@@ -31,7 +31,6 @@
     "url": "https://github.com/codeactual/conjure.git"
   },
   "dependencies": {
-    "bdd-flow": "~0.1.0",
     "commander": "~1.1.1",
     "impulse-bin": "~0.1.0",
     "outer-shelljs": "~0.3.0"

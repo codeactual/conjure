@@ -16,22 +16,16 @@
     "test"
   ],
   "dependencies": {
+    "codeactual/enumerable-prop": "0.1.0",
     "codeactual/extend": "0.1.0",
     "codeactual/is": "0.1.3",
+    "codeactual/weir": "0.1.0",
     "component/bind": "9a55368",
     "component/each": "8b1f645",
     "visionmedia/batch": "0.3.2",
     "visionmedia/configurable.js": "f87ca5f"
   },
-  "development": {
-  },
-  "paths": [
-    "locals"
-  ],
-  "local": [
-    "bdd-flow",
-    "enumerable-prop"
-  ],
+  "development": {},
   "main": "lib/conjure/index.js",
   "scripts": [
     "lib/conjure/index.js"
