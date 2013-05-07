@@ -1372,7 +1372,7 @@
                 sel: sel,
                 nativeClick: nativeClick
             });
-            this.conjure.selectorExists(sel);
+            this.conjure.selectorExists(sel, false, false);
             if (nativeClick) {
                 this.casper.thenClick(sel, this.lastStep(conjureNoOp));
             } else {
@@ -1383,8 +1383,9 @@
                 }));
             }
         };
-        helpers.async.then = function() {
-            var args = conjureWrapFirstCallbackInConjureContext(this, arguments, true);
+        helpers.async.then = function(lastStep) {
+            lastStep = typeof lastStep === "undefined" ? true : lastStep;
+            var args = conjureWrapFirstCallbackInConjureContext(this, arguments, lastStep);
             this.casper.then.apply(this.casper, args);
         };
         helpers.async.thenOpen = function() {
@@ -1425,15 +1426,13 @@
                     item: item
                 });
                 var cbWrap = function conjureHelperEachThen() {
-                    cb.call(this, item);
+                    cb.call(this, item, idx, list);
                 };
-                if (idx === length - 1) {
-                    cbWrap = self.lastStep(cbWrap);
-                }
-                self.conjure.then(cbWrap);
+                self.conjure.then(cbWrap, idx === length - 1);
             });
         };
         helpers.async.openHash = function(hash, sel) {
+            var self = this;
             this.trace("args", {
                 hash: hash,
                 sel: sel
@@ -1441,12 +1440,13 @@
             var cb = function conjureOpenHashThenEval(hash) {
                 window.location.hash = "#" + hash;
             };
-            if (!sel) {
-                cb = this.lastStep(cb);
-            }
-            this.casper.thenEvaluate(cb, hash);
             if (sel) {
+                this.casper.thenEvaluate(cb, hash);
                 this.conjure.selectorExists(sel);
+            } else {
+                this.casper.then(this.lastStep(function conjureOpenHashThen() {
+                    self.casper.thenEvaluate(cb, hash);
+                }));
             }
         };
         helpers.async.openInitUrl = function() {
@@ -1456,8 +1456,9 @@
             });
             this.casper.thenOpen(url);
         };
-        helpers.async.selectorExists = function(sel, negate) {
+        helpers.async.selectorExists = function(sel, negate, lastStep) {
             var self = this;
+            lastStep = typeof lastStep === "undefined" ? true : lastStep;
             this.trace("args", {
                 sel: sel,
                 negate: negate
@@ -1470,18 +1471,21 @@
                     return count === $(sel).length;
                 }, sel, negate ? 0 : 1);
             });
-            this.casper.then(this.lastStep(function selectorExistsThen() {
+            var thenWrap = lastStep ? this.lastStep : conjureReturnFirstArg;
+            this.casper.then(thenWrap(function selectorExistsThen() {
                 self.trace("closure", {
-                    type: "then"
+                    type: "then",
+                    last: lastStep
                 });
                 this.test.assertTrue(true, (negate ? "missing" : "exists") + ": " + sel);
             }));
         };
-        helpers.async.selectorMissing = function(sel) {
+        helpers.async.selectorMissing = function(sel, lastStep) {
+            lastStep = typeof lastStep === "undefined" ? true : lastStep;
             this.trace("args", {
                 sel: sel
             });
-            this.conjure.selectorExists(sel, true);
+            this.conjure.selectorExists(sel, true, lastStep);
         };
         helpers.async.sendKeys = function(sel, keys) {
             var self = this;
@@ -1489,12 +1493,12 @@
                 sel: sel,
                 keys: keys
             });
-            this.conjure.selectorExists(sel);
-            this.conjure.then(this.lastStep(function conjureHelperSendKeys() {
+            this.conjure.selectorExists(sel, false, false);
+            this.casper.then(this.lastStep(function conjureHelperSendKeys() {
                 self.trace("closure", {
-                    type: "then"
+                    type: "send keys last then"
                 });
-                this.casper.sendKeys(sel, keys);
+                self.casper.sendKeys(sel, keys);
             }));
         };
         helpers.sync.assertType = function(val, expected, subject) {
@@ -1553,6 +1557,9 @@
             return cb;
         }
         function conjureNoOp() {}
+        function conjureReturnFirstArg(arg) {
+            return arg;
+        }
     });
     require.alias("codeactual-extend/index.js", "conjure/deps/extend/index.js");
     require.alias("codeactual-is/index.js", "conjure/deps/is/index.js");
