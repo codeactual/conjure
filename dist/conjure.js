@@ -1200,10 +1200,12 @@
             };
             this.casper = null;
             this.flow = bddflow.create();
-            this.utils = null;
-            this.colorizer = null;
             this.running = false;
             this.stackDepth = 0;
+            this.url = bind(this, helpers.sync.url);
+            this.require = bind(this, helpers.sync.require);
+            this.utils = this.require("utils");
+            this.colorizer = this.require("colorizer").create("Colorizer");
         }
         configurable(Conjure.prototype);
         Conjure.createContext = function(parent, pluck, omit) {
@@ -1231,8 +1233,6 @@
         };
         Conjure.prototype.test = function(name, cb) {
             this.injectHelpers();
-            this.utils = this.require("utils");
-            this.colorizer = this.require("colorizer").create("Colorizer");
             this.configureBddflow(name, cb);
             this.casper.start(this.url(this.get("initPath")));
             this.run();
@@ -1292,32 +1292,32 @@
         Conjure.prototype.injectHelpers = function() {
             var self = this;
             var bind = requireComponent("bind");
-            var extend = requireComponent("extend");
-            this.url = bind(this, helpers.sync.url);
-            this.require = bind(this, helpers.sync.require);
             this.conjure = {};
-            Object.keys(helpers.async).forEach(function(key) {
-                self.conjure[key] = function conjureInjectHelperWrap() {
-                    var args = arguments;
-                    self.pushStatus(key, "trace");
-                    var hasPendingStep = false;
-                    var lastStep = function(cb) {
-                        hasPendingStep = true;
-                        return tagLastStep(cb);
-                    };
-                    var context = extend({}, self, {
-                        lastStep: lastStep
-                    });
-                    var result = helpers.async[key].apply(context, args);
-                    if (!hasPendingStep) {
-                        self.popStatus();
-                    }
-                    return result;
-                };
-            });
+            Object.keys(helpers.async).forEach(bind(this, this.bindAsyncHelper));
             Object.keys(helpers.sync).forEach(function(key) {
                 self.conjure[key] = bind(self, helpers.sync[key]);
             });
+        };
+        Conjure.prototype.bindAsyncHelper = function(name) {
+            var self = this;
+            var extend = requireComponent("extend");
+            this.conjure[name] = function conjureInjectHelperWrap() {
+                var args = arguments;
+                var hasPendingStep = false;
+                self.pushStatus(name, "trace");
+                var lastStep = function(cb) {
+                    hasPendingStep = true;
+                    return conjureTagLastStep(cb);
+                };
+                var context = extend({}, self, {
+                    lastStep: lastStep
+                });
+                var result = helpers.async[name].apply(context, args);
+                if (!hasPendingStep) {
+                    self.popStatus();
+                }
+                return result;
+            };
         };
         Conjure.prototype.run = function() {
             var self = this;
@@ -1336,7 +1336,10 @@
         };
         Conjure.prototype.status = function(source, type, meta) {
             meta = meta || {};
-            Object.keys(meta).forEach(function(key) {
+            if (meta && typeof meta !== "object") {
+                console.log("invalid meta type", typeof meta, "=", meta);
+            }
+            Object.keys(meta).forEach(function conjureForEachStatusMetaKey(key) {
                 try {
                     JSON.stringify(meta[key]);
                 } catch (e) {
@@ -1373,20 +1376,22 @@
             });
             this.conjure.selectorExists(sel);
             if (nativeClick) {
-                this.casper.thenClick(sel);
+                this.casper.thenClick(sel, this.lastStep(conjureNoOp));
             } else {
-                this.casper.thenEvaluate(function(sel) {
+                this.casper.thenEvaluate(this.lastStep(function conjureHelperClickThenEval(sel) {
                     $(sel).click();
-                }, sel);
+                }), sel);
             }
         };
         helpers.async.then = function(cb) {
-            var args = wrapFirstCallbackInConjureContext(this, arguments);
+            var args = conjureWrapFirstCallbackInConjureContext(this, arguments);
             this.casper.then.apply(this.casper, args);
         };
         helpers.async.thenOpen = function() {
-            var args = wrapFirstCallbackInConjureContext(this, arguments);
-            this.trace("args", args[0]);
+            var args = conjureWrapFirstCallbackInConjureContext(this, arguments);
+            this.trace("args", {
+                url: args[0]
+            });
             this.casper.thenOpen.apply(this.casper, args);
         };
         helpers.async.assertSelText = function(sel, text) {
@@ -1400,7 +1405,7 @@
                 self.trace("closure", {
                     type: "then"
                 });
-                this.test["assert" + (is.string(text) ? "Equals" : "Match")](this.evaluate(function(sel) {
+                this.test["assert" + (is.string(text) ? "Equals" : "Match")](this.evaluate(function conjureHelperAssertSelTextEval(sel) {
                     return $(sel).text();
                 }, sel), text);
             });
@@ -1424,12 +1429,12 @@
             this.trace("args", {
                 list: list
             });
-            list.forEach(function(item) {
+            list.forEach(function conjureHelperEachIter(item) {
                 self.trace("closure", {
                     type: "forEach",
                     item: item
                 });
-                self.conjure.then(function conjureHelperEach() {
+                self.conjure.then(function conjureHelperEachThen() {
                     cb.call(this, item);
                 });
             });
@@ -1510,14 +1515,14 @@
         helpers.sync.url = function(relUrl) {
             return this.get("baseUrl") + relUrl;
         };
-        function wrapFirstCallbackInConjureContext(self, args) {
+        function conjureWrapFirstCallbackInConjureContext(self, args) {
             var extend = require("extend");
             var contextKeys = [ "utils", "colorizer", "conjure" ];
             var context = Conjure.createContext(self, contextKeys);
             args = [].slice.call(args);
             var cb;
             var cbIdx;
-            args.forEach(function(val, idx) {
+            args.forEach(function conjureFindFirstCallbackArg(val, idx) {
                 if (typeof val === "function") {
                     cb = val;
                     cbIdx = idx;
@@ -1533,10 +1538,11 @@
             }
             return args;
         }
-        function tagLastStep(cb) {
+        function conjureTagLastStep(cb) {
             cb.__conjure_helper_last_step = true;
             return cb;
         }
+        function conjureNoOp() {}
     });
     require.alias("codeactual-extend/index.js", "conjure/deps/extend/index.js");
     require.alias("codeactual-is/index.js", "conjure/deps/is/index.js");
