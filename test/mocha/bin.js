@@ -96,24 +96,24 @@ describe('/bin/conjure', function() {
   detailedRun('stack-trace', ['--full-trace'], function(res) {
     res.code.should.equal(1);
     res.output.should.match(strSeqToRegex([
-      ['describe', 'name', 'initial selector'],
-      ['\\|    ', 'it', 'name', 'should match'],
-      ['\\|    \\|    ', 'selectorExists'],
-      ['\\|    \\|    ', 'args', 'sel', 'body'],
-      ['\\|    \\|    ', 'closure', 'type', 'waitFor'],
-      ['\\|    \\|    ', 'closure', 'type', 'then'],
-      ['describe', 'name', 'r1'],
-      ['\\|    ', 'describe', 'name', 'd1'],
-      ['\\|    \\|    ', 'it', 'name', 'i1'],
-      ['\\|    ', 'describe', 'name', 'd2'],
-      ['\\|    \\|    ', 'describe', 'name', 'd3'],
-      ['\\|    \\|    \\|    ', 'describe', 'name', 'd4'],
-      ['\\|    \\|    \\|    \\|    ', 'it', 'name', 'i2'],
-      ['\\|    \\|    \\|    \\|    ', 'it', 'name', 'should trigger error']
+      lane(0, 'describe', 'name', 'initial selector'),
+      lane(1, 'it', 'name', 'should match'),
+      lane(2, 'selectorExists'),
+      lane(2, 'args', 'sel', 'body'),
+      lane(2, 'closure', 'type', 'waitFor'),
+      lane(2, 'closure', 'type', 'then'),
+      lane(0, 'describe', 'name', 'r1'),
+      lane(1, 'describe', 'name', 'd1'),
+      lane(2, 'it', 'name', 'i1'),
+      lane(1, 'describe', 'name', 'd2'),
+      lane(2, 'describe', 'name', 'd3'),
+      lane(3, 'describe', 'name', 'd4'),
+      lane(4, 'it', 'name', 'i2'),
+      lane(4, 'it', 'name', 'should trigger error')
     ]));
   });
 
-  detailedRun('last-step', ['--full-trace'], function(res) {
+  detailedRun('last-step', ['--full-trace', '--timeout 10000'], function(res) {
     res.code.should.equal(1);
   });
 });
@@ -139,4 +139,15 @@ function strSeqToRegex(lines) {
   });
 
   return new RegExp(reStr, 'gm');
+}
+
+/**
+ * Return a strSeqToRegex() compatible line definition with lane indentation.
+ *
+ * @param {number} depth Lane count
+ * @param {string} str* String sequence
+ * @return {array}
+ */
+function lane(depth, strSeq) {
+  return [Array(depth + 1).join('\\|    ')].concat([].slice.call(arguments, 1));
 }
