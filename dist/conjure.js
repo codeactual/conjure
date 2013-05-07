@@ -1181,7 +1181,7 @@
             require = stub;
         };
         var requireComponent = require;
-        var bddflow = require("bdd-flow");
+        var bddflow = require("weir");
         var configurable = require("configurable.js");
         function Conjure(requireCasper) {
             var self = this;

@@ -2,7 +2,7 @@
 
 Parallel CasperJS runner, BDD flow, module-based tests, API helpers
 
-* `describe()/it()` and hooks via [bdd-flow](https://github.com/codeactual/bdd-flow)
+* `describe()/it()` and hooks via [weir](https://github.com/codeactual/weir)
 * `require('relative/path/in/my/proj/module.js)`
 * Bootstrap test modules with common settings and arguments
 * Full access to standard CasperJS APIs

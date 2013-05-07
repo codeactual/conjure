@@ -136,7 +136,7 @@ conjure.set('exitOnError', false);
 
 **See:**
 
-- [Bddflow](https://github.com/codeactual/bdd-flow/blob/master/docs/Bddflow.md)
+- [Bddflow](https://github.com/codeactual/weir/blob/master/docs/Bddflow.md)
 
 # Conjure.createContext(parent, pluck, omit)
 

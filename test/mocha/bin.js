@@ -82,7 +82,7 @@ describe('/bin/conjure', function() {
 
   detailedRun('flow', [], function(res) {
     res.code.should.equal(0);
-    res.output.should.match(/path=bdd-flow integration,describe1,describe2,describe3,it1\n/);
+    res.output.should.match(/path=weir integration,describe1,describe2,describe3,it1\n/);
   });
 
   detailedRun('stack-trace', [], function(res) {

@@ -58,9 +58,6 @@ module.exports = function(grunt) {
       dist: {
         command: 'component build --standalone conjure --name conjure --out dist'
       },
-      shrinkwrap: {
-        command: 'npm shrinkwrap'
-      },
       test_bin: {
         options: mochaShelljsOpt,
         command: 'mocha --reporter tap --globals $,window test/mocha/bin.js'
@@ -94,6 +91,6 @@ module.exports = function(grunt) {
   grunt.registerTask('dox', ['shell:dox_lib', 'dox_cli']);
   grunt.registerTask('dox_cli', ['shell:dox_cli_process', 'shell:dox_cli_process_batch', 'shell:dox_cli_process_data', 'shell:dox_cli_status', 'shell:dox_cli_status_list']);
   grunt.registerTask('build', ['default', 'shell:build']);
-  grunt.registerTask('dist', ['default', 'shell:dist', 'uglify:dist', 'shell:shrinkwrap', 'dox']);
+  grunt.registerTask('dist', ['default', 'shell:dist', 'uglify:dist', 'dox']);
   grunt.registerTask('test', ['build', 'shell:test_helpers', 'shell:test_bin']);
 };
