@@ -1367,6 +1367,7 @@
             sync: {}
         };
         helpers.async.click = function(sel, nativeClick) {
+            var self = this;
             this.trace("args", {
                 sel: sel,
                 nativeClick: nativeClick
@@ -1375,9 +1376,11 @@
             if (nativeClick) {
                 this.casper.thenClick(sel, this.lastStep(conjureNoOp));
             } else {
-                this.casper.thenEvaluate(this.lastStep(function conjureHelperClickThenEval(sel) {
-                    $(sel).click();
-                }), sel);
+                this.casper.then(this.lastStep(function conjureHelperClickThenEvalThen() {
+                    self.casper.thenEvaluate(function conjureHelperClickThenEval(sel) {
+                        $(sel).click();
+                    }, sel);
+                }));
             }
         };
         helpers.async.then = function() {

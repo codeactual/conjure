@@ -112,6 +112,10 @@ describe('/bin/conjure', function() {
       ['\\|    \\|    \\|    \\|    ', 'it', 'name', 'should trigger error']
     ]));
   });
+
+  detailedRun('last-step', ['--full-trace'], function(res) {
+    res.code.should.equal(1);
+  });
 });
 
 /**
