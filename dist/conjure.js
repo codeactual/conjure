@@ -206,6 +206,79 @@
             }
         }
     });
+    require.register("component-indexof/index.js", function(exports, require, module) {
+        var indexOf = [].indexOf;
+        module.exports = function(arr, obj) {
+            if (indexOf) return arr.indexOf(obj);
+            for (var i = 0; i < arr.length; ++i) {
+                if (arr[i] === obj) return i;
+            }
+            return -1;
+        };
+    });
+    require.register("component-emitter/index.js", function(exports, require, module) {
+        var index = require("indexof");
+        module.exports = Emitter;
+        function Emitter(obj) {
+            if (obj) return mixin(obj);
+        }
+        function mixin(obj) {
+            for (var key in Emitter.prototype) {
+                obj[key] = Emitter.prototype[key];
+            }
+            return obj;
+        }
+        Emitter.prototype.on = function(event, fn) {
+            this._callbacks = this._callbacks || {};
+            (this._callbacks[event] = this._callbacks[event] || []).push(fn);
+            return this;
+        };
+        Emitter.prototype.once = function(event, fn) {
+            var self = this;
+            this._callbacks = this._callbacks || {};
+            function on() {
+                self.off(event, on);
+                fn.apply(this, arguments);
+            }
+            fn._off = on;
+            this.on(event, on);
+            return this;
+        };
+        Emitter.prototype.off = Emitter.prototype.removeListener = Emitter.prototype.removeAllListeners = function(event, fn) {
+            this._callbacks = this._callbacks || {};
+            if (0 == arguments.length) {
+                this._callbacks = {};
+                return this;
+            }
+            var callbacks = this._callbacks[event];
+            if (!callbacks) return this;
+            if (1 == arguments.length) {
+                delete this._callbacks[event];
+                return this;
+            }
+            var i = index(callbacks, fn._off || fn);
+            if (~i) callbacks.splice(i, 1);
+            return this;
+        };
+        Emitter.prototype.emit = function(event) {
+            this._callbacks = this._callbacks || {};
+            var args = [].slice.call(arguments, 1), callbacks = this._callbacks[event];
+            if (callbacks) {
+                callbacks = callbacks.slice(0);
+                for (var i = 0, len = callbacks.length; i < len; ++i) {
+                    callbacks[i].apply(this, args);
+                }
+            }
+            return this;
+        };
+        Emitter.prototype.listeners = function(event) {
+            this._callbacks = this._callbacks || {};
+            return this._callbacks[event] || [];
+        };
+        Emitter.prototype.hasListeners = function(event) {
+            return !!this.listeners(event).length;
+        };
+    });
     require.register("visionmedia-batch/index.js", function(exports, require, module) {
         try {
             var EventEmitter = require("events").EventEmitter;
@@ -340,79 +413,6 @@
                 return obj;
             }
         }
-    });
-    require.register("component-indexof/index.js", function(exports, require, module) {
-        var indexOf = [].indexOf;
-        module.exports = function(arr, obj) {
-            if (indexOf) return arr.indexOf(obj);
-            for (var i = 0; i < arr.length; ++i) {
-                if (arr[i] === obj) return i;
-            }
-            return -1;
-        };
-    });
-    require.register("component-emitter/index.js", function(exports, require, module) {
-        var index = require("indexof");
-        module.exports = Emitter;
-        function Emitter(obj) {
-            if (obj) return mixin(obj);
-        }
-        function mixin(obj) {
-            for (var key in Emitter.prototype) {
-                obj[key] = Emitter.prototype[key];
-            }
-            return obj;
-        }
-        Emitter.prototype.on = function(event, fn) {
-            this._callbacks = this._callbacks || {};
-            (this._callbacks[event] = this._callbacks[event] || []).push(fn);
-            return this;
-        };
-        Emitter.prototype.once = function(event, fn) {
-            var self = this;
-            this._callbacks = this._callbacks || {};
-            function on() {
-                self.off(event, on);
-                fn.apply(this, arguments);
-            }
-            fn._off = on;
-            this.on(event, on);
-            return this;
-        };
-        Emitter.prototype.off = Emitter.prototype.removeListener = Emitter.prototype.removeAllListeners = function(event, fn) {
-            this._callbacks = this._callbacks || {};
-            if (0 == arguments.length) {
-                this._callbacks = {};
-                return this;
-            }
-            var callbacks = this._callbacks[event];
-            if (!callbacks) return this;
-            if (1 == arguments.length) {
-                delete this._callbacks[event];
-                return this;
-            }
-            var i = index(callbacks, fn._off || fn);
-            if (~i) callbacks.splice(i, 1);
-            return this;
-        };
-        Emitter.prototype.emit = function(event) {
-            this._callbacks = this._callbacks || {};
-            var args = [].slice.call(arguments, 1), callbacks = this._callbacks[event];
-            if (callbacks) {
-                callbacks = callbacks.slice(0);
-                for (var i = 0, len = callbacks.length; i < len; ++i) {
-                    callbacks[i].apply(this, args);
-                }
-            }
-            return this;
-        };
-        Emitter.prototype.listeners = function(event) {
-            this._callbacks = this._callbacks || {};
-            return this._callbacks[event] || [];
-        };
-        Emitter.prototype.hasListeners = function(event) {
-            return !!this.listeners(event).length;
-        };
     });
     require.register("bdd-flow/lib/bdd-flow/index.js", function(exports, require, module) {
         "use strict";
@@ -1398,14 +1398,14 @@
                 sel: sel,
                 text: text
             });
-            this.casper.then(function conjureHelperAssertSelText() {
+            this.casper.then(this.lastStep(function conjureHelperAssertSelText() {
                 self.trace("closure", {
                     type: "then"
                 });
-                this.test["assert" + (is.string(text) ? "Equals" : "Match")](this.evaluate(self.lastStep(function conjureHelperAssertSelTextEval(sel) {
+                this.test["assert" + (is.string(text) ? "Equals" : "Match")](this.evaluate(function conjureHelperAssertSelTextEval(sel) {
                     return $(sel).text();
-                }), sel), text);
-            });
+                }, sel), text);
+            }));
         };
         helpers.async.assertType = function(val, expected, subject) {
             var self = this;
