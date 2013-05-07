@@ -159,8 +159,8 @@ describe('helpers', function() {
       var self = this;
       this.conjure.conjure.each(this.strList, this.stubs.cb);
       this.stubs.cb.should.have.been.calledOn(this.thenContext);
-      this.strList.forEach(function(item) {
-        self.stubs.cb.should.have.been.calledWithExactly(item);
+      this.strList.forEach(function(item, idx, list) {
+        self.stubs.cb.should.have.been.calledWithExactly(item, idx, list);
       });
     });
     it('should trace steps', function() {
@@ -287,7 +287,7 @@ describe('helpers', function() {
     });
     it('should use selectorExists()', function() {
       this.conjure.conjure.selectorMissing(this.sel);
-      this.stubs.helper.selectorExists.should.have.been.calledWithExactly(this.sel, true);
+      this.stubs.helper.selectorExists.should.have.been.calledWithExactly(this.sel, true, true);
     });
   });
 
@@ -297,7 +297,7 @@ describe('helpers', function() {
       this.conjure.conjure.sendKeys(this.sel, this.textNeedle);
     });
     it('should use selectorExists()', function() {
-      this.stubs.helper.selectorExists.should.have.been.calledWithExactly(this.sel);
+      this.stubs.helper.selectorExists.should.have.been.calledWithExactly(this.sel, false, false);
     });
     it('should use CasperJS sendKeys()', function() {
       this.stubs.casper.sendKeys.should.have.been.calledWithExactly(this.sel, this.textNeedle);
