@@ -1,5 +1,7 @@
 # 0.2.0
 
+* Add stack traces on error and `--full-trace`.
+* Add `--timeout`, `--grepv-case`, `--verbose`.
 * Fix NPM compatibility.
 
 # 0.1.0
