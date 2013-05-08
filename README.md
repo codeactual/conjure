@@ -34,13 +34,15 @@ module.exports = function(conjure) {
 * Consecutive repeats are collapsed into a count ('x 40').
 * Colorized and displayed after all test failures.
 
-    /my-test.js Auto-killed after 5000ms timeout
-    /my-test.js conjure trace:
-    /my-test.js     selectorExists (step: waitFor) x 40
-    /my-test.js     describe (name: login page)
-    /my-test.js     selectorExists (sel: .selector-does-not-exist)
-    /my-test.js     it (name: should be loaded/found)
-    /my-test.js     describe (name: initial URL/selector)
+```
+/my-test.js Auto-killed after 5000ms timeout
+/my-test.js conjure trace:
+/my-test.js     selectorExists (step: waitFor) x 40
+/my-test.js     describe (name: login page)
+/my-test.js     selectorExists (sel: .selector-does-not-exist)
+/my-test.js     it (name: should be loaded/found)
+/my-test.js     describe (name: initial URL/selector)
+```
 
 [More](docs/examples.md)
 
@@ -87,7 +89,9 @@ Internals:
 
 ## Tests
 
-[Test Documentation](docs/testing.md)
+    npm test
+
+[Documentation](docs/testing.md)
 
 ## License
 
