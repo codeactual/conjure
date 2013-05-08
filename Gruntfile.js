@@ -67,22 +67,22 @@ module.exports = function(grunt) {
         command: 'mocha --reporter tap --globals $,window test/mocha/lib/conjure/helpers.js'
       },
       dox_lib: {
-        command: 'gitemplate-dox --input lib/conjure/index.js --output docs/Conjure.md'
+        command: 'apidox --input lib/conjure/index.js --output docs/Conjure.md'
       },
       dox_cli_process: {
-        command: 'gitemplate-dox --input lib/cli/conjure/process.js --output docs/Process.md'
+        command: 'apidox --input lib/cli/conjure/process.js --output docs/Process.md'
       },
       dox_cli_process_batch: {
-        command: 'gitemplate-dox --input lib/cli/conjure/process-batch.js --output docs/ProcessBatch.md'
+        command: 'apidox --input lib/cli/conjure/process-batch.js --output docs/ProcessBatch.md'
       },
       dox_cli_process_data: {
-        command: 'gitemplate-dox --input lib/cli/conjure/process-data.js --output docs/ProcessData.md'
+        command: 'apidox --input lib/cli/conjure/process-data.js --output docs/ProcessData.md'
       },
       dox_cli_status: {
-        command: 'gitemplate-dox --input lib/cli/conjure/status.js --output docs/Status.md'
+        command: 'apidox --input lib/cli/conjure/status.js --output docs/Status.md'
       },
       dox_cli_status_list: {
-        command: 'gitemplate-dox --input lib/cli/conjure/status-list.js --output docs/StatusList.md'
+        command: 'apidox --input lib/cli/conjure/status-list.js --output docs/StatusList.md'
       }
     }
   });
