@@ -207,7 +207,6 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 
 - `{function} cb`
 - `{boolean} [lastStep=true]` Use false to prevent stack trace pop.
-
   - Ex. Use false in all-but-last-call if a helpers needs to call it multiple time
 
 # helpers.async.thenOpen(args*)
@@ -264,7 +263,6 @@ ex. ':first' syntax.
 - `{string} sel`
 - `{boolean} [negate]` Use true if selector is not expected to match.
 - `{boolean} [lastStep=true]` Use false to prevent stack trace pop.
-
   - Ex. Use false in all-but-last-call if a helpers needs to call it multiple time
 
 # helpers.async.selectorMissing(sel, [lastStep=true])
@@ -275,7 +273,6 @@ ex. ':first' syntax.
 
 - `{string} sel`
 - `{boolean} [lastStep=true]` Use false to prevent stack trace pop.
-
   - Ex. Use false in all-but-last-call if a helpers needs to call it multiple time
 
 # helpers.async.sendKeys(sel, keys)
