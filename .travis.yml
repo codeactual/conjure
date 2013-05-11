@@ -4,7 +4,6 @@ node_js:
   - "0.8"
 before_install:
   - export PATH=$PATH:~/bin
-  - echo "PATH: $PATH"
   - phantomjs --version
   - echo "installing CasperJS 1.0.2"
   - git clone git://github.com/n1k0/casperjs.git
