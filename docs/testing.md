@@ -27,5 +27,5 @@ This allows us to avoid testing CasperJS itself, e.g. by asserting a helper `cli
 
 ### Custom build
 
-    grunt custom:-sizzle,-css,-event-alias,-effects,-offset,-dimensions,-deprecated,-ajax/xhr,-wrap
+    grunt custom:-sizzle,-css,-event-alias,-effects,-offset,-dimensions,-deprecated,-ajax,-wrap
 
