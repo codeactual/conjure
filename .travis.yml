@@ -14,6 +14,6 @@ before_install:
   - ln -sf `pwd`/bin/casperjs ~/bin/casperjs
   - cd ../
   - npm install grunt-cli
-env:
-  - PHANTOMJS_EXECUTABLE="~/bin/phantomjs190"
-script: grunt test_travis
+script:
+  - export PHANTOMJS_EXECUTABLE="~/bin/phantomjs190"
+  - grunt test_travis
