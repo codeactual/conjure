@@ -3,11 +3,9 @@ node_js:
   - "0.10"
   - "0.8"
 before_install:
-  - echo "installing PhantomJS 1.9.0"
-  - wget http://phantomjs.googlecode.com/files/phantomjs-1.9.0-linux-i686.tar.bz2
-  - tar -xvf phantomjs-1.9.0-linux-i686.tar.bz2
-  - sudo mv phantomjs-1.9.0-linux-i686/bin/phantomjs bin/phantomjs190
-  - ~/phantomjs190 --version
+  - export PATH=$PATH:~/bin
+  - echo "PATH: $PATH"
+  - phantomjs --version
   - echo "installing CasperJS 1.0.2"
   - git clone git://github.com/n1k0/casperjs.git
   - cd casperjs
@@ -16,5 +14,3 @@ before_install:
   - echo "installing grunt-cli"
   - cd ../
   - npm install grunt-cli
-env:
-  - PHANTOMJS_EXECUTABLE="bin/phantomjs190"
