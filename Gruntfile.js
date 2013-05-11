@@ -93,4 +93,5 @@ module.exports = function(grunt) {
   grunt.registerTask('build', ['default', 'shell:build']);
   grunt.registerTask('dist', ['default', 'shell:dist', 'uglify:dist', 'dox']);
   grunt.registerTask('test', ['build', 'shell:test_helpers', 'shell:test_bin']);
+  grunt.registerTask('test_travis', ['shell:build', 'shell:test_helpers', 'shell:test_bin']);
 };

@@ -16,3 +16,4 @@ before_install:
   - npm install grunt-cli
 env:
   - PHANTOMJS_EXECUTABLE="bin/phantomjs190"
+script: grunt test_travis
