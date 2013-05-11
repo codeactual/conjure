@@ -1,5 +1,5 @@
 var chai = require('chai');
-var exec = require('shelljs').exec;
+var shelljs = require('outer-shelljs').create();
 var util = require('util');
 var sprintf = util.format;
 
@@ -27,7 +27,8 @@ function itShouldRunCasperWith(file, cb) {
 
 function basicRun(file) {
   itShouldRunCasperWith(file, function() {
-    var res = exec(
+    var res = shelljs._(
+      'exec',
       baseConjureCmd +
       '--grep-file "^' + file + '\\.js$" '
     );
@@ -42,11 +43,11 @@ function detailedRun(file, args, cb) {
 
   if (cb) {
     itShouldRunCasperWith(file, function() {
-      cb(exec(baseConjureCmd + args.join(' ')));
+      cb(shelljs._('exec', baseConjureCmd + args.join(' ')));
     });
   } else {
     itShouldRunCasperWith(file, function() {
-      var res = exec(baseConjureCmd + args.join(' '));
+      var res = shelljs._('exec', baseConjureCmd + args.join(' '));
       res.code.should.equal(0);
       res.output.trim().should.not.equal('');
     });
