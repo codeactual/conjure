@@ -16,4 +16,5 @@ before_install:
   - npm install grunt-cli
 script:
   - export PHANTOMJS_EXECUTABLE="~/bin/phantomjs190"
+  - ls ~/bin
   - grunt test_travis
