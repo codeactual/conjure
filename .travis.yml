@@ -3,6 +3,7 @@ node_js:
   - "0.10"
   - "0.8"
 before_install:
+  - mkdir ~/bin
   - export PATH=$PATH:~/bin
   - phantomjs --version
   - echo "installing CasperJS 1.0.2"
