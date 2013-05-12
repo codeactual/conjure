@@ -5,6 +5,7 @@ node_js:
 before_script:
   - wget http://phantomjs.googlecode.com/files/phantomjs-1.9.0-linux-i686.tar.bz2
   - tar -xvf phantomjs-1.9.0-linux-i686.tar.bz2
+  - phantomjs-1.9.0-linux-i686/bin/phantomjs --version
   - sudo mv phantomjs-1.9.0-linux-i686 /usr/local/phantomjs
   - wget https://github.com/n1k0/casperjs/archive/1.0.2.tar.gz -nv -O - | tar zx
   - sudo ln -s `pwd`/casperjs-1.0.2/bin/casperjs /usr/local/bin/casperjs
