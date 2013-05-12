@@ -2,7 +2,7 @@ language: node_js
 node_js:
   - "0.10"
   - "0.8"
-before_install:
+before_script:
   - wget http://phantomjs.googlecode.com/files/phantomjs-1.9.0-linux-i686.tar.bz2
   - tar -xvf phantomjs-1.9.0-linux-i686.tar.bz2
   - sudo mv phantomjs-1.9.0-linux-i686/bin/phantomjs `which phantomjs`
