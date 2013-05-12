@@ -10,6 +10,7 @@ before_script:
   - sudo ln -s `pwd`/casperjs-1.0.2/bin/casperjs /usr/local/bin/casperjs
   - npm install grunt-cli
   - ls /usr/local/phantomjs/bin/
+  - export PATH=$PATH:/usr/local/phantomjs/bin
   - phantomjs --version
   - casperjs --version
 script: grunt test_travis
