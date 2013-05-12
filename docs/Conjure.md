@@ -2,19 +2,21 @@ Parallel CasperJS runner, BDD flow, module-based tests, API helpers
 
 _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 
-- [exports.Conjure](#exportsconjure)
+<a name="tableofcontents"></a>
+
+- <a name="toc_exports"></a>[exports.Conjure](#exportsconjure)
 - [exports.create](#exportscreaterequirecasper)
 - [exports.extendConjure](#exportsextendconjureext)
 - [exports.extendAsyncHelpers](#exportsextendasynchelpersext)
 - [exports.extendSyncHelpers](#exportsextendsynchelpersext)
-- [Conjure](#conjurerequirecasper)
+- <a name="toc_conjure"></a>[Conjure](#conjurerequirecasper)
 - [Conjure.createContext](#conjurecreatecontextparent-pluck-omit)
-- [Conjure.prototype.isRunning](#conjureprototypeisrunning)
+- <a name="toc_conjureprototype"></a>[Conjure.prototype.isRunning](#conjureprototypeisrunning)
 - [Conjure.prototype.test](#conjureprototypetestname-cb)
 - [Conjure.prototype.run](#conjureprototyperun)
 - [Conjure.prototype.popStatus](#conjureprototypepopstatus)
 - [Conjure.prototype.pushStatus](#conjureprototypepushstatus)
-- [helpers.async.click](#helpersasyncclicksel-nativeclickfalse)
+- <a name="toc_helpersasync"></a>[helpers.async.click](#helpersasyncclicksel-nativeclickfalse)
 - [helpers.async.then](#helpersasyncthencb-laststeptrue)
 - [helpers.async.thenOpen](#helpersasyncthenopenargs)
 - [helpers.async.assertSelText](#helpersasyncassertseltextsel-text)
@@ -24,13 +26,17 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 - [helpers.async.selectorExists](#helpersasyncselectorexistssel-negate-laststeptrue)
 - [helpers.async.selectorMissing](#helpersasyncselectormissingsel-laststeptrue)
 - [helpers.async.sendKeys](#helpersasyncsendkeyssel-keys)
-- [helpers.sync.assertType](#helperssyncasserttypeval-expected-subject)
+- <a name="toc_helperssync"></a>[helpers.sync.assertType](#helperssyncasserttypeval-expected-subject)
 - [helpers.sync.require](#helperssyncrequirename)
 - [helpers.sync.url](#helperssyncurlrelurl)
+
+<a name="exports"></a>
 
 # exports.Conjure()
 
 > Reference to [Conjure](#conjurerequirecasper).
+
+<sub>Go: [TOC](#tableofcontents) | [exports](#toc_exports)</sub>
 
 # exports.create(requireCasper)
 
@@ -44,6 +50,8 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 
 `{object}`
 
+<sub>Go: [TOC](#tableofcontents) | [exports](#toc_exports)</sub>
+
 # exports.extendConjure(ext)
 
 > Extend [Conjure](#conjurerequirecasper).prototype.
@@ -55,6 +63,8 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 **Return:**
 
 `{object}` Merge result.
+
+<sub>Go: [TOC](#tableofcontents) | [exports](#toc_exports)</sub>
 
 # exports.extendAsyncHelpers(ext)
 
@@ -68,6 +78,8 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 
 `{object}` Merge result.
 
+<sub>Go: [TOC](#tableofcontents) | [exports](#toc_exports)</sub>
+
 # exports.extendSyncHelpers(ext)
 
 > Extend the object that includes functions like `url()`.
@@ -79,6 +91,8 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 **Return:**
 
 `{object}` Merge result.
+
+<sub>Go: [TOC](#tableofcontents) | [exports](#toc_exports)</sub>
 
 # Conjure(requireCasper)
 
@@ -138,6 +152,8 @@ conjure.set('exitOnError', false);
 
 - [Bddflow](https://github.com/codeactual/weir/blob/master/docs/Bddflow.md)
 
+<sub>Go: [TOC](#tableofcontents)</sub>
+
 # Conjure.createContext(parent, pluck, omit)
 
 > Build a context object that includes:
@@ -155,6 +171,10 @@ conjure.set('exitOnError', false);
 
 `{object}`
 
+<sub>Go: [TOC](#tableofcontents) | [Conjure](#toc_conjure)</sub>
+
+<a name="conjureprototype"></a>
+
 # Conjure.prototype.isRunning()
 
 > Check if `run()` has been called.
@@ -162,6 +182,8 @@ conjure.set('exitOnError', false);
 **Return:**
 
 `{boolean}`
+
+<sub>Go: [TOC](#tableofcontents) | [Conjure.prototype](#toc_conjureprototype)</sub>
 
 # Conjure.prototype.test(name, cb)
 
@@ -175,13 +197,19 @@ Silently add an initial describe() to verify initial URL/selector.
 - `{string} name`
 - `{function} cb`
 
+<sub>Go: [TOC](#tableofcontents) | [Conjure.prototype](#toc_conjureprototype)</sub>
+
 # Conjure.prototype.run()
 
 > Run collected BBD layers.
 
+<sub>Go: [TOC](#tableofcontents) | [Conjure.prototype](#toc_conjureprototype)</sub>
+
 # Conjure.prototype.popStatus()
 
 > Decrement the current stack depth for trace logs.
+
+<sub>Go: [TOC](#tableofcontents) | [Conjure.prototype](#toc_conjureprototype)</sub>
 
 # Conjure.prototype.pushStatus()
 
@@ -189,6 +217,10 @@ Silently add an initial describe() to verify initial URL/selector.
 event with the name of the depth change source.
 
 All args match [Conjure](#conjurerequirecasper).prototype.status.
+
+<sub>Go: [TOC](#tableofcontents) | [Conjure.prototype](#toc_conjureprototype)</sub>
+
+<a name="helpersasync"></a>
 
 # helpers.async.click(sel, [nativeClick=false])
 
@@ -199,6 +231,8 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 - `{string} sel`
 - `{boolean} [nativeClick=false]` Use `thenClick()` instead of jQuery's `click()`
 
+<sub>Go: [TOC](#tableofcontents) | [helpers.async](#toc_helpersasync)</sub>
+
 # helpers.async.then(cb, [lastStep=true])
 
 > `then()` alternative that with access to the same API as `it()`.
@@ -208,6 +242,8 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 - `{function} cb`
 - `{boolean} [lastStep=true]` Use false to prevent stack trace pop.
   - Ex. Use false in all-but-last-call if a helpers needs to call it multiple time
+
+<sub>Go: [TOC](#tableofcontents) | [helpers.async](#toc_helpersasync)</sub>
 
 # helpers.async.thenOpen(args*)
 
@@ -221,6 +257,8 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 
 - [thenOpen](http://casperjs.org/api.html#casper.thenOpen)
 
+<sub>Go: [TOC](#tableofcontents) | [helpers.async](#toc_helpersasync)</sub>
+
 # helpers.async.assertSelText(sel, text)
 
 > `assertTextExists()` alternative that uses jQuery selectors.
@@ -229,6 +267,8 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 
 - `{string} sel`
 - `{string | regexp} text`
+
+<sub>Go: [TOC](#tableofcontents) | [helpers.async](#toc_helpersasync)</sub>
 
 # helpers.async.each(list, cb)
 
@@ -240,6 +280,8 @@ Callback receives the context of the enclosing `then()`.
 - `{array} list`
 - `{function} cb` Receives (listItem).
 
+<sub>Go: [TOC](#tableofcontents) | [helpers.async](#toc_helpersasync)</sub>
+
 # helpers.async.openHash(hash, [sel])
 
 > Append a fragment ID to the current URL.
@@ -249,9 +291,13 @@ Callback receives the context of the enclosing `then()`.
 - `{string} hash` Without leading '#'.
 - `{string} [sel]` Optional selector to wait for after navigation.
 
+<sub>Go: [TOC](#tableofcontents) | [helpers.async](#toc_helpersasync)</sub>
+
 # helpers.async.openInitUrl()
 
 > Re-open the initial URL.
+
+<sub>Go: [TOC](#tableofcontents) | [helpers.async](#toc_helpersasync)</sub>
 
 # helpers.async.selectorExists(sel, [negate], [lastStep=true])
 
@@ -265,6 +311,8 @@ ex. ':first' syntax.
 - `{boolean} [lastStep=true]` Use false to prevent stack trace pop.
   - Ex. Use false in all-but-last-call if a helpers needs to call it multiple time
 
+<sub>Go: [TOC](#tableofcontents) | [helpers.async](#toc_helpersasync)</sub>
+
 # helpers.async.selectorMissing(sel, [lastStep=true])
 
 > Negated `selectorExists()`.
@@ -275,6 +323,8 @@ ex. ':first' syntax.
 - `{boolean} [lastStep=true]` Use false to prevent stack trace pop.
   - Ex. Use false in all-but-last-call if a helpers needs to call it multiple time
 
+<sub>Go: [TOC](#tableofcontents) | [helpers.async](#toc_helpersasync)</sub>
+
 # helpers.async.sendKeys(sel, keys)
 
 > `sendKeys()` alternative that first waits for a selector to exist.
@@ -283,6 +333,10 @@ ex. ':first' syntax.
 
 - `{string} sel`
 - `{string} keys`
+
+<sub>Go: [TOC](#tableofcontents) | [helpers.async](#toc_helpersasync)</sub>
+
+<a name="helperssync"></a>
 
 # helpers.sync.assertType(val, expected, subject)
 
@@ -293,6 +347,8 @@ ex. ':first' syntax.
 - `{mixed} val`
 - `{string} expected` Ex. 'number'
 - `{string} subject` Ex. 'user ID'
+
+<sub>Go: [TOC](#tableofcontents) | [helpers.sync](#toc_helperssync)</sub>
 
 # helpers.sync.require(name)
 
@@ -309,6 +365,8 @@ If rootdir is '/path/to/proj', './foo' will lead to `require('/path/to/proj/foo.
 
 `{mixed}` Loaded module.
 
+<sub>Go: [TOC](#tableofcontents) | [helpers.sync](#toc_helperssync)</sub>
+
 # helpers.sync.url(relUrl)
 
 > Convert a relative URL into a full.
@@ -320,5 +378,7 @@ If rootdir is '/path/to/proj', './foo' will lead to `require('/path/to/proj/foo.
 **Return:**
 
 `{string}`
+
+<sub>Go: [TOC](#tableofcontents) | [helpers.sync](#toc_helperssync)</sub>
 
 _&mdash;generated by [apidox](https://github.com/codeactual/apidox)&mdash;_
