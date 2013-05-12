@@ -29,20 +29,17 @@ module.exports = function(conjure) {
 };
 ```
 
-### Stack trace after timeout
+### Stack traces
 
-* Consecutive repeats are collapsed into a count ('x 40').
-* Colorized and displayed after all test failures.
+_Displayed after the standard `CasperJS` trace._
 
-```
-/my-test.js Auto-killed after 5000ms timeout
-/my-test.js conjure trace:
-/my-test.js     selectorExists (step: waitFor) x 40
-/my-test.js     describe (name: login page)
-/my-test.js     selectorExists (sel: .selector-does-not-exist)
-/my-test.js     it (name: should be loaded/found)
-/my-test.js     describe (name: initial URL/selector)
-```
+After `TypeError`:
+
+![Trace screenshot](http://codeactual.github.io/conjure/trace.png)
+
+Consecutive repeats are collapsed into a count (`x 40`):
+
+![Timeout trace screenshot](http://codeactual.github.io/conjure/timeout-trace.png)
 
 [More](docs/examples.md)
 
