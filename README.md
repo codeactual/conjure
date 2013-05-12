@@ -6,7 +6,7 @@ Parallel CasperJS runner, BDD flow, module-based tests, API helpers
 * `require('relative/path/in/my/proj/module.js)`
 * Bootstrap test modules with common settings and arguments
 * Full access to standard CasperJS APIs
-* [Helpers]](docs/test-api.md) use preexisting jQuery for selectors
+* [Helpers](docs/Conjure.md) use preexisting jQuery for selectors
 * Stack traces that cover `describe()/it()` and helpers
 
 [![Build Status](https://travis-ci.org/codeactual/conjure.png)](https://travis-ci.org/codeactual/conjure)
@@ -61,7 +61,7 @@ Basic run:
 > Run all test scripts under `&lt;cwd&gt;/test` that end with `.js`.
 > Kill the server.
 
-[CLI Documentation](docs/cli.md)
+[More Examples](docs/cli.md)
 
 ## API
 
@@ -73,18 +73,10 @@ Basic run:
 * `conjure`: Helpers described below.
 * Custom properties added to `this` in subsequently executed hooks and `it()` callbacks.
 
-### Documentation
+### API
 
 * [Examples](docs/examples.md)
-* [Conjure / Test Helpers](docs/Conjure.md)
-
-Internals:
-
-* [Process](docs/Process.md)
-* [ProcessBatch](docs/ProcessBatch.md)
-* [ProcessData](docs/ProcessData.md)
-* [Status](docs/Status.md)
-* [StatusList](docs/StatusList.md)
+* [Documentation](docs/Conjure.md)
 
 ## Installation
 
