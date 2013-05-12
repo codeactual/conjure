@@ -45,7 +45,7 @@ _By default, traces are limited to logs from the most recent `it()`._
 
 **After a timeout:**
 
-_Consecutive repeats are collapsed into a count (ex. `x 40`)._
+_Consecutive repeats are collapsed into a count (ex. `x 34`)._
 
 ![Timeout trace screenshot](http://codeactual.github.io/conjure/timeout-trace.png)
 
