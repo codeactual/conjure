@@ -2,6 +2,7 @@
 
 * feat(helpers): Resolve `thenOpen()` relative paths to `baseUrl` config.
 * feat(helpers): Make `url()` leading slash optional.
+* fix(log): Move `initPath/initSel` output to `trace()` to reduce noise.
 
 # 0.1.2
 

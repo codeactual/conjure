@@ -1334,14 +1334,13 @@
         };
         Conjure.prototype.run = function() {
             var self = this;
-            this.running = true;
             var initSel = this.get("initSel");
             var initPath = this.get("initPath");
-            var initMsg = "Opening [" + initPath + "]";
-            if (initSel) {
-                initMsg += " Waiting For Selector [" + initSel + "]";
-            }
-            this.casper.test.info(initMsg);
+            this.trace("config", {
+                initPath: initPath,
+                initSel: initSel || "<none>"
+            });
+            this.running = true;
             this.flow.run();
             this.casper.run(function conjureRunCasperTests() {
                 this.test.renderResults(true);
