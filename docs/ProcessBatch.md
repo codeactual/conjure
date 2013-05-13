@@ -4,10 +4,10 @@ _Source: [lib/cli/conjure/process-batch.js](../lib/cli/conjure/process-batch.js)
 
 <a name="tableofcontents"></a>
 
-- <a name="toc_exports"></a>[exports.create](#exportscreate)
+- <a name="toc_exportscreate"></a><a name="toc_exports"></a>[exports.create](#exportscreate)
 - <a name="toc_processbatch"></a>[ProcessBatch](#processbatch)
-- <a name="toc_processbatchprototype"></a>[ProcessBatch.prototype.push](#processbatchprototypepushfile)
-- [ProcessBatch.prototype.end](#processbatchprototypeend)
+- <a name="toc_processbatchprototypepushfile"></a><a name="toc_processbatchprototype"></a>[ProcessBatch.prototype.push](#processbatchprototypepushfile)
+- <a name="toc_processbatchprototypeend"></a>[ProcessBatch.prototype.end](#processbatchprototypeend)
 
 <a name="exports"></a>
 

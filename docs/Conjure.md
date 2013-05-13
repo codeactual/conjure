@@ -4,31 +4,31 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 
 <a name="tableofcontents"></a>
 
-- <a name="toc_exports"></a>[exports.Conjure](#exportsconjure)
-- [exports.create](#exportscreaterequirecasper)
-- [exports.extendConjure](#exportsextendconjureext)
-- [exports.extendAsyncHelpers](#exportsextendasynchelpersext)
-- [exports.extendSyncHelpers](#exportsextendsynchelpersext)
-- <a name="toc_conjure"></a>[Conjure](#conjurerequirecasper)
-- [Conjure.createContext](#conjurecreatecontextparent-pluck-omit)
-- <a name="toc_conjureprototype"></a>[Conjure.prototype.isRunning](#conjureprototypeisrunning)
-- [Conjure.prototype.test](#conjureprototypetestname-cb)
-- [Conjure.prototype.run](#conjureprototyperun)
-- [Conjure.prototype.popStatus](#conjureprototypepopstatus)
-- [Conjure.prototype.pushStatus](#conjureprototypepushstatus)
-- <a name="toc_helpersasync"></a>[helpers.async.click](#helpersasyncclicksel-nativeclickfalse)
-- [helpers.async.then](#helpersasyncthencb-laststeptrue)
-- [helpers.async.thenOpen](#helpersasyncthenopenargs)
-- [helpers.async.assertSelText](#helpersasyncassertseltextsel-text)
-- [helpers.async.each](#helpersasynceachlist-cb)
-- [helpers.async.openHash](#helpersasyncopenhashhash-sel)
-- [helpers.async.openInitUrl](#helpersasyncopeniniturl)
-- [helpers.async.selectorExists](#helpersasyncselectorexistssel-negate-laststeptrue)
-- [helpers.async.selectorMissing](#helpersasyncselectormissingsel-laststeptrue)
-- [helpers.async.sendKeys](#helpersasyncsendkeyssel-keys)
-- <a name="toc_helperssync"></a>[helpers.sync.assertType](#helperssyncasserttypeval-expected-subjectnone)
-- [helpers.sync.require](#helperssyncrequirename)
-- [helpers.sync.url](#helperssyncurlrelurl)
+- <a name="toc_exportsconjure"></a><a name="toc_exports"></a>[exports.Conjure](#exportsconjure)
+- <a name="toc_exportscreaterequirecasper"></a>[exports.create](#exportscreaterequirecasper)
+- <a name="toc_exportsextendconjureext"></a>[exports.extendConjure](#exportsextendconjureext)
+- <a name="toc_exportsextendasynchelpersext"></a>[exports.extendAsyncHelpers](#exportsextendasynchelpersext)
+- <a name="toc_exportsextendsynchelpersext"></a>[exports.extendSyncHelpers](#exportsextendsynchelpersext)
+- <a name="toc_conjurerequirecasper"></a>[Conjure](#conjurerequirecasper)
+- <a name="toc_conjurecreatecontextparent-pluck-omit"></a>[Conjure.createContext](#conjurecreatecontextparent-pluck-omit)
+- <a name="toc_conjureprototypeisrunning"></a><a name="toc_conjureprototype"></a>[Conjure.prototype.isRunning](#conjureprototypeisrunning)
+- <a name="toc_conjureprototypetestname-cb"></a>[Conjure.prototype.test](#conjureprototypetestname-cb)
+- <a name="toc_conjureprototyperun"></a>[Conjure.prototype.run](#conjureprototyperun)
+- <a name="toc_conjureprototypepopstatus"></a>[Conjure.prototype.popStatus](#conjureprototypepopstatus)
+- <a name="toc_conjureprototypepushstatus"></a>[Conjure.prototype.pushStatus](#conjureprototypepushstatus)
+- <a name="toc_helpersasyncclicksel-nativeclickfalse"></a><a name="toc_helpersasync"></a><a name="toc_helpers"></a>[helpers.async.click](#helpersasyncclicksel-nativeclickfalse)
+- <a name="toc_helpersasyncthencb-laststeptrue"></a>[helpers.async.then](#helpersasyncthencb-laststeptrue)
+- <a name="toc_helpersasyncthenopenargs"></a>[helpers.async.thenOpen](#helpersasyncthenopenargs)
+- <a name="toc_helpersasyncassertseltextsel-text"></a>[helpers.async.assertSelText](#helpersasyncassertseltextsel-text)
+- <a name="toc_helpersasynceachlist-cb"></a>[helpers.async.each](#helpersasynceachlist-cb)
+- <a name="toc_helpersasyncopenhashhash-sel"></a>[helpers.async.openHash](#helpersasyncopenhashhash-sel)
+- <a name="toc_helpersasyncopeniniturl"></a>[helpers.async.openInitUrl](#helpersasyncopeniniturl)
+- <a name="toc_helpersasyncselectorexistssel-negate-laststeptrue"></a>[helpers.async.selectorExists](#helpersasyncselectorexistssel-negate-laststeptrue)
+- <a name="toc_helpersasyncselectormissingsel-laststeptrue"></a>[helpers.async.selectorMissing](#helpersasyncselectormissingsel-laststeptrue)
+- <a name="toc_helpersasyncsendkeyssel-keys"></a>[helpers.async.sendKeys](#helpersasyncsendkeyssel-keys)
+- <a name="toc_helperssyncasserttypeval-expected-subjectnone"></a><a name="toc_helperssync"></a>[helpers.sync.assertType](#helperssyncasserttypeval-expected-subjectnone)
+- <a name="toc_helperssyncrequirename"></a>[helpers.sync.require](#helperssyncrequirename)
+- <a name="toc_helperssyncurlrelurl"></a>[helpers.sync.url](#helperssyncurlrelurl)
 
 <a name="exports"></a>
 
@@ -221,6 +221,8 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 <sub>Go: [TOC](#tableofcontents) | [Conjure.prototype](#toc_conjureprototype)</sub>
 
 <a name="helpersasync"></a>
+
+<a name="helpers"></a>
 
 # helpers.async.click(sel, [nativeClick=false])
 

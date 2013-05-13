@@ -4,9 +4,9 @@ _Source: [lib/cli/conjure/status-list.js](../lib/cli/conjure/status-list.js)_
 
 <a name="tableofcontents"></a>
 
-- <a name="toc_exports"></a>[exports.create](#exportscreate)
+- <a name="toc_exportscreate"></a><a name="toc_exports"></a>[exports.create](#exportscreate)
 - <a name="toc_statuslist"></a>[StatusList](#statuslist)
-- <a name="toc_statuslistprototype"></a>[StatusList.prototype.pushIfStatusFound](#statuslistprototypepushifstatusfoundstr)
+- <a name="toc_statuslistprototypepushifstatusfoundstr"></a><a name="toc_statuslistprototype"></a>[StatusList.prototype.pushIfStatusFound](#statuslistprototypepushifstatusfoundstr)
 
 <a name="exports"></a>
 

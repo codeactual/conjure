@@ -4,10 +4,10 @@ _Source: [lib/cli/conjure/process.js](../lib/cli/conjure/process.js)_
 
 <a name="tableofcontents"></a>
 
-- <a name="toc_exports"></a>[exports.create](#exportscreate)
+- <a name="toc_exportscreate"></a><a name="toc_exports"></a>[exports.create](#exportscreate)
 - <a name="toc_process"></a>[Process](#process)
-- <a name="toc_processprototype"></a>[Process.prototype.spawn](#processprototypespawn)
-- [Process.prototype.showTrace](#processprototypeshowtrace)
+- <a name="toc_processprototypespawn"></a><a name="toc_processprototype"></a>[Process.prototype.spawn](#processprototypespawn)
+- <a name="toc_processprototypeshowtrace"></a>[Process.prototype.showTrace](#processprototypeshowtrace)
 
 <a name="exports"></a>
 

@@ -4,7 +4,7 @@ _Source: [lib/cli/conjure/process-data.js](../lib/cli/conjure/process-data.js)_
 
 <a name="tableofcontents"></a>
 
-- <a name="toc_exports"></a>[exports.create](#exportscreate)
+- <a name="toc_exportscreate"></a><a name="toc_exports"></a>[exports.create](#exportscreate)
 - <a name="toc_processdata"></a>[ProcessData](#processdata)
 
 <a name="exports"></a>
