@@ -26,7 +26,7 @@ _Source: [lib/conjure/index.js](../lib/conjure/index.js)_
 - [helpers.async.selectorExists](#helpersasyncselectorexistssel-negate-laststeptrue)
 - [helpers.async.selectorMissing](#helpersasyncselectormissingsel-laststeptrue)
 - [helpers.async.sendKeys](#helpersasyncsendkeyssel-keys)
-- <a name="toc_helperssync"></a>[helpers.sync.assertType](#helperssyncasserttypeval-expected-subject)
+- <a name="toc_helperssync"></a>[helpers.sync.assertType](#helperssyncasserttypeval-expected-subjectnone)
 - [helpers.sync.require](#helperssyncrequirename)
 - [helpers.sync.url](#helperssyncurlrelurl)
 
@@ -226,6 +226,13 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 
 > click() alternative that uses jQuery selectors and first waits for a match.
 
+**Usage:**
+
+```js
+this.conjure.click('body'); // jQuery click
+this.conjure.click('body', true); // native CasperJS click
+```
+
 **Parameters:**
 
 - `{string} sel`
@@ -236,6 +243,15 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 # helpers.async.then(cb, [lastStep=true])
 
 > `then()` alternative that with access to the same API as `it()`.
+
+**Usage:**
+
+```js
+this.conjure.then(function() {
+  var validate = this.conjure.require('./lib/validation.js');
+  this.test.assert(validate.activationCode(this.casper.fetchText('.act-code')));
+});
+```
 
 **Parameters:**
 
@@ -248,6 +264,12 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 # helpers.async.thenOpen(args*)
 
 > `thenOpen()` alternative that with access to the same API as `it()`.
+
+**Usage:**
+
+```js
+this.conjure.thenOpen('/login');
+```
 
 **Parameters:**
 
@@ -263,6 +285,12 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 
 > `assertTextExists()` alternative that uses jQuery selectors.
 
+**Usage:**
+
+```js
+this.conjure.assertSelText('.username', 'user47');
+```
+
 **Parameters:**
 
 - `{string} sel`
@@ -275,6 +303,16 @@ All args match [Conjure](#conjurerequirecasper).prototype.status.
 > `casper.each()` alternative executes the callback inside the custom `then()`.
 Callback receives the context of the enclosing `then()`.
 
+**Usage:**
+
+```js
+var memberAreas = ['download', 'stats', 'collection'];
+this.conjure.each(memberAreas, function(area, idx, list) {
+  this.conjure.thenOpen('/#' + area);
+  this.conjure.assertSelText('.promote-acct', /Your free trial expires in/);
+});
+```
+
 **Parameters:**
 
 - `{array} list`
@@ -285,6 +323,13 @@ Callback receives the context of the enclosing `then()`.
 # helpers.async.openHash(hash, [sel])
 
 > Append a fragment ID to the current URL.
+
+**Usage:**
+
+```js
+this.conjure.openHash('inbox');
+this.conjure.openHash('inbox', '.msg-actions'); // Then wait for a selector match
+```
 
 **Parameters:**
 
@@ -304,6 +349,18 @@ Callback receives the context of the enclosing `then()`.
 > Alternative to `waitForSelector()` to use jQuery selector support,
 ex. ':first' syntax.
 
+**Usage:**
+
+```js
+this.conjure.selectorExists('.inbox');
+
+this.conjure.selectorExists('.inbox', true); // Expect selector absence
+this.conjure.selectorExists('.inbox', false); // Default
+
+this.conjure.selectorExists('.inbox', false, false); // Skip stack trace pop
+this.conjure.selectorExists('.inbox', false, true); // Default
+```
+
 **Parameters:**
 
 - `{string} sel`
@@ -317,6 +374,15 @@ ex. ':first' syntax.
 
 > Negated `selectorExists()`.
 
+**Usage:**
+
+```js
+this.conjure.selectorMissing('.inbox');
+
+this.conjure.selectorMissing('.inbox', false); // Skip stack trace pop
+this.conjure.selectorMissing('.inbox', true); // Default
+```
+
 **Parameters:**
 
 - `{string} sel`
@@ -329,6 +395,12 @@ ex. ':first' syntax.
 
 > `sendKeys()` alternative that first waits for a selector to exist.
 
+**Usage:**
+
+```js
+this.conjure.sendKeys('.username', 'user47');
+```
+
 **Parameters:**
 
 - `{string} sel`
@@ -338,38 +410,66 @@ ex. ':first' syntax.
 
 <a name="helperssync"></a>
 
-# helpers.sync.assertType(val, expected, subject)
+# helpers.sync.assertType(val, expected, [subject=none])
 
 > `assertType()` alternative that reveals the actual type on mismatch.
+
+**Usage:**
+
+```js
+// Identify subject value for error message
+this.conjure.assertType(val, 'string', 'username');
+
+this.conjure.assertType(val, 'string'); // Default; label = generic 'subject'
+```
 
 **Parameters:**
 
 - `{mixed} val`
 - `{string} expected` Ex. 'number'
-- `{string} subject` Ex. 'user ID'
+- `{string} [subject=none]` Ex. 'user ID'
 
 <sub>Go: [TOC](#tableofcontents) | [helpers.sync](#toc_helperssync)</sub>
 
 # helpers.sync.require(name)
 
-> `require()` a CasperJS module or any file relative to `--rootdir`.
+> `require()` a CasperJS module or any file relative to `--root-dir`.
+
+**Usage:**
+
+```js
+// Equivalent:
+this.conjure.require('lib/validation');
+this.conjure.require('lib/validation.js');
+this.conjure.require('./lib/validation');
+this.conjure.require('./lib/validation.js');
+```
 
 **Parameters:**
 
-- `{string} name` Ex. 'casper' or './relative/path/module.js'
-
-For local file: prefix with leading './'
-If rootdir is '/path/to/proj', './foo' will lead to `require('/path/to/proj/foo.js')`.
+- `{string} name` Ex. 'casper' or `./relative/path/module.js`
+  - For local file: prefix with leading `./`
+  - Ex. './foo' with `--root-dir` is `/path/to/proj` loads `/path/to/proj/foo.js')`
 
 **Return:**
 
-`{mixed}` Loaded module.
+`{mixed}`
 
 <sub>Go: [TOC](#tableofcontents) | [helpers.sync](#toc_helperssync)</sub>
 
 # helpers.sync.url(relUrl)
 
 > Convert a relative URL into a full.
+
+**Usage:**
+
+```js
+this.conjure.set('baseUrl', 'http://wwwdev:8000');
+this.conjure.test(function() {
+  // ...
+  var fullUrl = this.conjure.url('/login'); // 'http://wwwdev:8000/login'
+});
+```
 
 **Parameters:**
 
