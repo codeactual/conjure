@@ -418,15 +418,16 @@ this.conjure.sendKeys('.username', 'user47');
 
 # helpers.sync.assertType(val, expected, [subject=none])
 
-> `assertType()` alternative that reveals the actual type on mismatch.
+> `assertType()` alternative that outputs the actual type on mismatch.
 
 **Usage:**
 
 ```js
-// Identify subject value for error message
+// assertion error message: 'username should be a string'
 this.conjure.assertType(val, 'string', 'username');
 
-this.conjure.assertType(val, 'string'); // Default; label = generic 'subject'
+// assertion error message: 'subject should be a string'
+this.conjure.assertType(val, 'string');
 ```
 
 **Parameters:**
