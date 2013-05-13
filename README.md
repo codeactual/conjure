@@ -6,7 +6,7 @@ Parallel CasperJS runner, BDD flow, module-based tests, API helpers
 * `require('relative/path/in/my/proj/module.js)`
 * Bootstrap test modules with common settings and arguments
 * Full access to standard CasperJS APIs
-* [Helpers](docs/Conjure.md) use preexisting jQuery for selectors
+* [Helpers](docs/Conjure.md#toc_helpers) use preexisting jQuery for selectors
 * Stack traces that cover `describe()/it()` and helpers
 
 [![Build Status](https://travis-ci.org/codeactual/conjure.png)](https://travis-ci.org/codeactual/conjure)
@@ -75,8 +75,8 @@ Basic run:
 
 ### API
 
+* [Helpers](docs/Conjure.md#toc_helpers)
 * [Examples](docs/examples.md)
-* [Documentation](docs/Conjure.md)
 
 ## Installation
 
