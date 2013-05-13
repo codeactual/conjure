@@ -42,10 +42,10 @@ module.exports = function(conjure) {
 
     this.describe('openHash', function() {
       this.it('should tag last step when not waiting for selector' , function() {
-        this.conjure.openHash('#foo');
+        this.conjure.openHash('foo');
       });
       this.it('should tag last step when waiting for selector' , function() {
-        this.conjure.openHash('#foo', 'body');
+        this.conjure.openHash('foo', 'body');
       });
     });
 
