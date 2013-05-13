@@ -78,18 +78,44 @@ describe('helpers', function() {
 
   describe('thenOpen', function() {
     beforeEach(function() {
+      this.stubs.conjure.get.restore();
       this.stubs.casper.thenOpen.yieldsOn(this.thenContext);
       this.stubs.helper.thenOpen.restore();
-      this.conjure.conjure.thenOpen(this.url, this.stubs.cb);
     });
     it('should inject context', function() {
+      this.conjure.conjure.thenOpen(this.url, this.stubs.cb);
       this.stubs.extend.should.have.been.calledWith(
         this.createdContext,
         {casper: this.conjure.casper, test: this.testApi}
       );
       this.stubs.cb.should.have.been.calledOn(this.extendResult);
     });
+    it('should detect relative path with leading slash', function() {
+      this.conjure.conjure.thenOpen('/login', this.stubs.cb);
+      this.stubs.casper.thenOpen.should.have.been.calledWith(
+        'http://localhost:8174/login'
+      );
+    });
+    it('should detect relative path without leading slash', function() {
+      this.conjure.conjure.thenOpen('login', this.stubs.cb );
+      this.stubs.casper.thenOpen.should.have.been.calledWith(
+        'http://localhost:8174/login'
+      );
+    });
+    it('should detect http proto', function() {
+      this.conjure.conjure.thenOpen('http://host/path', this.stubs.cb );
+      this.stubs.casper.thenOpen.should.have.been.calledWith(
+        'http://host/path'
+      );
+    });
+    it('should detect https proto', function() {
+      this.conjure.conjure.thenOpen('https://host/path', this.stubs.cb );
+      this.stubs.casper.thenOpen.should.have.been.calledWith(
+        'https://host/path'
+      );
+    });
     it('should trace steps', function() {
+      this.conjure.conjure.thenOpen(this.url, this.stubs.cb);
       this.stubs.conjure.trace.should.have.been.calledWithExactly(
         'args', {url: this.url}
 );
@@ -314,8 +340,11 @@ describe('helpers', function() {
       this.stubs.helper.url.restore();
       this.stubs.conjure.get.restore();
     });
-    it('should append relative URL to base', function() {
-      this.conjure.conjure.url(this.relUrl).should.equal('http://localhost:8174' + this.relUrl);
+    it('should append relative path with slash', function() {
+      this.conjure.conjure.url('/login').should.equal('http://localhost:8174/login');
+    });
+    it('should append relative path without slash', function() {
+      this.conjure.conjure.url('login').should.equal('http://localhost:8174/login');
     });
   });
 });

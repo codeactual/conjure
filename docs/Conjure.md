@@ -264,11 +264,15 @@ this.conjure.then(function() {
 # helpers.async.thenOpen(args*)
 
 > `thenOpen()` alternative that with access to the same API as `it()`.
+Alternative to `thenOpen()` that resolves relative paths to `baseUrl` config.
 
 **Usage:**
 
 ```js
+// Equivalent:
 this.conjure.thenOpen('/login');
+this.conjure.thenOpen('login');
+this.conjure.thenOpen('http://localhost:8000/login');
 ```
 
 **Parameters:**
@@ -459,21 +463,19 @@ this.conjure.require('./lib/validation.js');
 
 # helpers.sync.url(relUrl)
 
-> Convert a relative URL into a full.
+> Resolve a relative URL to the `baseUrl` config.
 
 **Usage:**
 
 ```js
-this.conjure.set('baseUrl', 'http://wwwdev:8000');
-this.conjure.test(function() {
-  // ...
-  var fullUrl = this.conjure.url('/login'); // 'http://wwwdev:8000/login'
-});
+// Equivalent:
+this.conjure.url('/login');
+this.conjure.url('login');
 ```
 
 **Parameters:**
 
-- `{string} relUrl` Includes leading slash.
+- `{string} relUrl`
 
 **Return:**
 

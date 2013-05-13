@@ -1404,6 +1404,7 @@
         helpers.async.thenOpen = function() {
             var self = this;
             var args = conjureWrapFirstCallbackInConjureContext(this, arguments, true);
+            args[0] = /^https?:\/\//.test(args[0]) ? args[0] : this.url(args[0]);
             this.trace("args", {
                 url: args[0]
             });
@@ -1536,7 +1537,7 @@
             return require(name);
         };
         helpers.sync.url = function(relUrl) {
-            return this.get("baseUrl") + relUrl;
+            return this.get("baseUrl") + (relUrl[0] === "/" ? relUrl : "/" + relUrl);
         };
         function conjureWrapFirstCallbackInConjureContext(self, args, last) {
             var extend = require("extend");
