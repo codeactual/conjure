@@ -10,7 +10,7 @@
 
 ## CLI: Test case filtering via `--grep-case`
 
-> Find all test scripts under `&lt;cwd&gt;/test` that end with `.js`.
+> Find all test scripts under `<cwd>/test` that end with `.js`.
 > Only use `it()` expectations that match `/validate$/`.
 
     conjure \
@@ -19,7 +19,7 @@
 
 ## CLI: Custom file layout/location
 
-> Find all test scripts under `&lt;--root-dir&gt;/&lt;--test-dir&gt;` that end with `test.js`.
+> Find all test scripts under `[--root-dir]/[--test-dir]` that end with `test.js`.
 
     conjure \
     --server /path/to/myproj/http-server \
