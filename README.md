@@ -31,7 +31,8 @@ module.exports = function(conjure) {
 
 ### Stack traces
 
-Displayed after the standard `CasperJS` trace.
+* Displayed after the standard `CasperJS` trace.
+* Cover `describe()/it()` and helpers.
 
 **After `TypeError`:**
 
@@ -58,7 +59,7 @@ Basic run:
     conjure --server /path/to/myproj/http-server
 
 > Start the server.
-> Run all test scripts under `&lt;cwd&gt;/test` that end with `.js`.
+> Run all test scripts under `<cwd>/test` that end with `.js`.
 > Kill the server.
 
 [More Examples](docs/cli.md)
