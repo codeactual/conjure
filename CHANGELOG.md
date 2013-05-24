@@ -1,12 +1,9 @@
-# 0.1.4
-
-* chore(npm): Upgrade outdated dev dependencies
-
 # 0.1.3
 
 * feat(helpers): Resolve `thenOpen()` relative paths to `baseUrl` config.
 * feat(helpers): Make `url()` leading slash optional.
 * fix(log): Move `initPath/initSel` output to `trace()` to reduce noise.
+* chore(npm): Upgrade outdated dev dependencies
 
 # 0.1.2
 
