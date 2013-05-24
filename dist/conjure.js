@@ -533,6 +533,35 @@
             return obj === Object(obj);
         };
     });
+    require.register("component-type/index.js", function(exports, require, module) {
+        var toString = Object.prototype.toString;
+        module.exports = function(val) {
+            switch (toString.call(val)) {
+              case "[object Function]":
+                return "function";
+
+              case "[object Date]":
+                return "date";
+
+              case "[object RegExp]":
+                return "regexp";
+
+              case "[object Arguments]":
+                return "arguments";
+
+              case "[object Array]":
+                return "array";
+
+              case "[object String]":
+                return "string";
+            }
+            if (val === null) return "null";
+            if (val === undefined) return "undefined";
+            if (val && val.nodeType === 1) return "element";
+            if (val === Object(val)) return "object";
+            return typeof val;
+        };
+    });
     require.register("component-clone/index.js", function(exports, require, module) {
         var type;
         try {
@@ -1002,35 +1031,6 @@
             return function() {
                 return fn.apply(obj, args.concat(slice.call(arguments)));
             };
-        };
-    });
-    require.register("component-type/index.js", function(exports, require, module) {
-        var toString = Object.prototype.toString;
-        module.exports = function(val) {
-            switch (toString.call(val)) {
-              case "[object Function]":
-                return "function";
-
-              case "[object Date]":
-                return "date";
-
-              case "[object RegExp]":
-                return "regexp";
-
-              case "[object Arguments]":
-                return "arguments";
-
-              case "[object Array]":
-                return "array";
-
-              case "[object String]":
-                return "string";
-            }
-            if (val === null) return "null";
-            if (val === undefined) return "undefined";
-            if (val && val.nodeType === 1) return "element";
-            if (val === Object(val)) return "object";
-            return typeof val;
         };
     });
     require.register("component-each/index.js", function(exports, require, module) {
@@ -1576,14 +1576,18 @@
     });
     require.alias("codeactual-enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/lib/enumerable-prop/index.js");
     require.alias("codeactual-enumerable-prop/lib/enumerable-prop/index.js", "conjure/deps/enumerable-prop/index.js");
+    require.alias("codeactual-enumerable-prop/lib/enumerable-prop/index.js", "enumerable-prop/index.js");
     require.alias("component-enumerable/index.js", "codeactual-enumerable-prop/deps/enumerable/index.js");
     require.alias("component-to-function/index.js", "component-enumerable/deps/to-function/index.js");
     require.alias("codeactual-enumerable-prop/lib/enumerable-prop/index.js", "codeactual-enumerable-prop/index.js");
     require.alias("codeactual-extend/index.js", "conjure/deps/extend/index.js");
+    require.alias("codeactual-extend/index.js", "extend/index.js");
     require.alias("codeactual-is/index.js", "conjure/deps/is/index.js");
+    require.alias("codeactual-is/index.js", "is/index.js");
     require.alias("manuelstofer-each/index.js", "codeactual-is/deps/each/index.js");
     require.alias("codeactual-weir/lib/weir/index.js", "conjure/deps/weir/lib/weir/index.js");
     require.alias("codeactual-weir/lib/weir/index.js", "conjure/deps/weir/index.js");
+    require.alias("codeactual-weir/lib/weir/index.js", "weir/index.js");
     require.alias("visionmedia-configurable.js/index.js", "codeactual-weir/deps/configurable.js/index.js");
     require.alias("codeactual-extend/index.js", "codeactual-weir/deps/extend/index.js");
     require.alias("visionmedia-batch/index.js", "codeactual-weir/deps/batch/index.js");
@@ -1594,11 +1598,15 @@
     require.alias("component-bind/index.js", "codeactual-weir/deps/bind/index.js");
     require.alias("codeactual-weir/lib/weir/index.js", "codeactual-weir/index.js");
     require.alias("component-bind/index.js", "conjure/deps/bind/index.js");
+    require.alias("component-bind/index.js", "bind/index.js");
     require.alias("component-each/index.js", "conjure/deps/each/index.js");
+    require.alias("component-each/index.js", "each/index.js");
     require.alias("component-type/index.js", "component-each/deps/type/index.js");
     require.alias("visionmedia-batch/index.js", "conjure/deps/batch/index.js");
+    require.alias("visionmedia-batch/index.js", "batch/index.js");
     require.alias("component-emitter/index.js", "visionmedia-batch/deps/emitter/index.js");
     require.alias("visionmedia-configurable.js/index.js", "conjure/deps/configurable.js/index.js");
+    require.alias("visionmedia-configurable.js/index.js", "configurable.js/index.js");
     require.alias("conjure/lib/conjure/index.js", "conjure/index.js");
     if (typeof exports == "object") {
         module.exports = require("conjure");
@@ -1607,6 +1615,6 @@
             return require("conjure");
         });
     } else {
-        window["conjure"] = require("conjure");
+        this["conjure"] = require("conjure");
     }
 })();

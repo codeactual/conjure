@@ -1,7 +1,7 @@
 {
   "name": "conjure",
   "description": "Parallel CasperJS runner, BDD flow, module-based tests, API helpers",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": "index.js",
   "bin": "./bin/conjure",
   "keywords": [
@@ -32,23 +32,23 @@
   },
   "dependencies": {
     "commander": "~1.1.1",
-    "impulse-bin": "~0.1.2",
-    "outer-shelljs": "~0.3.3"
+    "impulse-bin": "~0.1.3",
+    "outer-shelljs": "~0.3.4"
   },
   "devDependencies": {
-    "chai": "~1.5.0",
-    "component": "~0.13.2",
-    "express": "~3.1.0",
-    "apidox": "~0.2.0",
+    "chai": "~1.6.0",
+    "component": "~0.16.0",
+    "express": "~3.2.5",
+    "apidox": "~0.3.1",
     "grunt": "~0.4.1",
-    "grunt-contrib-jshint": "~0.3.0",
+    "grunt-contrib-jshint": "~0.5.4",
     "grunt-contrib-uglify": "~0.2.0",
     "grunt-shell": "~0.2.1",
-    "mocha": "~1.9.0",
-    "sinon": "~1.6.0",
-    "sinon-chai": "~2.3.1",
-    "sinon-doublist": "~0.3.3",
-    "sinon-doublist-fs": "~0.2.3"
+    "mocha": "~1.10.0",
+    "sinon": "~1.7.2",
+    "sinon-chai": "~2.4.0",
+    "sinon-doublist": "~0.4.1",
+    "sinon-doublist-fs": "~0.3.1"
   },
   "scripts": {
     "test": "grunt test"

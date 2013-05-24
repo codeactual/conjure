@@ -1,3 +1,7 @@
+# 0.1.4
+
+* chore(npm): Upgrade outdated dev dependencies
+
 # 0.1.3
 
 * feat(helpers): Resolve `thenOpen()` relative paths to `baseUrl` config.
