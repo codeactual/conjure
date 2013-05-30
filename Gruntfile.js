@@ -7,6 +7,7 @@ module.exports = function(grunt) {
     .demand('instanceName', 'conjure')
     .demand('klassName', 'Conjure')
     .loot('node-component-grunt')
+    .loot('node-lib-grunt')
     .loot('node-bin-grunt')
     .loot('./config/grunt')
     .attack();

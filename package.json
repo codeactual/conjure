@@ -51,7 +51,8 @@
     "sinon-doublist-fs": "~0.3.1",
     "grunt-horde": "~0.2.1",
     "node-component-grunt": "git://github.com/codeactual/node-component-grunt.git",
-    "node-bin-grunt": "git://github.com/codeactual/node-bin-grunt.git"
+    "node-bin-grunt": "git://github.com/codeactual/node-bin-grunt.git",
+    "node-lib-grunt": "git://github.com/codeactual/node-lib-grunt.git"
   },
   "scripts": {
     "test": "grunt test"
