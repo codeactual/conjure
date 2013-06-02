@@ -3,11 +3,11 @@ module.exports = function(grunt) {
 
   return {
     test_bin: {
-      options: this.learn('mochaShelljsOpt'),
+      options: this.learn('initConfig.mochaShelljsOpt'),
       command: 'mocha --reporter tap --globals $,window test/mocha/bin.js'
     },
     test_helpers: {
-      options: this.learn('mochaShelljsOpt'),
+      options: this.learn('initConfig.mochaShelljsOpt'),
       command: 'mocha --reporter tap --globals $,window test/mocha/lib/conjure/helpers.js'
     },
     dox_lib: {

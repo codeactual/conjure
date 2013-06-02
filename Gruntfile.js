@@ -3,9 +3,9 @@ module.exports = function(grunt) {
 
   require('grunt-horde')
     .create(grunt)
-    .demand('projName', 'conjure')
-    .demand('instanceName', 'conjure')
-    .demand('klassName', 'Conjure')
+    .demand('initConfig.projName', 'conjure')
+    .demand('initConfig.instanceName', 'conjure')
+    .demand('initConfig.klassName', 'Conjure')
     .loot('node-component-grunt')
     .loot('node-lib-grunt')
     .loot('node-bin-grunt')
