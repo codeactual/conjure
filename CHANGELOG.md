@@ -4,6 +4,7 @@
 - feat(cli): Abort on `--server` death
 - fix(cli): Verify `--server` file exists
 - fix(cli): Filter `--bootstrap` from `--test-dir` scan
+- fix(cli): Normalize paths (for verbose output use in debugging)
 
 # 0.1.3
 
