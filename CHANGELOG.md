@@ -1,6 +1,9 @@
 # 0.1.4
 
+- feat(cli): Echo test server stdout/stderr
+- feat(cli): Abort on `--server` death
 - fix(cli): Verify `--server` file exists
+- fix(cli): Filter `--bootstrap` from `--test-dir` scan
 
 # 0.1.3
 
