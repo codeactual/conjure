@@ -6,9 +6,16 @@ module.exports = function(conjure) {
     this.describe('describe1', function() {
       this.describe('describe2', function() {
         this.describe('describe3', function() {
-          this.it('it1' , function() {
+          this.it('it1', function(done) {
+            var self = this;
             console.log('path=' + this.__conjure__path);
-            this.test.assert(true);
+            // Brittle workaround for race condition where `casperjs` evaluates
+            // the assert() and exits cleanly before console.log() emits to stdout
+            // (observed on TravisCI).
+            setTimeout(function() {
+              self.test.assert(true);
+              done();
+            }, 200);
           });
         });
       });
