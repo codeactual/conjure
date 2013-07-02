@@ -63,6 +63,9 @@
   },
   "author": "David Smith <codeactual@gmail.com>",
   "devdir-ci": {
-    "version": 1
+    "version": 1,
+    "travis": {
+      "before_script": false
+    }
   }
 }
